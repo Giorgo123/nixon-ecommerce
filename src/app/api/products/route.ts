@@ -1,56 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
+
+async function getPrisma() {
+  const { default: prisma } = await import("@/lib/prisma");
+  return prisma;
+}
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const slug = searchParams.get("slug");
     const category = searchParams.get("category");
-
-    let products;
+    const catalogProducts = getCatalogProducts();
 
     if (slug) {
-      // Buscar producto por slug
-      try {
-        const product = await prisma.product.findUnique({
-          where: { slug },
-        });
-        if (product) return NextResponse.json(product);
-      } catch {
-        // Fallback a JSON
-        const product = getCatalogProductBySlug(slug);
-        return NextResponse.json(product || null);
-      }
+      return NextResponse.json(getCatalogProductBySlug(slug) || null);
     }
 
     if (category) {
-      // Filtrar por categoría
-      try {
-        products = await prisma.product.findMany({
-          where: { category },
-          orderBy: { createdAt: "desc" },
-        });
-      } catch {
-        // Fallback a JSON
-        products = getCatalogProducts().filter((product) => product.category === category);
-      }
-    } else {
-      // Obtener todos los productos
-      try {
-        products = await prisma.product.findMany({
-          orderBy: { createdAt: "desc" },
-        });
-      } catch {
-        // Fallback a JSON
-        products = getCatalogProducts();
-      }
+      return NextResponse.json(
+        catalogProducts.filter((product) => product.category === category)
+      );
     }
 
-    return NextResponse.json(products);
+    return NextResponse.json(catalogProducts);
   } catch (error) {
     console.error("Error fetching products:", error);
-    // Último fallback
     return NextResponse.json(getCatalogProducts());
   }
 }
@@ -59,7 +34,6 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
 
-    // Validar campos requeridos
     if (!data.name || !data.price || !data.slug) {
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -67,6 +41,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const prisma = await getPrisma();
     const product = await prisma.product.create({
       data: {
         name: data.name,
