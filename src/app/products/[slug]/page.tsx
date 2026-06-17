@@ -1,18 +1,108 @@
-export const dynamic = 'force-dynamic';
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import ProductActions from "@/components/product/ProductActions";
+import {
+  catalogCategoryLabels,
+  getCatalogProductBySlug,
+  getCatalogProducts,
+} from "@/lib/catalog";
 
-export default async function ProductDetailPage({
+export const dynamic = "force-static";
+
+export function generateStaticParams() {
+  return getCatalogProducts().map((product) => ({
+    slug: product.slug,
+  }));
+}
+
+export default function ProductDetailPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }) {
-  const { slug } = await params;
+  const product = getCatalogProductBySlug(params.slug);
+
+  if (!product) {
+    notFound();
+  }
+
+  const price = product.price.toLocaleString("es-AR");
+  const categoryLabel =
+    catalogCategoryLabels[product.category] ?? product.category;
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="text-2xl font-semibold tracking-tight">{slug}</h1>
-      <p className="mt-2 text-sm text-black/70 dark:text-white/70">
-        Placeholder del detalle. Próximo: galería + talles + agregar al carrito.
-      </p>
+    <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-16">
+      <div className="mb-8">
+        <Link
+          href="/products"
+          className="text-sm font-medium text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white"
+        >
+          ← Volver al catálogo
+        </Link>
+      </div>
+
+      <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+        <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-black/5 dark:bg-white/5">
+          <Image
+            src={product.image}
+            alt={product.name}
+            fill
+            priority
+            className="object-cover object-center"
+          />
+        </div>
+
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-red-500">
+              {categoryLabel}
+            </p>
+            <h1 className="text-3xl font-black tracking-tight text-black dark:text-white sm:text-4xl">
+              {product.name}
+            </h1>
+            <p className="text-base leading-7 text-black/70 dark:text-white/70">
+              {product.description}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-black/10 bg-black/5 p-5 dark:border-white/10 dark:bg-white/5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm text-black/60 dark:text-white/60">
+                  Precio
+                </p>
+                <p className="text-3xl font-black text-black dark:text-white">
+                  ${price}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-black/60 dark:text-white/60">
+                  Stock
+                </p>
+                <p className="text-lg font-semibold text-black dark:text-white">
+                  {product.stock > 0 ? `${product.stock} disponibles` : "Agotado"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/products"
+              className="inline-flex items-center justify-center rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5 dark:bg-white dark:text-black"
+            >
+              Seguir viendo
+            </Link>
+            <ProductActions product={product} />
+          </div>
+
+          <div className="space-y-3 text-sm text-black/60 dark:text-white/60">
+            <p>Slug: {product.slug}</p>
+            <p>SEO: {product.seo}</p>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
