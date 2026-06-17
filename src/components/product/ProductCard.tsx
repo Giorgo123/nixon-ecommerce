@@ -2,17 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import useCartStore from "@/store/cart.store";
 import type { Product } from "@/features/products/types";
+import { catalogCategoryLabels } from "@/lib/catalog";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const addItem = useCartStore((state) => state.addItem);
+
   return (
-    <Link href={`/products/${product.slug}`}>
-      <article className="group cursor-pointer overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-900">
-        {/* Imagen */}
+    <article className="group overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-900">
+      <Link href={`/products/${product.slug}`}>
         <div className="relative h-64 w-full overflow-hidden bg-gray-200 dark:bg-gray-800">
           <Image
             src={product.image}
@@ -22,29 +25,38 @@ export default function ProductCard({ product }: ProductCardProps) {
           />
           {product.stock <= 0 && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-              <span className="text-white font-semibold">Agotado</span>
+              <span className="font-semibold text-white">Agotado</span>
             </div>
           )}
         </div>
+      </Link>
 
-        {/* Contenido */}
-        <div className="p-4">
-          <h3 className="text-sm font-semibold text-black dark:text-white line-clamp-2">
+      <div className="p-4">
+        <Link href={`/products/${product.slug}`}>
+          <h3 className="line-clamp-2 text-sm font-semibold text-black dark:text-white">
             {product.name}
           </h3>
-          <p className="mt-2 text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
-            {product.description}
-          </p>
-          <div className="mt-4 flex items-center justify-between">
-            <span className="text-lg font-bold text-black dark:text-white">
-              ${product.price.toLocaleString("es-AR")}
-            </span>
-            <span className="text-xs uppercase text-gray-500 dark:text-gray-400">
-              {product.category === "oversize" ? "Oversize" : "Regular"}
-            </span>
-          </div>
+        </Link>
+        <p className="mt-2 line-clamp-2 text-xs text-gray-600 dark:text-gray-400">
+          {product.description}
+        </p>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <span className="text-lg font-bold text-black dark:text-white">
+            ${product.price.toLocaleString("es-AR")}
+          </span>
+          <span className="rounded-full border border-black/10 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-black/60 dark:border-white/10 dark:text-white/60">
+            {catalogCategoryLabels[product.category] ?? product.category}
+          </span>
+          <button
+            type="button"
+            disabled={product.stock <= 0}
+            onClick={() => addItem(product, 1)}
+            className="rounded-full bg-black px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 disabled:cursor-not-allowed disabled:bg-black/30 dark:bg-white dark:text-black dark:hover:bg-white/80 dark:disabled:bg-white/30"
+          >
+            Agregar
+          </button>
         </div>
-      </article>
-    </Link>
+      </div>
+    </article>
   );
 }

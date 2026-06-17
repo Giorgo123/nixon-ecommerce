@@ -42,6 +42,11 @@ El app estará en `http://localhost:3000`
 - **Navbar**: Links a `/products`, `/cart`, `/admin/login`
 - **Footer**: Copyright y redes
 
+### 4. Credenciales de desarrollo
+- **Admin**: `admin@nixonstudio.com`
+- **Password**: `admin123`
+- **Mercado Pago**: agregar `MERCADOPAGO_ACCESS_TOKEN` y `NEXT_PUBLIC_SITE_URL` en `.env`
+
 ---
 
 ## 🗄️ Base de Datos (Cuando Railway esté disponible)
@@ -115,6 +120,7 @@ Cuando estés listo:
 - Cuando Railway esté disponible, cambiar a datos reales es transparente
 - Los componentes ya están listos para recibir data real
 - TypeScript compila sin errores ✅
+- El checkout de Mercado Pago no funciona sin `MERCADOPAGO_ACCESS_TOKEN`
 
 ---
 

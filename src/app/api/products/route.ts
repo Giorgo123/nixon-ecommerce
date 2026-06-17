@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import fallbackProducts from "@/data/products.json";
+import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,9 +17,9 @@ export async function GET(request: NextRequest) {
           where: { slug },
         });
         if (product) return NextResponse.json(product);
-      } catch (error) {
+      } catch {
         // Fallback a JSON
-        const product = fallbackProducts.products.find((p) => p.slug === slug);
+        const product = getCatalogProductBySlug(slug);
         return NextResponse.json(product || null);
       }
     }
@@ -31,9 +31,9 @@ export async function GET(request: NextRequest) {
           where: { category },
           orderBy: { createdAt: "desc" },
         });
-      } catch (error) {
+      } catch {
         // Fallback a JSON
-        products = fallbackProducts.products.filter((p) => p.category === category);
+        products = getCatalogProducts().filter((product) => product.category === category);
       }
     } else {
       // Obtener todos los productos
@@ -41,9 +41,9 @@ export async function GET(request: NextRequest) {
         products = await prisma.product.findMany({
           orderBy: { createdAt: "desc" },
         });
-      } catch (error) {
+      } catch {
         // Fallback a JSON
-        products = fallbackProducts.products;
+        products = getCatalogProducts();
       }
     }
 
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching products:", error);
     // Último fallback
-    return NextResponse.json(fallbackProducts.products);
+    return NextResponse.json(getCatalogProducts());
   }
 }
 

@@ -4,7 +4,7 @@ export interface Product {
   description: string;
   price: number;
   image: string;
-  category: "remera" | "oversize";
+  category: "remera" | "oversize" | "buzo" | "taza" | "poster";
   slug: string;
   stock: number;
   seo?: string;
