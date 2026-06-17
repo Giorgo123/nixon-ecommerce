@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { isDatabaseConnectionError } from "@/lib/db-safe";
 
+
 export const dynamic = "force-dynamic";
 
 const statusBadgeClasses: Record<string, string> = {
@@ -12,7 +13,7 @@ const statusBadgeClasses: Record<string, string> = {
 };
 
 export default async function AdminOrdersPage() {
-  let orders = [];
+  let orders: Awaited<ReturnType<typeof prisma.order.findMany>> = [];
   let databaseUnavailable = false;
 
   try {

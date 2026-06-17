@@ -8,8 +8,8 @@ export interface Product {
   slug: string;
   stock: number;
   seo?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ProductWithRelations extends Product {
