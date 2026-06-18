@@ -2,8 +2,9 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { isDatabaseConnectionError } from "@/lib/db-safe";
 
-
 export const dynamic = "force-dynamic";
+
+type OrdersListItem = Awaited<ReturnType<typeof prisma.order.findMany>>[number];
 
 const statusBadgeClasses: Record<string, string> = {
   pending: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
@@ -55,7 +56,7 @@ export default async function AdminOrdersPage() {
           </div>
         )}
 
-        {orders.map((order) => (
+        {orders.map((order: OrdersListItem) => (
           <Link
             key={order.id}
             href={`/admin/orders/${order.id}`}

@@ -1,10 +1,21 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import OrderStatusActions from "@/components/admin/OrderStatusActions";
 import { catalogCategoryLabels } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
+
+type OrderWithItems = Prisma.OrderGetPayload<{
+  include: {
+    items: {
+      include: {
+        product: true;
+      };
+    };
+  };
+}>;
 
 export default async function AdminOrderDetailPage({
   params,
@@ -13,7 +24,7 @@ export default async function AdminOrderDetailPage({
 }) {
   const { id } = await params;
 
-  const order = await prisma.order.findUnique({
+  const order: OrderWithItems | null = await prisma.order.findUnique({
     where: { id },
     include: {
       items: {

@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { createPendingOrder } from "@/lib/order";
 
+type PendingOrderItem = {
+  productId: string;
+  quantity: number;
+  price: number;
+  product: {
+    name: string;
+    description: string;
+    image: string;
+    category: string;
+  };
+};
+
 export async function POST(request: NextRequest) {
   try {
     if (!process.env.MERCADOPAGO_ACCESS_TOKEN) {
@@ -18,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     const order = await createPendingOrder({ customer, items });
-    const mpItems = order.items.map((item) => ({
+    const mpItems = order.items.map((item: PendingOrderItem) => ({
       id: item.productId,
       title: item.product.name,
       description: item.product.description,
