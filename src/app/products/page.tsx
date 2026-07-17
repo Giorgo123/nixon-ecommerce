@@ -1,10 +1,13 @@
 import ProductCatalog from "@/components/product/ProductCatalog";
-import { getCatalogProducts } from "@/lib/catalog";
+import { getCatalogCategories, getCatalogProducts } from "@/lib/catalog";
 
 export const dynamic = "force-static";
 
-export default function ProductsPage() {
-  const products = getCatalogProducts();
+export default async function ProductsPage() {
+  const [products, categories] = await Promise.all([
+    getCatalogProducts(),
+    getCatalogCategories(),
+  ]);
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-16">
@@ -21,7 +24,7 @@ export default function ProductsPage() {
         </p>
       </div>
 
-      <ProductCatalog products={products} />
+      <ProductCatalog products={products} categories={categories} />
     </main>
   );
 }

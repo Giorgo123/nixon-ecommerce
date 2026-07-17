@@ -3,16 +3,17 @@
 import { useState } from "react";
 import ProductGrid from "@/components/product/ProductGrid";
 import type { Product } from "@/features/products/types";
-import { catalogCategoryLabels, getCatalogCategories } from "@/lib/catalog";
+import { catalogCategoryLabels } from "@/lib/categories";
 
 interface ProductCatalogProps {
   products: Product[];
+  categories: string[];
 }
 
-export default function ProductCatalog({ products }: ProductCatalogProps) {
+export default function ProductCatalog({ products, categories: baseCategories }: ProductCatalogProps) {
   const [activeCategory, setActiveCategory] = useState("all");
 
-  const categories = ["all", ...getCatalogCategories()];
+  const categories = ["all", ...baseCategories];
 
   const filteredProducts =
     activeCategory === "all"

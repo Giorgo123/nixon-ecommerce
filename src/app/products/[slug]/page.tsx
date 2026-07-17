@@ -2,26 +2,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProductActions from "@/components/product/ProductActions";
-import {
-  catalogCategoryLabels,
-  getCatalogProductBySlug,
-  getCatalogProducts,
-} from "@/lib/catalog";
+import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
+import { catalogCategoryLabels } from "@/lib/categories";
 
 export const dynamic = "force-static";
 
-export function generateStaticParams() {
-  return getCatalogProducts().map((product) => ({
+export async function generateStaticParams() {
+  const products = await getCatalogProducts();
+  return products.map((product) => ({
     slug: product.slug,
   }));
 }
 
-export default function ProductDetailPage({
+export default async function ProductDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const product = getCatalogProductBySlug(params.slug);
+  const { slug } = await params;
+  const product = await getCatalogProductBySlug(slug);
 
   if (!product) {
     notFound();

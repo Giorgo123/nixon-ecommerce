@@ -1,39 +1,4 @@
 import prisma from "@/lib/prisma";
-import { getCatalogProducts } from "@/lib/catalog";
-
-export async function syncCatalogProductsToDb() {
-  const products = getCatalogProducts();
-  const syncedProducts = [];
-
-  for (const product of products) {
-    const dbProduct = await prisma.product.upsert({
-      where: { slug: product.slug },
-      update: {
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        image: product.image,
-        category: product.category,
-        stock: product.stock,
-        seo: product.seo,
-      },
-      create: {
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        image: product.image,
-        category: product.category,
-        stock: product.stock,
-        slug: product.slug,
-        seo: product.seo,
-      },
-    });
-
-    syncedProducts.push({ localId: product.id, ...dbProduct });
-  }
-
-  return syncedProducts;
-}
 
 export async function createPendingOrder(input: {
   customer: {
@@ -47,8 +12,10 @@ export async function createPendingOrder(input: {
   };
   items: Array<{ id: string; quantity: number }>;
 }) {
-  const syncedProducts = await syncCatalogProductsToDb();
-  const productMap = new Map(syncedProducts.map((product) => [product.localId, product]));
+  const products = await prisma.product.findMany({
+    where: { id: { in: input.items.map((item) => item.id) } },
+  });
+  const productMap = new Map(products.map((product) => [product.id, product]));
 
   const orderItems = input.items.map((item) => {
     const product = productMap.get(item.id);

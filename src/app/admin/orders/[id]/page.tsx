@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import OrderStatusActions from "@/components/admin/OrderStatusActions";
-import { catalogCategoryLabels } from "@/lib/catalog";
+import { catalogCategoryLabels } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 

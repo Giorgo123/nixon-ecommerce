@@ -32,6 +32,12 @@ export default function AdminLayout({
               Dashboard
             </Link>
             <Link
+              href="/admin/products"
+              className="rounded-full border border-black/10 px-3 py-2 font-medium text-black dark:border-white/10 dark:text-white"
+            >
+              Productos
+            </Link>
+            <Link
               href="/admin/orders"
               className="rounded-full border border-black/10 px-3 py-2 font-medium text-black dark:border-white/10 dark:text-white"
             >

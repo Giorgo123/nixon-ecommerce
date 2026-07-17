@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
+import { isDatabaseConnectionError } from "@/lib/db-safe";
+import { isAdminSessionActive } from "@/lib/admin-session";
+import { slugify } from "@/lib/utils";
+import prisma from "@/lib/prisma";
 
-async function getPrisma() {
-  const { default: prisma } = await import("@/lib/prisma");
-  return prisma;
+async function uniqueSlugFromName(name: string) {
+  const base = slugify(name);
+  let candidate = base;
+  let suffix = 2;
+
+  while (await prisma.product.findUnique({ where: { slug: candidate } })) {
+    candidate = `${base}-${suffix}`;
+    suffix += 1;
+  }
+
+  return candidate;
 }
 
 export async function GET(request: NextRequest) {
@@ -11,11 +23,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const slug = searchParams.get("slug");
     const category = searchParams.get("category");
-    const catalogProducts = getCatalogProducts();
 
     if (slug) {
-      return NextResponse.json(getCatalogProductBySlug(slug) || null);
+      return NextResponse.json(await getCatalogProductBySlug(slug));
     }
+
+    const catalogProducts = await getCatalogProducts();
 
     if (category) {
       return NextResponse.json(
@@ -26,31 +39,39 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(catalogProducts);
   } catch (error) {
     console.error("Error fetching products:", error);
-    return NextResponse.json(getCatalogProducts());
+    if (isDatabaseConnectionError(error)) {
+      return NextResponse.json({ error: "No se pudo conectar a la base de datos" }, { status: 503 });
+    }
+    return NextResponse.json({ error: "Error fetching products" }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
+  if (!(await isAdminSessionActive())) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   try {
     const data = await request.json();
 
-    if (!data.name || !data.price || !data.slug) {
+    if (!data.name || !data.price || !data.image) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    const prisma = await getPrisma();
+    const slug = await uniqueSlugFromName(data.name);
+
     const product = await prisma.product.create({
       data: {
         name: data.name,
         description: data.description || "",
         price: parseFloat(data.price),
-        image: data.image || "",
+        image: data.image,
         category: data.category || "remera",
         stock: data.stock || 0,
-        slug: data.slug,
+        slug,
         seo: data.seo,
       },
     });

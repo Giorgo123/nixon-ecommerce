@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import useCartStore from "@/store/cart.store";
 import type { Product } from "@/features/products/types";
-import { catalogCategoryLabels } from "@/lib/catalog";
+import { catalogCategoryLabels } from "@/lib/categories";
 
 interface ProductCardProps {
   product: Product;
