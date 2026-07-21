@@ -62,9 +62,13 @@ export default function CambiosYDevolucionesPage() {
           <h2 className="text-lg font-semibold text-black dark:text-white">2. Cambios por talle o color</h2>
           <p className="mt-2">
             Si el producto no te queda o querés cambiarlo por otro talle/color disponible, escribinos
-            dentro de los <strong>[N] días</strong> de recibido a {CONTACT_EMAIL} indicando tu
-            número de pedido. [Completar: quién cubre el costo de envío del cambio, condiciones del
-            producto para aceptar el cambio (sin uso, con etiquetas, etc.).]
+            dentro de los <strong>10 días corridos</strong> de recibido a {CONTACT_EMAIL} indicando tu
+            número de pedido. El producto debe estar sin uso, con las etiquetas originales y en su
+            empaque original.
+          </p>
+          <p className="mt-2">
+            El costo de envío para devolvernos la prenda corre por tu cuenta; nosotros cubrimos el
+            costo de envío del producto de cambio.
           </p>
         </section>
 
@@ -80,10 +84,10 @@ export default function CambiosYDevolucionesPage() {
         <section>
           <h2 className="text-lg font-semibold text-black dark:text-white">4. Productos excluidos</h2>
           <p className="mt-2">
-            [Completar si aplica: por ejemplo, productos personalizados o hechos a pedido pueden
-            estar excluidos del derecho de cambio por talle/color, aunque el derecho de
-            arrepentimiento de 10 días corridos igualmente aplica por ley salvo excepciones
-            expresamente previstas en el Art. 34 de la Ley 24.240.]
+            No hay exclusiones particulares: todos los productos del catálogo (remeras, buzos,
+            tazas y posters) pueden cambiarse por talle o color bajo esta política, y todos están
+            sujetos al derecho de arrepentimiento de 10 días corridos previsto en el Art. 34 de la
+            Ley 24.240.
           </p>
         </section>
       </div>
