@@ -8,16 +8,16 @@ export default function PrivacidadPage() {
         Política de Privacidad
       </h1>
       <p className="mt-2 text-sm text-black/50 dark:text-white/50">
-        Última actualización: [FECHA]
+        Última actualización: 21 de julio de 2026
       </p>
 
       <div className="mt-10 space-y-8 text-sm leading-7 text-black/80 dark:text-white/80">
         <section>
           <h2 className="text-lg font-semibold text-black dark:text-white">1. Responsable del tratamiento</h2>
           <p className="mt-2">
-            <strong>[RAZÓN SOCIAL / NOMBRE COMPLETO]</strong>, CUIT <strong>[CUIT]</strong>, es
+            <strong>Nicolás Georgetti</strong>, CUIT <strong>20-23497336-4</strong>, es
             responsable de los datos personales que se recaban a través de nixonstudio.com.ar.
-            Ante cualquier consulta podés escribirnos a <strong>[EMAIL DE CONTACTO]</strong>.
+            Ante cualquier consulta podés escribirnos a <strong>nicogeorgetti@gmail.com</strong>.
           </p>
         </section>
 
@@ -54,7 +54,7 @@ export default function PrivacidadPage() {
           <p className="mt-2">
             De acuerdo a la Ley N° 25.326 de Protección de Datos Personales, podés ejercer tu
             derecho de acceso, rectificación, actualización o supresión de tus datos escribiendo a{" "}
-            <strong>[EMAIL DE CONTACTO]</strong>. La Agencia de Acceso a la Información Pública, en
+            <strong>nicogeorgetti@gmail.com</strong>. La Agencia de Acceso a la Información Pública, en
             su carácter de Órgano de Control de la Ley N° 25.326, tiene la atribución de atender
             las denuncias y reclamos que se interpongan con relación al incumplimiento de las
             normas sobre protección de datos personales.

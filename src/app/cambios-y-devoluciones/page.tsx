@@ -1,6 +1,6 @@
 export const dynamic = "force-static";
 
-const CONTACT_EMAIL = "[EMAIL DE CONTACTO]";
+const CONTACT_EMAIL = "nicogeorgetti@gmail.com";
 
 export default function CambiosYDevolucionesPage() {
   const withdrawalSubject = encodeURIComponent("Botón de Arrepentimiento - Solicitud de revocación de compra");
@@ -20,7 +20,7 @@ export default function CambiosYDevolucionesPage() {
         Cambios, Devoluciones y Derecho de Arrepentimiento
       </h1>
       <p className="mt-2 text-sm text-black/50 dark:text-white/50">
-        Última actualización: [FECHA]
+        Última actualización: 21 de julio de 2026
       </p>
 
       <div className="mt-8 rounded-2xl border border-red-500/30 bg-red-500/5 p-6">

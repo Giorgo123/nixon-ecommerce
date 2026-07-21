@@ -8,17 +8,17 @@ export default function TerminosYCondicionesPage() {
         Términos y Condiciones
       </h1>
       <p className="mt-2 text-sm text-black/50 dark:text-white/50">
-        Última actualización: [FECHA]
+        Última actualización: 21 de julio de 2026
       </p>
 
       <div className="mt-10 space-y-8 text-sm leading-7 text-black/80 dark:text-white/80">
         <section>
           <h2 className="text-lg font-semibold text-black dark:text-white">1. Datos del vendedor</h2>
           <p className="mt-2">
-            Este sitio (nixonstudio.com.ar) es operado por <strong>[RAZÓN SOCIAL / NOMBRE COMPLETO]</strong>,
-            CUIT <strong>[CUIT]</strong>, con domicilio en <strong>[DOMICILIO LEGAL]</strong>. Podés
-            contactarnos por correo a <strong>[EMAIL DE CONTACTO]</strong> o por WhatsApp al{" "}
-            <strong>[TELÉFONO]</strong>.
+            Este sitio (nixonstudio.com.ar) es operado por <strong>Nicolás Georgetti</strong>,
+            CUIT <strong>20-23497336-4</strong>, con domicilio en <strong>Villa María, Córdoba, Argentina</strong>. Podés
+            contactarnos por correo a <strong>nicogeorgetti@gmail.com</strong> o por WhatsApp al{" "}
+            <strong>+54 9 3535 62-7388</strong>.
           </p>
         </section>
 
