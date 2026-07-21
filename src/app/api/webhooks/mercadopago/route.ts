@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import prisma from "@/lib/prisma";
+import { sendPaymentConfirmedEmail } from "@/lib/email";
 
 function isValidWebhookSignature(request: NextRequest, dataId: string) {
   const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
@@ -70,13 +71,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    await prisma.order.update({
+    const existingOrder = await prisma.order.findUnique({ where: { id: orderId } });
+    const newStatus = payment.status === "approved" ? "paid" : payment.status;
+
+    const order = await prisma.order.update({
       where: { id: orderId },
       data: {
-        status: payment.status === "approved" ? "paid" : payment.status,
+        status: newStatus,
         paymentId: payment.id,
       },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
+
+    if (newStatus === "paid" && existingOrder?.status !== "paid") {
+      await sendPaymentConfirmedEmail(order);
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {

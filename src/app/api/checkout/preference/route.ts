@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { createPendingOrder } from "@/lib/order";
+import { sendOrderReceivedEmail } from "@/lib/email";
 
 type PendingOrderItem = {
   productId: string;
@@ -30,6 +31,8 @@ export async function POST(request: NextRequest) {
     }
 
     const order = await createPendingOrder({ customer, items });
+    await sendOrderReceivedEmail(order);
+
     const mpItems = order.items.map((item: PendingOrderItem) => ({
       id: item.productId,
       title: item.product.name,
