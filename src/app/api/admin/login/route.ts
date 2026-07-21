@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminSessionCookie } from "@/lib/auth-cookie";
 import { isValidEmail } from "@/lib/validations";
+import { createSessionToken } from "@/lib/session-token";
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
-    const adminEmail = process.env.ADMIN_EMAIL ?? "admin@nixonstudio.com";
-    const adminPassword = process.env.ADMIN_PASSWORD ?? "admin123";
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminEmail || !adminPassword) {
+      return NextResponse.json(
+        { error: "Falta configurar ADMIN_EMAIL / ADMIN_PASSWORD" },
+        { status: 500 }
+      );
+    }
 
     if (!isValidEmail(email) || typeof password !== "string") {
       return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
@@ -17,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     const response = NextResponse.json({ ok: true });
-    response.cookies.set(adminSessionCookie, "active", {
+    response.cookies.set(adminSessionCookie, await createSessionToken(), {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",

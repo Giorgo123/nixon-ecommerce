@@ -1,5 +1,4 @@
-import Link from "next/link";
-import AdminLogoutButton from "@/components/admin/AdminLogoutButton";
+import AdminNav from "@/components/admin/AdminNav";
 
 export default function AdminLayout({
   children,
@@ -18,33 +17,7 @@ export default function AdminLayout({
               Nixon Studio
             </p>
           </div>
-          <nav className="flex items-center gap-3 text-sm">
-            <Link
-              href="/"
-              className="rounded-full border border-black/10 px-3 py-2 font-medium text-black dark:border-white/10 dark:text-white"
-            >
-              Ver sitio
-            </Link>
-            <Link
-              href="/admin/dashboard"
-              className="rounded-full border border-black/10 px-3 py-2 font-medium text-black dark:border-white/10 dark:text-white"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/admin/products"
-              className="rounded-full border border-black/10 px-3 py-2 font-medium text-black dark:border-white/10 dark:text-white"
-            >
-              Productos
-            </Link>
-            <Link
-              href="/admin/orders"
-              className="rounded-full border border-black/10 px-3 py-2 font-medium text-black dark:border-white/10 dark:text-white"
-            >
-              Pedidos
-            </Link>
-            <AdminLogoutButton />
-          </nav>
+          <AdminNav />
         </div>
       </header>
 

@@ -3,10 +3,8 @@
 import { useMemo } from "react";
 import {
   motion,
-  useMotionValue,
   useReducedMotion,
   useScroll,
-  useSpring,
   useTransform,
   type Variants,
 } from "framer-motion";
@@ -15,10 +13,6 @@ import Image from "next/image";
 export default function HeroSection() {
   const { scrollY } = useScroll();
   const reduceMotion = useReducedMotion();
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const smoothMouseX = useSpring(mouseX, { stiffness: 80, damping: 18, mass: 0.3 });
-  const smoothMouseY = useSpring(mouseY, { stiffness: 80, damping: 18, mass: 0.3 });
   const particles = useMemo(
     () => [
       { top: "12%", left: "8%", size: 3, duration: 9, delay: 0, x: 18, y: 28, opacity: 0.22 },
@@ -37,12 +31,6 @@ export default function HeroSection() {
   const yParallax = useTransform(scrollY, [0, 1000], [0, 400]);
   const opacityParallax = useTransform(scrollY, [0, 500], [1, 0.3]);
   const contentParallax = useTransform(scrollY, [0, 900], [0, -70]);
-  const backgroundX = useTransform(smoothMouseX, [-1, 1], [-24, 24]);
-  const backgroundY = useTransform(smoothMouseY, [-1, 1], [-18, 18]);
-  const contentX = useTransform(smoothMouseX, [-1, 1], [-10, 10]);
-  const contentY = useTransform(smoothMouseY, [-1, 1], [-6, 6]);
-  const particleFieldX = useTransform(smoothMouseX, [-1, 1], [16, -16]);
-  const particleFieldY = useTransform(smoothMouseY, [-1, 1], [12, -12]);
 
   const staggerContainer: Variants = {
     hidden: {},
@@ -68,28 +56,12 @@ export default function HeroSection() {
   };
 
   return (
-    <section
-      className="relative w-full h-screen overflow-hidden flex items-center justify-center"
-      onPointerMove={(event) => {
-        if (reduceMotion) return;
-        const rect = event.currentTarget.getBoundingClientRect();
-        const normalizedX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        const normalizedY = ((event.clientY - rect.top) / rect.height) * 2 - 1;
-
-        mouseX.set(normalizedX);
-        mouseY.set(normalizedY);
-      }}
-      onPointerLeave={() => {
-        mouseX.set(0);
-        mouseY.set(0);
-      }}
-    >
+    <section className="relative w-full h-screen overflow-hidden flex items-center justify-center">
 
       {/* Background Image con Parallax */}
       <motion.video
         style={{
           y: yParallax,
-          x: backgroundX,
           opacity: opacityParallax,
         }}
         autoPlay
@@ -142,10 +114,7 @@ export default function HeroSection() {
       />
 
       {!reduceMotion && (
-        <motion.div
-          style={{ x: particleFieldX, y: particleFieldY }}
-          className="absolute inset-0 pointer-events-none overflow-hidden"
-        >
+        <motion.div className="absolute inset-0 pointer-events-none overflow-hidden">
           {particles.map((particle, index) => (
             <motion.span
               key={index}
@@ -181,7 +150,7 @@ export default function HeroSection() {
         style={{ y: contentParallax }}
         className="relative z-10 w-full h-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
       >
-        <motion.div style={{ x: contentX, y: contentY }} className="flex w-full flex-col items-center justify-center">
+        <motion.div className="flex w-full flex-col items-center justify-center">
         {/* Badge de colección */}
         <motion.div variants={fadeUp} className="mb-8 inline-block">
           <div className="rounded-full border border-red-500/50 bg-red-950/30 px-4 py-2 text-xs sm:text-sm tracking-[0.25em] text-red-300 backdrop-blur-sm">

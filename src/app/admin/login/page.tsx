@@ -13,9 +13,6 @@ export default function AdminLoginPage() {
           <h1 className="text-3xl font-black tracking-tight text-black dark:text-white">
             Ingresar al panel
           </h1>
-          <p className="text-sm text-black/60 dark:text-white/60">
-            En desarrollo: `admin@nixonstudio.com` / `admin123`
-          </p>
         </div>
         <AdminLoginForm />
       </div>
