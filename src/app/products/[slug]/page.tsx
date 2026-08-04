@@ -5,7 +5,9 @@ import ProductActions from "@/components/product/ProductActions";
 import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
 import { catalogCategoryLabels } from "@/lib/categories";
 
-export const dynamic = "force-static";
+// Se revalida al instante cuando el admin crea/edita/borra este producto
+// (ver revalidatePath en src/app/api/products); esto es solo un respaldo.
+export const revalidate = 300;
 
 export async function generateStaticParams() {
   const products = await getCatalogProducts();

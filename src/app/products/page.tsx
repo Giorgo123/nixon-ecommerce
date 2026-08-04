@@ -1,7 +1,10 @@
 import ProductCatalog from "@/components/product/ProductCatalog";
 import { getCatalogCategories, getCatalogProducts } from "@/lib/catalog";
 
-export const dynamic = "force-static";
+// Se revalida al instante cuando el admin crea/edita/borra un producto
+// (ver revalidatePath en src/app/api/products); esto es solo un respaldo
+// por si algo cambia la DB sin pasar por esas rutas.
+export const revalidate = 300;
 
 export default async function ProductsPage() {
   const [products, categories] = await Promise.all([

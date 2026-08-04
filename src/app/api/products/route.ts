@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
 import { isDatabaseConnectionError } from "@/lib/db-safe";
 import { isAdminSessionActive } from "@/lib/admin-session";
@@ -75,6 +76,9 @@ export async function POST(request: NextRequest) {
         seo: data.seo,
       },
     });
+
+    revalidatePath("/products");
+    revalidatePath(`/products/${product.slug}`);
 
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
