@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { isAdminSessionActive } from "@/lib/admin-session";
+import { verifyOrderAccessToken } from "@/lib/order-token";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const token = new URL(request.url).searchParams.get("token");
+
+  if (!(await isAdminSessionActive()) && !verifyOrderAccessToken(id, token)) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
 
   const order = await prisma.order.findUnique({
     where: { id },

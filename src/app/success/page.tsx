@@ -3,9 +3,9 @@ import type { Order } from "@/types/order";
 
 export const dynamic = "force-dynamic";
 
-async function getOrder(orderId: string) {
+async function getOrder(orderId: string, token: string) {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/api/orders/${orderId}`,
+    `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/api/orders/${orderId}?token=${token}`,
     { cache: "no-store" }
   );
 
@@ -19,10 +19,10 @@ async function getOrder(orderId: string) {
 export default async function SuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ orderId?: string }>;
+  searchParams: Promise<{ orderId?: string; token?: string }>;
 }) {
-  const { orderId } = await searchParams;
-  const order = orderId ? await getOrder(orderId) : null;
+  const { orderId, token } = await searchParams;
+  const order = orderId && token ? await getOrder(orderId, token) : null;
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-16">

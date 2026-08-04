@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { createPendingOrder } from "@/lib/order";
 import { sendOrderReceivedEmail } from "@/lib/email";
+import { createOrderAccessToken } from "@/lib/order-token";
 
 type PendingOrderItem = {
   productId: string;
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
           email: customer?.email,
         },
         back_urls: {
-          success: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/success?orderId=${order.id}`,
+          success: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/success?orderId=${order.id}&token=${createOrderAccessToken(order.id)}`,
           pending: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/checkout?status=pending`,
           failure: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/checkout?status=failure`,
         },
