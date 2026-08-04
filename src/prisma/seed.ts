@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -11,11 +12,14 @@ async function main() {
   await prisma.product.deleteMany();
   await prisma.admin.deleteMany();
 
-  // Crear admin default
+  // Crear admin default (usa ADMIN_EMAIL/ADMIN_PASSWORD si están seteadas)
+  const adminEmail = process.env.ADMIN_EMAIL ?? "admin@nixonstudio.com";
+  const adminPassword = process.env.ADMIN_PASSWORD ?? "admin123";
+
   await prisma.admin.create({
     data: {
-      email: "admin@nixonstudio.com",
-      password: "admin123", // ⚠️ En producción usar bcrypt
+      email: adminEmail,
+      password: await bcrypt.hash(adminPassword, 10),
       name: "Admin Nixon",
     },
   });
@@ -112,7 +116,7 @@ async function main() {
 
   console.log("✅ Seeding completado");
   console.log(`📦 ${products.length} productos creados`);
-  console.log("👤 Admin creado: admin@nixonstudio.com");
+  console.log(`👤 Admin creado: ${adminEmail}`);
 }
 
 main()
