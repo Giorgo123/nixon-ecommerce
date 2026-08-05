@@ -19,7 +19,8 @@ const faqs = [
   },
   {
     question: "¿Qué medios de pago aceptan?",
-    answer: "Mercado Pago (tarjetas de crédito/débito, dinero en cuenta y efectivo en puntos de pago).",
+    answer:
+      "Mercado Pago (tarjetas de crédito/débito, dinero en cuenta y efectivo en puntos de pago) o transferencia bancaria.",
   },
   {
     question: "¿Puedo cambiar el talle o color?",
