@@ -21,10 +21,12 @@ export interface Order {
   fullName: string;
   email: string;
   phone: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
+  deliveryMethod: string;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  zipCode: string | null;
+  trackingInfo: string | null;
   items: OrderItem[];
   totalPrice: number;
   status: string;

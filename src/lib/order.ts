@@ -11,6 +11,7 @@ const orderWithItemsInclude = {
 } as const;
 
 export class StockError extends Error {}
+export class OrderValidationError extends Error {}
 
 // Barrido perezoso: libera el stock de pedidos "pending" mas viejos que el
 // TTL. Se llama al crear cada orden nueva en vez de depender de un cron
@@ -60,13 +61,21 @@ export async function createPendingOrder(input: {
     fullName: string;
     email: string;
     phone: string;
-    address: string;
-    city: string;
-    state: string;
-    zipCode: string;
+    deliveryMethod: "shipping" | "pickup";
+    address?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
   };
   items: Array<{ variantId: string; quantity: number }>;
 }) {
+  if (input.customer.deliveryMethod === "shipping") {
+    const { address, city, state, zipCode } = input.customer;
+    if (!address || !city || !state || !zipCode) {
+      throw new OrderValidationError("Falta la dirección de envío");
+    }
+  }
+
   await releaseExpiredPendingOrders();
 
   return prisma.$transaction(async (tx) => {
@@ -111,10 +120,11 @@ export async function createPendingOrder(input: {
         email: input.customer.email,
         fullName: input.customer.fullName,
         phone: input.customer.phone,
-        address: input.customer.address,
-        city: input.customer.city,
-        state: input.customer.state,
-        zipCode: input.customer.zipCode,
+        deliveryMethod: input.customer.deliveryMethod,
+        address: input.customer.address ?? null,
+        city: input.customer.city ?? null,
+        state: input.customer.state ?? null,
+        zipCode: input.customer.zipCode ?? null,
         totalPrice,
         status: "pending",
         items: {

@@ -5,10 +5,12 @@ type OrderForEmail = {
   email: string;
   fullName: string;
   totalPrice: number;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
+  deliveryMethod: string;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  zipCode: string | null;
+  trackingInfo?: string | null;
   items: Array<{
     quantity: number;
     price: number;
@@ -36,6 +38,13 @@ function itemsListHtml(order: OrderForEmail) {
     .join("");
 }
 
+function deliveryLineHtml(order: OrderForEmail) {
+  if (order.deliveryMethod === "pickup") {
+    return "<p>Retiro en Villa María, Córdoba — te contactamos para coordinar.</p>";
+  }
+  return `<p>Envío a: ${order.address}, ${order.city}, ${order.state} (${order.zipCode})</p>`;
+}
+
 export async function sendOrderReceivedEmail(order: OrderForEmail) {
   const resend = getResendClient();
   if (!resend) return;
@@ -51,7 +60,7 @@ export async function sendOrderReceivedEmail(order: OrderForEmail) {
         <h2>¡Gracias por tu compra, ${order.fullName}!</h2>
         <p>Recibimos tu pedido #${orderRef} por un total de ${formatPrice(order.totalPrice)}.</p>
         <ul>${itemsListHtml(order)}</ul>
-        <p>Envío a: ${order.address}, ${order.city}, ${order.state} (${order.zipCode})</p>
+        ${deliveryLineHtml(order)}
         <p>Te vamos a avisar en cuanto se confirme el pago.</p>
       `,
     });
@@ -72,7 +81,7 @@ export async function sendOrderReceivedEmail(order: OrderForEmail) {
         <p>Total: ${formatPrice(order.totalPrice)}</p>
         <ul>${itemsListHtml(order)}</ul>
         <p>Contacto: ${order.email}</p>
-        <p>Envío a: ${order.address}, ${order.city}, ${order.state} (${order.zipCode})</p>
+        ${deliveryLineHtml(order)}
       `,
     });
   } catch (error) {
@@ -85,6 +94,9 @@ export async function sendPaymentConfirmedEmail(order: OrderForEmail) {
   if (!resend) return;
 
   const orderRef = order.id.slice(-8);
+  const trackingLine = order.trackingInfo
+    ? `<p>Seguimiento del envío: <strong>${order.trackingInfo}</strong></p>`
+    : "";
 
   try {
     await resend.emails.send({
@@ -95,7 +107,12 @@ export async function sendPaymentConfirmedEmail(order: OrderForEmail) {
         <h2>¡Listo, ${order.fullName}! Tu pago fue confirmado.</h2>
         <p>Pedido #${orderRef} por ${formatPrice(order.totalPrice)}.</p>
         <ul>${itemsListHtml(order)}</ul>
-        <p>Ya estamos preparando tu envío a ${order.address}, ${order.city}, ${order.state}.</p>
+        ${
+          order.deliveryMethod === "pickup"
+            ? "<p>Ya podés coordinar el retiro en Villa María, Córdoba — te contactamos por WhatsApp o email.</p>"
+            : `<p>Ya estamos preparando tu envío a ${order.address}, ${order.city}, ${order.state}.</p>`
+        }
+        ${trackingLine}
       `,
     });
   } catch (error) {

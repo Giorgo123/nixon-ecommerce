@@ -45,19 +45,21 @@ model ProductVariant {
 }
 
 model Order {
-  id            String   @id @default(cuid())
-  email         String
-  fullName      String
-  phone         String
-  address       String
-  city          String
-  state         String
-  zipCode       String
-  totalPrice    Float
-  status        String   @default("pending")
-  paymentId     String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String   @id @default(cuid())
+  email          String
+  fullName       String
+  phone          String
+  deliveryMethod String   @default("shipping") // "shipping" | "pickup"
+  address        String? // null si deliveryMethod = "pickup"
+  city           String?
+  state          String?
+  zipCode        String?
+  trackingInfo   String? // texto libre: transportista + numero de seguimiento
+  totalPrice     Float
+  status         String   @default("pending")
+  paymentId      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   items OrderItem[]
 }
 

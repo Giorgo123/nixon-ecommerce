@@ -8,6 +8,8 @@ const orderWithItemsInclude = {
   items: { include: { variant: { include: { product: true } } } },
 } as const;
 
+const allowedStatuses = ["pending", "paid", "cancelled", "refunded"];
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -40,23 +42,35 @@ export async function PUT(
   }
 
   const { id } = await params;
-  const { status } = (await request.json()) as { status?: string };
+  const body = (await request.json()) as { status?: string; trackingInfo?: string };
 
-  const allowedStatuses = ["pending", "paid", "cancelled", "refunded"];
+  const data: { status?: string; trackingInfo?: string | null } = {};
 
-  if (!status || !allowedStatuses.includes(status)) {
-    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  if (body.status !== undefined) {
+    if (!allowedStatuses.includes(body.status)) {
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    }
+
+    // Si se cancela un pedido que todavia estaba "pending", devolvemos el
+    // stock que le habiamos reservado (no hace nada si ya no esta pending).
+    if (body.status === "cancelled") {
+      await releaseOrderStock(id);
+    }
+
+    data.status = body.status;
   }
 
-  // Si se cancela un pedido que todavia estaba "pending", devolvemos el
-  // stock que le habiamos reservado (no hace nada si ya no esta pending).
-  if (status === "cancelled") {
-    await releaseOrderStock(id);
+  if (body.trackingInfo !== undefined) {
+    data.trackingInfo = body.trackingInfo || null;
+  }
+
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json({ error: "Nada para actualizar" }, { status: 400 });
   }
 
   const order = await prisma.order.update({
     where: { id },
-    data: { status },
+    data,
     include: orderWithItemsInclude,
   });
 

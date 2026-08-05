@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { createPendingOrder, StockError } from "@/lib/order";
+import { createPendingOrder, StockError, OrderValidationError } from "@/lib/order";
 import { sendOrderReceivedEmail } from "@/lib/email";
 import { createOrderAccessToken } from "@/lib/order-token";
 
@@ -86,6 +86,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof StockError) {
       return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+    if (error instanceof OrderValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Error en checkout" },

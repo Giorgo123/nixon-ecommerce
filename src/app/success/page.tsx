@@ -71,6 +71,19 @@ export default async function SuccessPage({
                   ${Number(order.totalPrice).toLocaleString("es-AR")}
                 </p>
               </div>
+              <div className="sm:col-span-2">
+                <p className="text-black/60 dark:text-white/60">Entrega</p>
+                <p className="font-medium text-black dark:text-white">
+                  {order.deliveryMethod === "pickup"
+                    ? "Retiro en Villa María — te contactamos para coordinar"
+                    : `Envío gratis a ${order.address}, ${order.city}, ${order.state}`}
+                </p>
+                {order.trackingInfo && (
+                  <p className="mt-1 text-black/60 dark:text-white/60">
+                    Seguimiento: {order.trackingInfo}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="space-y-3 border-t border-black/10 pt-5 dark:border-white/10">

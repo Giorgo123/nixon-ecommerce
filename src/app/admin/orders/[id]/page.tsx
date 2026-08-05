@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import OrderStatusActions from "@/components/admin/OrderStatusActions";
+import TrackingInfoForm from "@/components/admin/TrackingInfoForm";
 import { catalogCategoryLabels } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
@@ -70,8 +71,18 @@ export default async function AdminOrderDetailPage({
             <p><span className="text-black/60 dark:text-white/60">Email:</span> {order.email}</p>
             <p><span className="text-black/60 dark:text-white/60">Teléfono:</span> {order.phone}</p>
             <p><span className="text-black/60 dark:text-white/60">Pago:</span> {order.paymentId ?? "Pendiente"}</p>
-            <p className="sm:col-span-2"><span className="text-black/60 dark:text-white/60">Dirección:</span> {order.address}, {order.city}, {order.state} {order.zipCode}</p>
+            <p><span className="text-black/60 dark:text-white/60">Entrega:</span> {order.deliveryMethod === "pickup" ? "Retiro en Villa María" : "Envío a domicilio"}</p>
+            {order.deliveryMethod === "pickup" ? (
+              <p className="sm:col-span-2"><span className="text-black/60 dark:text-white/60">Coordinar retiro con:</span> {order.phone} / {order.email}</p>
+            ) : (
+              <p className="sm:col-span-2"><span className="text-black/60 dark:text-white/60">Dirección:</span> {order.address}, {order.city}, {order.state} {order.zipCode}</p>
+            )}
           </div>
+          {order.deliveryMethod === "shipping" && (
+            <div className="border-t border-black/10 pt-4 dark:border-white/10">
+              <TrackingInfoForm orderId={order.id} initialValue={order.trackingInfo ?? ""} />
+            </div>
+          )}
         </section>
 
         <OrderStatusActions orderId={order.id} currentStatus={order.status} />

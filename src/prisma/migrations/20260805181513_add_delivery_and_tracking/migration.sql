@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN     "deliveryMethod" TEXT NOT NULL DEFAULT 'shipping',
+ADD COLUMN     "trackingInfo" TEXT,
+ALTER COLUMN "address" DROP NOT NULL,
+ALTER COLUMN "city" DROP NOT NULL,
+ALTER COLUMN "state" DROP NOT NULL,
+ALTER COLUMN "zipCode" DROP NOT NULL;
