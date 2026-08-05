@@ -55,6 +55,7 @@ model Order {
   state          String?
   zipCode        String?
   trackingInfo   String? // texto libre: transportista + numero de seguimiento
+  paymentMethod  String   @default("mercadopago") // "mercadopago" | "transfer"
   totalPrice     Float
   status         String   @default("pending")
   paymentId      String?

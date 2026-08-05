@@ -27,6 +27,7 @@ export interface Order {
   state: string | null;
   zipCode: string | null;
   trackingInfo: string | null;
+  paymentMethod: string;
   items: OrderItem[];
   totalPrice: number;
   status: string;

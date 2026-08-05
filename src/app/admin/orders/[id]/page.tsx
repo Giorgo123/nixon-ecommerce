@@ -70,6 +70,7 @@ export default async function AdminOrderDetailPage({
             <p><span className="text-black/60 dark:text-white/60">Nombre:</span> {order.fullName}</p>
             <p><span className="text-black/60 dark:text-white/60">Email:</span> {order.email}</p>
             <p><span className="text-black/60 dark:text-white/60">Teléfono:</span> {order.phone}</p>
+            <p><span className="text-black/60 dark:text-white/60">Medio de pago:</span> {order.paymentMethod === "transfer" ? "Transferencia bancaria" : "Mercado Pago"}</p>
             <p><span className="text-black/60 dark:text-white/60">Pago:</span> {order.paymentId ?? "Pendiente"}</p>
             <p><span className="text-black/60 dark:text-white/60">Entrega:</span> {order.deliveryMethod === "pickup" ? "Retiro en Villa María" : "Envío a domicilio"}</p>
             {order.deliveryMethod === "pickup" ? (

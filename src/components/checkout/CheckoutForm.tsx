@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import useCartStore from "@/store/cart.store";
 
 type DeliveryMethod = "shipping" | "pickup";
+type PaymentMethod = "mercadopago" | "transfer";
 
 export default function CheckoutForm() {
   const router = useRouter();
   const items = useCartStore((state) => state.items);
   const clearCart = useCartStore((state) => state.clearCart);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("shipping");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("mercadopago");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -26,24 +28,39 @@ export default function CheckoutForm() {
     setLoading(true);
     setError(null);
 
+    const customer = {
+      fullName,
+      email,
+      phone,
+      deliveryMethod,
+      ...(deliveryMethod === "shipping" ? { address, city, state: stateValue, zipCode } : {}),
+    };
+
     try {
+      if (paymentMethod === "transfer") {
+        const response = await fetch("/api/checkout/transfer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ customer, items }),
+        });
+
+        if (!response.ok) {
+          const payload = (await response.json()) as { error?: string };
+          throw new Error(payload.error ?? "No se pudo registrar el pedido");
+        }
+
+        const payload = (await response.json()) as { orderId: string; token: string };
+        clearCart();
+        router.push(`/success?orderId=${payload.orderId}&token=${payload.token}`);
+        return;
+      }
+
       const response = await fetch("/api/checkout/preference", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          customer: {
-            fullName,
-            email,
-            phone,
-            deliveryMethod,
-            ...(deliveryMethod === "shipping"
-              ? { address, city, state: stateValue, zipCode }
-              : {}),
-          },
-          items,
-        }),
+        body: JSON.stringify({ customer, items }),
       });
 
       if (!response.ok) {
@@ -126,6 +143,43 @@ export default function CheckoutForm() {
         </p>
       )}
 
+      <div className="space-y-2">
+        <p className="text-xs uppercase tracking-[0.2em] text-black/50 dark:text-white/50">
+          Medio de pago
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setPaymentMethod("mercadopago")}
+            className={[
+              "rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors",
+              paymentMethod === "mercadopago"
+                ? "border-red-500 bg-red-500/10 text-black dark:text-white"
+                : "border-black/10 text-black/70 dark:border-white/10 dark:text-white/70",
+            ].join(" ")}
+          >
+            Mercado Pago
+          </button>
+          <button
+            type="button"
+            onClick={() => setPaymentMethod("transfer")}
+            className={[
+              "rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors",
+              paymentMethod === "transfer"
+                ? "border-red-500 bg-red-500/10 text-black dark:text-white"
+                : "border-black/10 text-black/70 dark:border-white/10 dark:text-white/70",
+            ].join(" ")}
+          >
+            Transferencia bancaria
+          </button>
+        </div>
+        {paymentMethod === "transfer" && (
+          <p className="rounded-xl border border-black/10 bg-black/5 px-4 py-3 text-sm text-black/70 dark:border-white/10 dark:bg-white/5 dark:text-white/70">
+            Al confirmar, te vamos a mostrar los datos para transferir. Preparamos tu pedido apenas veamos el pago acreditado.
+          </p>
+        )}
+      </div>
+
       {error && <p className="text-sm text-red-500">{error}</p>}
 
       <button
@@ -133,7 +187,11 @@ export default function CheckoutForm() {
         disabled={loading || items.length === 0}
         className="w-full rounded-full bg-black px-4 py-3 text-sm font-semibold text-white dark:bg-white dark:text-black disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {loading ? "Redirigiendo a Mercado Pago..." : "Pagar con Mercado Pago"}
+        {loading
+          ? "Confirmando..."
+          : paymentMethod === "transfer"
+            ? "Confirmar pedido"
+            : "Pagar con Mercado Pago"}
       </button>
     </form>
   );

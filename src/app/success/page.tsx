@@ -1,10 +1,12 @@
 import Link from "next/link";
 import type { Order } from "@/types/order";
+import { BANK_TRANSFER_INFO } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
 const statusLabels: Record<string, string> = {
   pending: "pendiente de pago",
+  pending_transfer: "esperando la transferencia",
   paid: "pagada",
   paid_stock_conflict: "pagada",
   cancelled: "cancelada",
@@ -32,15 +34,16 @@ export default async function SuccessPage({
 }) {
   const { orderId, token } = await searchParams;
   const order = orderId && token ? await getOrder(orderId, token) : null;
+  const awaitingTransfer = order?.paymentMethod === "transfer" && order.status === "pending_transfer";
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-16">
       <div className="mx-auto max-w-2xl space-y-6 rounded-3xl border border-black/10 bg-black/5 p-8 dark:border-white/10 dark:bg-white/5">
         <p className="text-xs uppercase tracking-[0.3em] text-red-500">
-          Pago exitoso
+          {awaitingTransfer ? "Pedido registrado" : "Pago exitoso"}
         </p>
         <h1 className="text-3xl font-black tracking-tight text-black dark:text-white">
-          Gracias por tu compra
+          {awaitingTransfer ? "¡Gracias! Ya casi está" : "Gracias por tu compra"}
         </h1>
         <p className="text-sm text-black/70 dark:text-white/70">
           {order
@@ -50,6 +53,27 @@ export default async function SuccessPage({
 
         {order && (
           <>
+            {awaitingTransfer && (
+              <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-5 text-sm">
+                <h2 className="text-lg font-bold text-black dark:text-white">
+                  Datos para transferir
+                </h2>
+                <p className="mt-2 text-black/70 dark:text-white/70">
+                  Transferí <strong>${Number(order.totalPrice).toLocaleString("es-AR")}</strong> a:
+                </p>
+                <div className="mt-3 space-y-1 text-black/80 dark:text-white/80">
+                  <p>Alias: <strong>{BANK_TRANSFER_INFO.alias}</strong></p>
+                  <p>CVU: <strong>{BANK_TRANSFER_INFO.cvu}</strong></p>
+                  <p>Titular: <strong>{BANK_TRANSFER_INFO.titular}</strong></p>
+                </div>
+                <p className="mt-3 text-xs text-black/60 dark:text-white/60">
+                  Una vez que hagas la transferencia, avisanos por WhatsApp o email con el
+                  comprobante — así lo confirmamos más rápido. Preparamos tu pedido apenas
+                  vemos el pago acreditado.
+                </p>
+              </div>
+            )}
+
             <div className="grid gap-3 rounded-2xl border border-black/10 bg-white/60 p-5 text-sm dark:border-white/10 dark:bg-black/20 sm:grid-cols-2">
               <div>
                 <p className="text-black/60 dark:text-white/60">Cliente</p>

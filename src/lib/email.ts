@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { BANK_TRANSFER_INFO } from "@/lib/constants";
 
 type OrderForEmail = {
   id: string;
@@ -6,6 +7,7 @@ type OrderForEmail = {
   fullName: string;
   totalPrice: number;
   deliveryMethod: string;
+  paymentMethod: string;
   address: string | null;
   city: string | null;
   state: string | null;
@@ -45,6 +47,22 @@ function deliveryLineHtml(order: OrderForEmail) {
   return `<p>Envío a: ${order.address}, ${order.city}, ${order.state} (${order.zipCode})</p>`;
 }
 
+function transferInstructionsHtml(order: OrderForEmail) {
+  if (order.paymentMethod !== "transfer") return "";
+
+  return `
+    <div style="margin-top:16px;padding:16px;border:1px solid #ddd;border-radius:8px;">
+      <h3 style="margin:0 0 8px;">Datos para transferir</h3>
+      <p style="margin:0;">Alias: <strong>${BANK_TRANSFER_INFO.alias}</strong></p>
+      <p style="margin:0;">CVU: <strong>${BANK_TRANSFER_INFO.cvu}</strong></p>
+      <p style="margin:0;">Titular: <strong>${BANK_TRANSFER_INFO.titular}</strong></p>
+      <p style="margin:8px 0 0;font-size:12px;color:#666;">
+        Mandanos el comprobante por WhatsApp o respondiendo este email para confirmar más rápido.
+      </p>
+    </div>
+  `;
+}
+
 export async function sendOrderReceivedEmail(order: OrderForEmail) {
   const resend = getResendClient();
   if (!resend) return;
@@ -61,6 +79,7 @@ export async function sendOrderReceivedEmail(order: OrderForEmail) {
         <p>Recibimos tu pedido #${orderRef} por un total de ${formatPrice(order.totalPrice)}.</p>
         <ul>${itemsListHtml(order)}</ul>
         ${deliveryLineHtml(order)}
+        ${transferInstructionsHtml(order)}
         <p>Te vamos a avisar en cuanto se confirme el pago.</p>
       `,
     });

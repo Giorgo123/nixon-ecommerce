@@ -11,6 +11,7 @@ const statusBadgeClasses: Record<string, string> = {
   refunded: "text-sky-700 dark:text-sky-300",
   expired: "text-rose-700 dark:text-rose-300",
   paid_stock_conflict: "text-orange-700 dark:text-orange-300",
+  pending_transfer: "text-amber-700 dark:text-amber-300",
 };
 
 export default async function AdminDashboardPage() {

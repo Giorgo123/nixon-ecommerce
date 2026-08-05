@@ -39,13 +39,16 @@ export async function releaseExpiredPendingOrders() {
   return expired.length;
 }
 
+const RELEASABLE_STATUSES = ["pending", "pending_transfer"];
+
 // Libera el stock reservado por una orden puntual (usado por el boton
-// "cancelar" del admin). No hace nada si la orden ya no esta "pending" —
-// evita liberar dos veces si ya se libero por TTL o si ya estaba pagada.
+// "cancelar" del admin). No hace nada si la orden ya no esta en un estado
+// "pendiente" (pending o pending_transfer) — evita liberar dos veces si ya
+// se libero por TTL o si ya estaba pagada/cancelada.
 export async function releaseOrderStock(orderId: string) {
   await prisma.$transaction(async (tx) => {
     const order = await tx.order.findUnique({ where: { id: orderId }, include: { items: true } });
-    if (!order || order.status !== "pending") return;
+    if (!order || !RELEASABLE_STATUSES.includes(order.status)) return;
 
     for (const item of order.items) {
       await tx.productVariant.update({
@@ -62,6 +65,7 @@ export async function createPendingOrder(input: {
     email: string;
     phone: string;
     deliveryMethod: "shipping" | "pickup";
+    paymentMethod?: "mercadopago" | "transfer";
     address?: string;
     city?: string;
     state?: string;
@@ -115,6 +119,8 @@ export async function createPendingOrder(input: {
       0
     );
 
+    const paymentMethod = input.customer.paymentMethod ?? "mercadopago";
+
     return tx.order.create({
       data: {
         email: input.customer.email,
@@ -125,8 +131,13 @@ export async function createPendingOrder(input: {
         city: input.customer.city ?? null,
         state: input.customer.state ?? null,
         zipCode: input.customer.zipCode ?? null,
+        paymentMethod,
         totalPrice,
-        status: "pending",
+        // Las ordenes por transferencia no pasan por Mercado Pago, asi que
+        // no tienen el TTL de 30 min (releaseExpiredPendingOrders solo mira
+        // status="pending"): la transferencia puede tardar mas y el admin
+        // las confirma a mano cuando ve el dinero acreditado.
+        status: paymentMethod === "transfer" ? "pending_transfer" : "pending",
         items: {
           create: orderItemsData,
         },
