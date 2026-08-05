@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
       include: { variants: true },
     });
 
+    revalidatePath("/");
     revalidatePath("/products");
     revalidatePath(`/products/${product.slug}`);
 

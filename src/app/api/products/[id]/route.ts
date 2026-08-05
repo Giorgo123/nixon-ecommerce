@@ -68,6 +68,7 @@ export async function PUT(
       return tx.product.findUniqueOrThrow({ where: { id }, include: { variants: true } });
     });
 
+    revalidatePath("/");
     revalidatePath("/products");
     revalidatePath(`/products/${product.slug}`);
 
@@ -91,6 +92,7 @@ export async function DELETE(
   try {
     const product = await prisma.product.delete({ where: { id } });
 
+    revalidatePath("/");
     revalidatePath("/products");
     revalidatePath(`/products/${product.slug}`);
 
