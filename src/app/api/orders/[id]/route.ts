@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { isAdminSessionActive } from "@/lib/admin-session";
 import { verifyOrderAccessToken } from "@/lib/order-token";
+import { releaseOrderStock } from "@/lib/order";
+
+const orderWithItemsInclude = {
+  items: { include: { variant: { include: { product: true } } } },
+} as const;
 
 export async function GET(
   request: Request,
@@ -16,13 +21,7 @@ export async function GET(
 
   const order = await prisma.order.findUnique({
     where: { id },
-    include: {
-      items: {
-        include: {
-          product: true,
-        },
-      },
-    },
+    include: orderWithItemsInclude,
   });
 
   if (!order) {
@@ -49,16 +48,16 @@ export async function PUT(
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
 
+  // Si se cancela un pedido que todavia estaba "pending", devolvemos el
+  // stock que le habiamos reservado (no hace nada si ya no esta pending).
+  if (status === "cancelled") {
+    await releaseOrderStock(id);
+  }
+
   const order = await prisma.order.update({
     where: { id },
     data: { status },
-    include: {
-      items: {
-        include: {
-          product: true,
-        },
-      },
-    },
+    include: orderWithItemsInclude,
   });
 
   return NextResponse.json(order);

@@ -64,6 +64,11 @@ export async function POST(request: NextRequest) {
 
     const slug = await uniqueSlugFromName(data.name);
 
+    const incomingVariants: Array<{ size?: string | null; stock?: number }> =
+      Array.isArray(data.variants) && data.variants.length > 0
+        ? data.variants
+        : [{ size: null, stock: 0 }];
+
     const product = await prisma.product.create({
       data: {
         name: data.name,
@@ -71,10 +76,13 @@ export async function POST(request: NextRequest) {
         price: parseFloat(data.price),
         image: data.image,
         category: data.category || "remera",
-        stock: data.stock || 0,
         slug,
         seo: data.seo,
+        variants: {
+          create: incomingVariants.map((v) => ({ size: v.size ?? null, stock: v.stock ?? 0 })),
+        },
       },
+      include: { variants: true },
     });
 
     revalidatePath("/products");

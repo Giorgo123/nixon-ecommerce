@@ -12,7 +12,7 @@ type OrderForEmail = {
   items: Array<{
     quantity: number;
     price: number;
-    product: { name: string };
+    variant: { size: string | null; product: { name: string } };
   }>;
 };
 
@@ -29,10 +29,10 @@ function formatPrice(value: number) {
 
 function itemsListHtml(order: OrderForEmail) {
   return order.items
-    .map(
-      (item) =>
-        `<li>${item.quantity} x ${item.product.name} — ${formatPrice(item.price * item.quantity)}</li>`
-    )
+    .map((item) => {
+      const sizeLabel = item.variant.size ? ` (talle ${item.variant.size})` : "";
+      return `<li>${item.quantity} x ${item.variant.product.name}${sizeLabel} — ${formatPrice(item.price * item.quantity)}</li>`;
+    })
     .join("");
 }
 
@@ -100,5 +100,35 @@ export async function sendPaymentConfirmedEmail(order: OrderForEmail) {
     });
   } catch (error) {
     console.error("Error enviando email de pago confirmado:", error);
+  }
+}
+
+// El pago llegó después de que el TTL liberó el stock reservado y no se
+// pudo re-reservar (probablemente se lo llevó otro comprador). El pago se
+// confirma igual — nunca se ignora un cobro real — pero alguien tiene que
+// revisarlo a mano.
+export async function sendStockConflictAlertEmail(order: OrderForEmail) {
+  const resend = getResendClient();
+  const notifyTo = process.env.STORE_NOTIFICATION_EMAIL;
+  if (!resend || !notifyTo) return;
+
+  const orderRef = order.id.slice(-8);
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: notifyTo,
+      subject: `⚠️ Pedido #${orderRef} pagado sin stock disponible — revisar`,
+      html: `
+        <h2>Conflicto de stock en pedido pagado</h2>
+        <p>El pedido #${orderRef} de ${order.fullName} (${order.email}) se pagó, pero el
+        stock reservado ya había sido liberado (probablemente por demora en el pago) y
+        no se pudo volver a reservar por completo.</p>
+        <ul>${itemsListHtml(order)}</ul>
+        <p>Revisar disponibilidad real y coordinar con el cliente si hace falta.</p>
+      `,
+    });
+  } catch (error) {
+    console.error("Error enviando alerta de conflicto de stock:", error);
   }
 }

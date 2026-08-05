@@ -11,7 +11,11 @@ type OrderWithItems = Prisma.OrderGetPayload<{
   include: {
     items: {
       include: {
-        product: true;
+        variant: {
+          include: {
+            product: true;
+          };
+        };
       };
     };
   };
@@ -29,7 +33,7 @@ export default async function AdminOrderDetailPage({
     include: {
       items: {
         include: {
-          product: true,
+          variant: { include: { product: true } },
         },
       },
     },
@@ -81,9 +85,14 @@ export default async function AdminOrderDetailPage({
           {order.items.map((item) => (
             <div key={item.id} className="flex items-center justify-between rounded-2xl border border-black/10 px-4 py-3 text-sm dark:border-white/10">
               <div>
-                <p className="font-medium text-black dark:text-white">{item.product.name}</p>
+                <p className="font-medium text-black dark:text-white">
+                  {item.variant.product.name}
+                  {item.variant.size && (
+                    <span className="text-black/60 dark:text-white/60"> — Talle {item.variant.size}</span>
+                  )}
+                </p>
                 <p className="text-black/60 dark:text-white/60">
-                  {catalogCategoryLabels[item.product.category] ?? item.product.category} · Cantidad: {item.quantity}
+                  {catalogCategoryLabels[item.variant.product.category] ?? item.variant.product.category} · Cantidad: {item.quantity}
                 </p>
               </div>
               <p className="font-semibold text-black dark:text-white">

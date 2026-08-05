@@ -1,9 +1,19 @@
-import type { Product } from "@/types/product";
+export interface OrderItemVariant {
+  id: string;
+  size: string | null;
+  color: string | null;
+  product: {
+    id: string;
+    name: string;
+    image: string;
+    category: string;
+  };
+}
 
 export interface OrderItem {
-  product: Product;
   quantity: number;
-  price?: number;
+  price: number;
+  variant: OrderItemVariant;
 }
 
 export interface Order {

@@ -52,21 +52,26 @@ export default function CartSummary({
         ) : (
           items.map((item) => (
             <div
-              key={item.id}
+              key={item.variantId}
               className="rounded-2xl border border-black/10 p-4 dark:border-white/10"
             >
               <div className="flex items-start gap-4">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-black dark:text-white">
-                    {item.product.name}
+                    {item.name}
                   </p>
+                  {item.size && (
+                    <p className="text-xs uppercase tracking-[0.15em] text-black/50 dark:text-white/50">
+                      Talle {item.size}
+                    </p>
+                  )}
                   <p className="text-sm text-black/60 dark:text-white/60">
-                    ${item.product.price.toLocaleString("es-AR")}
+                    ${item.price.toLocaleString("es-AR")}
                   </p>
                 </div>
                 <button
                   type="button"
-                  onClick={() => removeItem(item.id)}
+                  onClick={() => removeItem(item.variantId)}
                   className="text-xs font-medium text-red-500"
                 >
                   Quitar
@@ -80,7 +85,7 @@ export default function CartSummary({
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
                     className="flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-base font-semibold text-black dark:border-white/10 dark:text-white"
                   >
                     -
@@ -90,8 +95,9 @@ export default function CartSummary({
                   </span>
                   <button
                     type="button"
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-base font-semibold text-black dark:border-white/10 dark:text-white"
+                    disabled={item.quantity >= item.stock}
+                    onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-base font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-white"
                   >
                     +
                   </button>

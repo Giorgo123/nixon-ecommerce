@@ -15,6 +15,8 @@ const statusClasses: Record<string, string> = {
   paid: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   cancelled: "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300",
   refunded: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  expired: "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300",
+  paid_stock_conflict: "border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-300",
 };
 
 interface OrderStatusActionsProps {

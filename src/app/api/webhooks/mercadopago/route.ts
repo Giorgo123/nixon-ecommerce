@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import prisma from "@/lib/prisma";
-import { sendPaymentConfirmedEmail } from "@/lib/email";
+import { sendPaymentConfirmedEmail, sendStockConflictAlertEmail } from "@/lib/email";
 
 function isValidWebhookSignature(request: NextRequest, dataId: string) {
   const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
@@ -50,6 +50,10 @@ async function fetchPayment(paymentId: string) {
   }>;
 }
 
+const orderWithItemsInclude = {
+  items: { include: { variant: { include: { product: true } } } },
+} as const;
+
 export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
@@ -71,26 +75,59 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    const existingOrder = await prisma.order.findUnique({ where: { id: orderId } });
-    const newStatus = payment.status === "approved" ? "paid" : payment.status;
-
-    const order = await prisma.order.update({
+    const existingOrder = await prisma.order.findUnique({
       where: { id: orderId },
-      data: {
-        status: newStatus,
-        paymentId: payment.id,
-      },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
+      include: { items: true },
     });
 
-    if (newStatus === "paid" && existingOrder?.status !== "paid") {
+    if (!existingOrder) {
+      return NextResponse.json({ ok: true });
+    }
+
+    const isApproved = payment.status === "approved";
+    const alreadyPaid = existingOrder.status === "paid" || existingOrder.status === "paid_stock_conflict";
+
+    let order;
+    let stockConflict = false;
+
+    if (isApproved && existingOrder.status === "expired") {
+      // El TTL ya liberó este stock (el pago tardó más de lo esperado).
+      // Intentamos re-reservarlo; si no alcanza, igual confirmamos el pago
+      // — nunca se ignora un cobro real — y queda marcado para revisar.
+      stockConflict = await prisma.$transaction(async (tx) => {
+        let conflict = false;
+        for (const item of existingOrder.items) {
+          const res = await tx.productVariant.updateMany({
+            where: { id: item.variantId, stock: { gte: item.quantity } },
+            data: { stock: { decrement: item.quantity } },
+          });
+          if (res.count === 0) conflict = true;
+        }
+        return conflict;
+      });
+
+      order = await prisma.order.update({
+        where: { id: orderId },
+        data: {
+          status: stockConflict ? "paid_stock_conflict" : "paid",
+          paymentId: payment.id,
+        },
+        include: orderWithItemsInclude,
+      });
+    } else {
+      const newStatus = isApproved ? "paid" : payment.status;
+      order = await prisma.order.update({
+        where: { id: orderId },
+        data: { status: newStatus, paymentId: payment.id },
+        include: orderWithItemsInclude,
+      });
+    }
+
+    if (isApproved && !alreadyPaid) {
       await sendPaymentConfirmedEmail(order);
+      if (stockConflict) {
+        await sendStockConflictAlertEmail(order);
+      }
     }
 
     return NextResponse.json({ ok: true });

@@ -1,13 +1,21 @@
 import prisma from "@/lib/prisma";
 import type { Product } from "@/features/products/types";
 
+const variantsInclude = { variants: { orderBy: [{ size: "asc" as const }, { color: "asc" as const }] } };
+
 export async function getCatalogProducts(): Promise<Product[]> {
-  const products = await prisma.product.findMany({ orderBy: { createdAt: "desc" } });
+  const products = await prisma.product.findMany({
+    orderBy: { createdAt: "desc" },
+    include: variantsInclude,
+  });
   return products.map(toProduct);
 }
 
 export async function getCatalogProductBySlug(slug: string): Promise<Product | null> {
-  const product = await prisma.product.findUnique({ where: { slug } });
+  const product = await prisma.product.findUnique({
+    where: { slug },
+    include: variantsInclude,
+  });
   return product ? toProduct(product) : null;
 }
 
@@ -24,10 +32,10 @@ function toProduct(product: {
   image: string;
   category: string;
   slug: string;
-  stock: number;
   seo: string | null;
   createdAt: Date;
   updatedAt: Date;
+  variants: Array<{ id: string; size: string | null; color: string | null; stock: number }>;
 }): Product {
   return {
     id: product.id,
@@ -37,9 +45,9 @@ function toProduct(product: {
     image: product.image,
     category: product.category as Product["category"],
     slug: product.slug,
-    stock: product.stock,
     seo: product.seo ?? undefined,
     createdAt: product.createdAt.toISOString(),
     updatedAt: product.updatedAt.toISOString(),
+    variants: product.variants.map((v) => ({ id: v.id, size: v.size, color: v.color, stock: v.stock })),
   };
 }

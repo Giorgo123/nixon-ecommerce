@@ -1,7 +1,13 @@
-import type { Product } from "@/types/product";
-
 export interface CartItem {
-  id: string;
-  product: Product;
+  variantId: string;
+  productId: string;
+  slug: string;
+  name: string;
+  image: string;
+  price: number;
+  category: string;
+  size: string | null;
+  color: string | null;
+  stock: number;
   quantity: number;
 }

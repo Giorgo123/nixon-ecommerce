@@ -9,6 +9,8 @@ const statusBadgeClasses: Record<string, string> = {
   paid: "text-emerald-700 dark:text-emerald-300",
   cancelled: "text-rose-700 dark:text-rose-300",
   refunded: "text-sky-700 dark:text-sky-300",
+  expired: "text-rose-700 dark:text-rose-300",
+  paid_stock_conflict: "text-orange-700 dark:text-orange-300",
 };
 
 export default async function AdminDashboardPage() {

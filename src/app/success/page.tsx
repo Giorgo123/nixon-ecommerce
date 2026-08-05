@@ -3,6 +3,15 @@ import type { Order } from "@/types/order";
 
 export const dynamic = "force-dynamic";
 
+const statusLabels: Record<string, string> = {
+  pending: "pendiente de pago",
+  paid: "pagada",
+  paid_stock_conflict: "pagada",
+  cancelled: "cancelada",
+  refunded: "reembolsada",
+  expired: "cancelada",
+};
+
 async function getOrder(orderId: string, token: string) {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/api/orders/${orderId}?token=${token}`,
@@ -35,7 +44,7 @@ export default async function SuccessPage({
         </h1>
         <p className="text-sm text-black/70 dark:text-white/70">
           {order
-            ? `Tu orden ${order.id} quedó registrada y está en estado ${order.status}.`
+            ? `Tu orden ${order.id} quedó registrada y está ${statusLabels[order.status] ?? order.status}.`
             : "Tu pago fue procesado. Estamos recuperando el detalle de la orden."}
         </p>
 
@@ -48,7 +57,9 @@ export default async function SuccessPage({
               </div>
               <div>
                 <p className="text-black/60 dark:text-white/60">Estado</p>
-                <p className="font-medium text-black dark:text-white">{order.status}</p>
+                <p className="font-medium text-black dark:text-white">
+                  {statusLabels[order.status] ?? order.status}
+                </p>
               </div>
               <div>
                 <p className="text-black/60 dark:text-white/60">Email</p>
@@ -69,19 +80,22 @@ export default async function SuccessPage({
               <div className="space-y-3">
                 {order.items.map((item) => (
                   <div
-                    key={item.product.id}
+                    key={item.variant.id}
                     className="flex items-center justify-between gap-4 rounded-2xl border border-black/10 px-4 py-3 text-sm dark:border-white/10"
                   >
                     <div>
                       <p className="font-medium text-black dark:text-white">
-                        {item.product.name}
+                        {item.variant.product.name}
+                        {item.variant.size && (
+                          <span className="text-black/60 dark:text-white/60"> — Talle {item.variant.size}</span>
+                        )}
                       </p>
                       <p className="text-black/60 dark:text-white/60">
                         Cantidad: {item.quantity}
                       </p>
                     </div>
                     <p className="font-medium text-black dark:text-white">
-                      ${(Number(item.price ?? item.product.price) * item.quantity).toLocaleString("es-AR")}
+                      ${(Number(item.price) * item.quantity).toLocaleString("es-AR")}
                     </p>
                   </div>
                 ))}

@@ -31,6 +31,7 @@ export default async function ProductDetailPage({
   const price = product.price.toLocaleString("es-AR");
   const categoryLabel =
     catalogCategoryLabels[product.category] ?? product.category;
+  const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-16">
@@ -82,7 +83,7 @@ export default async function ProductDetailPage({
                   Stock
                 </p>
                 <p className="text-lg font-semibold text-black dark:text-white">
-                  {product.stock > 0 ? `${product.stock} disponibles` : "Agotado"}
+                  {totalStock > 0 ? `${totalStock} disponibles` : "Agotado"}
                 </p>
               </div>
             </div>

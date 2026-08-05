@@ -14,18 +14,40 @@ const inputClasses =
   "w-full rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm text-black placeholder:text-black/40 focus:border-red-500 focus:outline-none dark:border-white/10 dark:bg-black dark:text-white dark:placeholder:text-white/40";
 const labelClasses = "text-sm font-medium text-black/80 dark:text-white/80";
 
+const SIZES = ["S", "M", "L", "XL", "XXL"] as const;
+const SIZED_CATEGORIES = new Set(["remera", "oversize", "buzo"]);
+
+function initialSizeStocks(product?: Product): Record<string, string> {
+  const base = Object.fromEntries(SIZES.map((size) => [size, "0"]));
+  if (!product) return base;
+  for (const variant of product.variants) {
+    if (variant.size && SIZES.includes(variant.size as (typeof SIZES)[number])) {
+      base[variant.size] = variant.stock.toString();
+    }
+  }
+  return base;
+}
+
+function initialSingleStock(product?: Product): string {
+  const defaultVariant = product?.variants.find((v) => !v.size);
+  return (defaultVariant?.stock ?? 0).toString();
+}
+
 export default function ProductForm({ mode, product }: ProductFormProps) {
   const router = useRouter();
   const [name, setName] = useState(product?.name ?? "");
   const [description, setDescription] = useState(product?.description ?? "");
   const [price, setPrice] = useState(product?.price?.toString() ?? "");
   const [category, setCategory] = useState(product?.category ?? "remera");
-  const [stock, setStock] = useState(product?.stock?.toString() ?? "0");
+  const [sizeStocks, setSizeStocks] = useState<Record<string, string>>(() => initialSizeStocks(product));
+  const [singleStock, setSingleStock] = useState(() => initialSingleStock(product));
   const [seo, setSeo] = useState(product?.seo ?? "");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(product?.image ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const hasSizes = SIZED_CATEGORIES.has(category);
 
   function handleFileChange(file: File | null) {
     setImageFile(file);
@@ -64,14 +86,18 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
         imageUrl = uploadResult.url;
       }
 
+      const variants = hasSizes
+        ? SIZES.map((size) => ({ size, stock: parseInt(sizeStocks[size], 10) || 0 }))
+        : [{ size: null, stock: parseInt(singleStock, 10) || 0 }];
+
       const payload = {
         name,
         description,
         price: parseFloat(price),
         image: imageUrl,
         category,
-        stock: parseInt(stock, 10) || 0,
         seo: seo || undefined,
+        variants,
       };
 
       const response = await fetch(
@@ -124,33 +150,18 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className={labelClasses} htmlFor="price">Precio</label>
-              <input
-                id="price"
-                type="number"
-                min="0"
-                step="0.01"
-                className={inputClasses}
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className={labelClasses} htmlFor="stock">Stock</label>
-              <input
-                id="stock"
-                type="number"
-                min="0"
-                className={inputClasses}
-                value={stock}
-                onChange={(event) => setStock(event.target.value)}
-                required
-              />
-            </div>
+          <div className="space-y-2">
+            <label className={labelClasses} htmlFor="price">Precio</label>
+            <input
+              id="price"
+              type="number"
+              min="0"
+              step="0.01"
+              className={inputClasses}
+              value={price}
+              onChange={(event) => setPrice(event.target.value)}
+              required
+            />
           </div>
 
           <div className="space-y-2">
@@ -167,6 +178,41 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="space-y-2">
+            <span className={labelClasses}>Stock {hasSizes ? "por talle" : ""}</span>
+            {hasSizes ? (
+              <div className="grid grid-cols-5 gap-2">
+                {SIZES.map((size) => (
+                  <div key={size} className="space-y-1">
+                    <label className="text-xs text-black/60 dark:text-white/60" htmlFor={`stock-${size}`}>
+                      {size}
+                    </label>
+                    <input
+                      id={`stock-${size}`}
+                      type="number"
+                      min="0"
+                      className={inputClasses}
+                      value={sizeStocks[size]}
+                      onChange={(event) =>
+                        setSizeStocks((prev) => ({ ...prev, [size]: event.target.value }))
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <input
+                id="single-stock"
+                type="number"
+                min="0"
+                className={inputClasses}
+                value={singleStock}
+                onChange={(event) => setSingleStock(event.target.value)}
+                required
+              />
+            )}
           </div>
 
           <div className="space-y-2">

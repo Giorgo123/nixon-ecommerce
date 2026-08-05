@@ -7,7 +7,10 @@ import DeleteProductButton from "@/components/admin/DeleteProductButton";
 export const dynamic = "force-dynamic";
 
 export default async function AdminProductsPage() {
-  const products = await prisma.product.findMany({ orderBy: { createdAt: "desc" } });
+  const products = await prisma.product.findMany({
+    orderBy: { createdAt: "desc" },
+    include: { variants: true },
+  });
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
@@ -59,7 +62,9 @@ export default async function AdminProductsPage() {
                 <td className="px-4 py-3 text-black/70 dark:text-white/70">
                   ${product.price.toLocaleString("es-AR")}
                 </td>
-                <td className="px-4 py-3 text-black/70 dark:text-white/70">{product.stock}</td>
+                <td className="px-4 py-3 text-black/70 dark:text-white/70">
+                  {product.variants.reduce((sum, v) => sum + v.stock, 0)}
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-2">
                     <Link

@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { createPendingOrder } from "@/lib/order";
+import { createPendingOrder, StockError } from "@/lib/order";
 import { sendOrderReceivedEmail } from "@/lib/email";
 import { createOrderAccessToken } from "@/lib/order-token";
 
 type PendingOrderItem = {
-  productId: string;
+  variantId: string;
   quantity: number;
   price: number;
-  product: {
-    name: string;
-    description: string;
-    image: string;
-    category: string;
+  variant: {
+    size: string | null;
+    product: {
+      name: string;
+      description: string;
+      image: string;
+      category: string;
+    };
   };
 };
 
@@ -35,11 +38,13 @@ export async function POST(request: NextRequest) {
     await sendOrderReceivedEmail(order);
 
     const mpItems = order.items.map((item: PendingOrderItem) => ({
-      id: item.productId,
-      title: item.product.name,
-      description: item.product.description,
-      picture_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}${item.product.image}`,
-      category_id: item.product.category,
+      id: item.variantId,
+      title: item.variant.size
+        ? `${item.variant.product.name} - Talle ${item.variant.size}`
+        : item.variant.product.name,
+      description: item.variant.product.description,
+      picture_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}${item.variant.product.image}`,
+      category_id: item.variant.product.category,
       quantity: item.quantity,
       currency_id: "ARS",
       unit_price: item.price,
@@ -79,6 +84,9 @@ export async function POST(request: NextRequest) {
     const preference = (await response.json()) as { init_point: string };
     return NextResponse.json({ initPoint: preference.init_point });
   } catch (error) {
+    if (error instanceof StockError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Error en checkout" },
       { status: 500 }
