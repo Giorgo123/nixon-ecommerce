@@ -6,12 +6,20 @@ export default function Footer() {
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="tracking-wide">© {new Date().getFullYear()} Nixon Studio</p>
-          <p className="tracking-wide">
+          <a
+            href="https://instagram.com/nixonstudio"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="tracking-wide hover:text-black dark:hover:text-white"
+          >
             Instagram: <span className="text-black dark:text-white">@nixonstudio</span>
-          </p>
+          </a>
         </div>
 
         <nav className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-black/10 pt-6 text-xs uppercase tracking-[0.15em] dark:border-white/10">
+          <Link href="/contacto" className="hover:text-black dark:hover:text-white">
+            Contacto
+          </Link>
           <Link href="/terminos-y-condiciones" className="hover:text-black dark:hover:text-white">
             Términos y Condiciones
           </Link>

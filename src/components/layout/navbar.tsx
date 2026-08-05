@@ -26,6 +26,9 @@ export default function Navbar() {
           <Link href="/products" className="hover:opacity-70">
             Catálogo
           </Link>
+          <Link href="/contacto" className="hover:opacity-70">
+            Contacto
+          </Link>
           <Link href="/cart" className="hover:opacity-70">
             Carrito
             {hasMounted && itemsCount > 0 && (
