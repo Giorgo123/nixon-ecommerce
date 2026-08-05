@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ProductActions from "@/components/product/ProductActions";
 import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
 import { catalogCategoryLabels } from "@/lib/categories";
+import type { Product } from "@/features/products/types";
 
 // Se revalida al instante cuando el admin crea/edita/borra este producto
 // (ver revalidatePath en src/app/api/products); esto es solo un respaldo.
@@ -14,6 +16,60 @@ export async function generateStaticParams() {
   return products.map((product) => ({
     slug: product.slug,
   }));
+}
+
+function absoluteImageUrl(image: string) {
+  if (image.startsWith("http")) return image;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nixonstudio.com.ar";
+  return `${siteUrl}${image}`;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await getCatalogProductBySlug(slug);
+
+  if (!product) return {};
+
+  return {
+    title: `${product.name} — Nixon Studio`,
+    description: product.description,
+    openGraph: {
+      title: product.name,
+      description: product.description,
+      images: [absoluteImageUrl(product.image)],
+    },
+  };
+}
+
+function productJsonLd(product: Product, totalStock: number) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nixonstudio.com.ar";
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: [absoluteImageUrl(product.image)],
+    sku: product.id,
+    category: catalogCategoryLabels[product.category] ?? product.category,
+    offers: {
+      "@type": "Offer",
+      url: `${siteUrl}/products/${product.slug}`,
+      priceCurrency: "ARS",
+      price: product.price,
+      availability:
+        totalStock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: { "@type": "MonetaryAmount", value: "0", currency: "ARS" },
+        shippingDestination: { "@type": "DefinedRegion", addressCountry: "AR" },
+      },
+    },
+  };
 }
 
 export default async function ProductDetailPage({
@@ -35,6 +91,10 @@ export default async function ProductDetailPage({
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd(product, totalStock)) }}
+      />
       <div className="mb-8">
         <Link
           href="/products"
