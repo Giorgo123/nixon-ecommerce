@@ -58,8 +58,10 @@ export default function TerminosYCondicionesPage() {
         <section>
           <h2 className="text-lg font-semibold text-black dark:text-white">5. Envíos</h2>
           <p className="mt-2">
-            Los plazos y costos de envío se informan durante el proceso de compra. [Completar con
-            la política de envíos real: zonas de cobertura, tiempos estimados, costo, transportista.]
+            El envío es <strong>gratuito a todo el país</strong>; su costo ya está incluido en el
+            precio publicado de cada producto. También podés coordinar el retiro en nuestro local
+            de Villa María, Córdoba, sin costo adicional. Los plazos estimados se informan durante
+            el proceso de compra.
           </p>
         </section>
 

@@ -117,8 +117,8 @@ export default function CartSummary({
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-black/60 dark:text-white/60">Envío</span>
-          <span className="font-medium text-black dark:text-white">
-            {shipping === 0 ? "Se calcula al final" : `$${shipping.toLocaleString("es-AR")}`}
+          <span className="font-medium text-emerald-600 dark:text-emerald-400">
+            Gratis a todo el país
           </span>
         </div>
         <div className="flex items-center justify-between text-base">
