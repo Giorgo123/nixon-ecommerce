@@ -17,6 +17,13 @@ const labelClasses = "text-sm font-medium text-black/80 dark:text-white/80";
 const SIZES = ["S", "M", "L", "XL", "XXL"] as const;
 const SIZED_CATEGORIES = new Set(["remera", "oversize", "buzo"]);
 
+interface GalleryItem {
+  key: string;
+  url?: string; // ya subida (existente)
+  file?: File; // pendiente de subir
+  preview: string;
+}
+
 function initialSizeStocks(product?: Product): Record<string, string> {
   const base = Object.fromEntries(SIZES.map((size) => [size, "0"]));
   if (!product) return base;
@@ -33,6 +40,24 @@ function initialSingleStock(product?: Product): string {
   return (defaultVariant?.stock ?? 0).toString();
 }
 
+async function uploadImage(file: File): Promise<string> {
+  const uploadData = new FormData();
+  uploadData.append("file", file);
+
+  const uploadResponse = await fetch("/api/admin/upload", {
+    method: "POST",
+    body: uploadData,
+  });
+
+  if (!uploadResponse.ok) {
+    const payload = (await uploadResponse.json()) as { error?: string };
+    throw new Error(payload.error ?? "No se pudo subir la imagen");
+  }
+
+  const uploadResult = (await uploadResponse.json()) as { url: string };
+  return uploadResult.url;
+}
+
 export default function ProductForm({ mode, product }: ProductFormProps) {
   const router = useRouter();
   const [name, setName] = useState(product?.name ?? "");
@@ -44,6 +69,9 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
   const [seo, setSeo] = useState(product?.seo ?? "");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(product?.image ?? null);
+  const [gallery, setGallery] = useState<GalleryItem[]>(
+    () => (product?.images ?? []).map((url, i) => ({ key: `existing-${i}`, url, preview: url }))
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,6 +80,20 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
   function handleFileChange(file: File | null) {
     setImageFile(file);
     setImagePreview(file ? URL.createObjectURL(file) : (product?.image ?? null));
+  }
+
+  function handleGalleryFilesAdded(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const newItems: GalleryItem[] = Array.from(files).map((file) => ({
+      key: `new-${crypto.randomUUID()}`,
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setGallery((prev) => [...prev, ...newItems]);
+  }
+
+  function removeGalleryItem(key: string) {
+    setGallery((prev) => prev.filter((item) => item.key !== key));
   }
 
   async function handleSubmit(event: React.FormEvent) {
@@ -69,21 +111,12 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
       let imageUrl = product?.image ?? "";
 
       if (imageFile) {
-        const uploadData = new FormData();
-        uploadData.append("file", imageFile);
+        imageUrl = await uploadImage(imageFile);
+      }
 
-        const uploadResponse = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: uploadData,
-        });
-
-        if (!uploadResponse.ok) {
-          const payload = (await uploadResponse.json()) as { error?: string };
-          throw new Error(payload.error ?? "No se pudo subir la imagen");
-        }
-
-        const uploadResult = (await uploadResponse.json()) as { url: string };
-        imageUrl = uploadResult.url;
+      const galleryUrls: string[] = [];
+      for (const item of gallery) {
+        galleryUrls.push(item.url ?? (await uploadImage(item.file as File)));
       }
 
       const variants = hasSizes
@@ -98,6 +131,7 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
         category,
         seo: seo || undefined,
         variants,
+        images: galleryUrls,
       };
 
       const response = await fetch(
@@ -226,23 +260,57 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className={labelClasses} htmlFor="image">Imagen</label>
-          <input
-            id="image"
-            type="file"
-            accept="image/*"
-            className={inputClasses}
-            onChange={(event) => handleFileChange(event.target.files?.[0] ?? null)}
-          />
-          {imagePreview && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={imagePreview}
-              alt="Vista previa"
-              className="mt-3 aspect-square w-full max-w-xs rounded-2xl border border-black/10 object-cover dark:border-white/10"
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className={labelClasses} htmlFor="image">Imagen de portada</label>
+            <input
+              id="image"
+              type="file"
+              accept="image/*"
+              className={inputClasses}
+              onChange={(event) => handleFileChange(event.target.files?.[0] ?? null)}
             />
-          )}
+            {imagePreview && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={imagePreview}
+                alt="Vista previa"
+                className="mt-3 aspect-square w-full max-w-xs rounded-2xl border border-black/10 object-cover dark:border-white/10"
+              />
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className={labelClasses} htmlFor="gallery">Galería (fotos adicionales)</label>
+            <input
+              id="gallery"
+              type="file"
+              accept="image/*"
+              multiple
+              className={inputClasses}
+              onChange={(event) => {
+                handleGalleryFilesAdded(event.target.files);
+                event.target.value = "";
+              }}
+            />
+            {gallery.length > 0 && (
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {gallery.map((item) => (
+                  <div key={item.key} className="group relative aspect-square overflow-hidden rounded-xl border border-black/10 dark:border-white/10">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={item.preview} alt="Foto de galería" className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeGalleryItem(item.key)}
+                      className="absolute right-1 top-1 rounded-full bg-black/70 px-2 py-0.5 text-xs font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

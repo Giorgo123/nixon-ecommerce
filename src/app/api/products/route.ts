@@ -69,6 +69,8 @@ export async function POST(request: NextRequest) {
         ? data.variants
         : [{ size: null, stock: 0 }];
 
+    const incomingImages: string[] = Array.isArray(data.images) ? data.images : [];
+
     const product = await prisma.product.create({
       data: {
         name: data.name,
@@ -81,8 +83,11 @@ export async function POST(request: NextRequest) {
         variants: {
           create: incomingVariants.map((v) => ({ size: v.size ?? null, stock: v.stock ?? 0 })),
         },
+        images: {
+          create: incomingImages.map((url, index) => ({ url, position: index })),
+        },
       },
-      include: { variants: true },
+      include: { variants: true, images: true },
     });
 
     revalidatePath("/");

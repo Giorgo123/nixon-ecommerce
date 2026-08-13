@@ -14,7 +14,7 @@ export default async function AdminEditProductPage({
   const { id } = await params;
   const product = await prisma.product.findUnique({
     where: { id },
-    include: { variants: true },
+    include: { variants: true, images: { orderBy: { position: "asc" } } },
   });
 
   if (!product) {
@@ -45,6 +45,7 @@ export default async function AdminEditProductPage({
           seo: product.seo ?? undefined,
           createdAt: product.createdAt.toISOString(),
           updatedAt: product.updatedAt.toISOString(),
+          images: product.images.map((image) => image.url),
         }}
       />
     </main>

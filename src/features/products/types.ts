@@ -17,4 +17,5 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
   variants: ProductVariant[];
+  images: string[]; // fotos adicionales de galeria, NO incluye la portada (product.image)
 }

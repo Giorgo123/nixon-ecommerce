@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ProductActions from "@/components/product/ProductActions";
+import ProductGallery from "@/components/product/ProductGallery";
 import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
 import { catalogCategoryLabels } from "@/lib/categories";
 import type { Product } from "@/features/products/types";
@@ -40,7 +40,7 @@ export async function generateMetadata({
     openGraph: {
       title: product.name,
       description: product.description,
-      images: [absoluteImageUrl(product.image)],
+      images: [product.image, ...product.images].map(absoluteImageUrl),
     },
   };
 }
@@ -53,7 +53,7 @@ function productJsonLd(product: Product, totalStock: number) {
     "@type": "Product",
     name: product.name,
     description: product.description,
-    image: [absoluteImageUrl(product.image)],
+    image: [product.image, ...product.images].map(absoluteImageUrl),
     sku: product.id,
     category: catalogCategoryLabels[product.category] ?? product.category,
     offers: {
@@ -105,15 +105,7 @@ export default async function ProductDetailPage({
       </div>
 
       <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-black/5 dark:bg-white/5">
-          <Image
-            src={product.image}
-            alt={product.name}
-            fill
-            priority
-            className="object-cover object-center"
-          />
-        </div>
+        <ProductGallery images={[product.image, ...product.images]} alt={product.name} />
 
         <div className="space-y-6">
           <div className="space-y-3">

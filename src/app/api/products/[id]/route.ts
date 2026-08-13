@@ -23,6 +23,8 @@ export async function PUT(
       ? data.variants
       : [{ size: null, stock: 0 }];
 
+  const incomingImages: string[] = Array.isArray(data.images) ? data.images : [];
+
   try {
     const product = await prisma.$transaction(async (tx) => {
       await tx.product.update({
@@ -65,7 +67,16 @@ export async function PUT(
         }
       }
 
-      return tx.product.findUniqueOrThrow({ where: { id }, include: { variants: true } });
+      // Las imagenes de galeria no tienen historial de pedidos apuntandoles
+      // (a diferencia de las variantes), asi que borrar y recrear es seguro.
+      await tx.productImage.deleteMany({ where: { productId: id } });
+      if (incomingImages.length > 0) {
+        await tx.productImage.createMany({
+          data: incomingImages.map((url, index) => ({ url, position: index, productId: id })),
+        });
+      }
+
+      return tx.product.findUniqueOrThrow({ where: { id }, include: { variants: true, images: true } });
     });
 
     revalidatePath("/");
