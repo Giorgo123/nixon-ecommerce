@@ -1,8 +1,11 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { isDatabaseConnectionError } from "@/lib/db-safe";
+import Pagination from "@/components/admin/Pagination";
 
 export const dynamic = "force-dynamic";
+
+const PAGE_SIZE = 20;
 
 type OrdersListItem = Awaited<ReturnType<typeof prisma.order.findMany>>[number];
 
@@ -16,22 +19,34 @@ const statusBadgeClasses: Record<string, string> = {
   pending_transfer: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
 };
 
-export default async function AdminOrdersPage() {
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
+
   let orders: Awaited<ReturnType<typeof prisma.order.findMany>> = [];
+  let totalOrders = 0;
   let databaseUnavailable = false;
 
   try {
-    orders = await prisma.order.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 20,
-      include: {
-        items: {
-          include: {
-            variant: { include: { product: true } },
+    [orders, totalOrders] = await Promise.all([
+      prisma.order.findMany({
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+        include: {
+          items: {
+            include: {
+              variant: { include: { product: true } },
+            },
           },
         },
-      },
-    });
+      }),
+      prisma.order.count(),
+    ]);
   } catch (error) {
     if (isDatabaseConnectionError(error)) {
       databaseUnavailable = true;
@@ -40,6 +55,8 @@ export default async function AdminOrdersPage() {
     }
   }
 
+  const totalPages = Math.max(1, Math.ceil(totalOrders / PAGE_SIZE));
+
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-16">
       <div className="mb-8 space-y-3">
@@ -47,7 +64,7 @@ export default async function AdminOrdersPage() {
           Pedidos
         </h1>
         <p className="text-sm text-black/60 dark:text-white/60">
-          Últimas 20 órdenes registradas.
+          {totalOrders} orden{totalOrders === 1 ? "" : "es"} en total.
         </p>
       </div>
 
@@ -91,6 +108,8 @@ export default async function AdminOrdersPage() {
           </Link>
         ))}
       </div>
+
+      <Pagination basePath="/admin/orders" currentPage={page} totalPages={totalPages} />
     </main>
   );
 }

@@ -3,14 +3,31 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { catalogCategoryLabels } from "@/lib/categories";
 import DeleteProductButton from "@/components/admin/DeleteProductButton";
+import Pagination from "@/components/admin/Pagination";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminProductsPage() {
-  const products = await prisma.product.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { variants: true },
-  });
+const PAGE_SIZE = 20;
+
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
+
+  const [products, totalProducts] = await Promise.all([
+    prisma.product.findMany({
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      include: { variants: true },
+    }),
+    prisma.product.count(),
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
@@ -20,7 +37,7 @@ export default async function AdminProductsPage() {
             Productos
           </h1>
           <p className="mt-2 text-sm text-black/70 dark:text-white/70">
-            {products.length} producto{products.length === 1 ? "" : "s"} en el catálogo
+            {totalProducts} producto{totalProducts === 1 ? "" : "s"} en el catálogo
           </p>
         </div>
         <Link
@@ -81,6 +98,8 @@ export default async function AdminProductsPage() {
           </tbody>
         </table>
       </div>
+
+      <Pagination basePath="/admin/products" currentPage={page} totalPages={totalPages} />
     </main>
   );
 }
