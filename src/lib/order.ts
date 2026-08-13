@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { assertCouponUsable, computeDiscount, normalizeCouponCode, CouponError } from "@/lib/coupon";
+import { sendAbandonedCartEmail } from "@/lib/email";
 
 // Cuanto tiempo se reserva el stock de una orden "pending" antes de
 // liberarse solo. 30 min: no hay un numero "oficial" que publique
@@ -22,7 +23,7 @@ export async function releaseExpiredPendingOrders() {
   const cutoff = new Date(Date.now() - PENDING_ORDER_TTL_MINUTES * 60 * 1000);
   const expired = await prisma.order.findMany({
     where: { status: "pending", createdAt: { lt: cutoff } },
-    include: { items: true },
+    include: orderWithItemsInclude,
   });
 
   for (const order of expired) {
@@ -35,6 +36,8 @@ export async function releaseExpiredPendingOrders() {
       ),
       prisma.order.update({ where: { id: order.id }, data: { status: "expired" } }),
     ]);
+
+    await sendAbandonedCartEmail(order);
   }
 
   return expired.length;

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Order } from "@/types/order";
 import { BANK_TRANSFER_INFO } from "@/lib/constants";
+import PurchaseTracker from "@/components/analytics/PurchaseTracker";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,7 @@ export default async function SuccessPage({
 
         {order && (
           <>
+            <PurchaseTracker order={order} />
             {awaitingTransfer && (
               <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-5 text-sm">
                 <h2 className="text-lg font-bold text-black dark:text-white">

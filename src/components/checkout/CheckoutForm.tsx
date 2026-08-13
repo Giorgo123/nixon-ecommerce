@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import useCartStore from "@/store/cart.store";
+import { trackEvent } from "@/lib/analytics";
 
 type DeliveryMethod = "shipping" | "pickup";
 type PaymentMethod = "mercadopago" | "transfer";
@@ -80,6 +81,18 @@ export default function CheckoutForm() {
       ...(deliveryMethod === "shipping" ? { address, city, state: stateValue, zipCode } : {}),
     };
     const couponCode = appliedCoupon?.code;
+
+    trackEvent("begin_checkout", {
+      currency: "ARS",
+      value: Math.max(0, subtotal - (appliedCoupon?.discountAmount ?? 0)),
+      coupon: couponCode,
+      items: items.map((item) => ({
+        item_id: item.variantId,
+        item_name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+    });
 
     try {
       if (paymentMethod === "transfer") {

@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
+import { trackPageview } from "@/lib/analytics";
 
 export default function SiteShell({
   children,
@@ -11,6 +13,12 @@ export default function SiteShell({
 }>) {
   const pathname = usePathname();
   const isAdminArea = pathname.startsWith("/admin");
+
+  useEffect(() => {
+    if (!isAdminArea) {
+      trackPageview(pathname);
+    }
+  }, [pathname, isAdminArea]);
 
   return (
     <>

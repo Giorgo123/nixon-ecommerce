@@ -5,6 +5,7 @@ import Link from "next/link";
 import useCartStore from "@/store/cart.store";
 import type { Product } from "@/features/products/types";
 import { catalogCategoryLabels } from "@/lib/categories";
+import { trackEvent } from "@/lib/analytics";
 
 interface ProductCardProps {
   product: Product;
@@ -33,6 +34,11 @@ export default function ProductCard({ product }: ProductCardProps) {
       },
       1
     );
+    trackEvent("add_to_cart", {
+      currency: "ARS",
+      value: product.price,
+      items: [{ item_id: singleVariant.id, item_name: product.name, price: product.price, quantity: 1 }],
+    });
   }
 
   return (

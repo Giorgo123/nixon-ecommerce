@@ -148,6 +148,34 @@ export async function sendPaymentConfirmedEmail(order: OrderForEmail) {
   }
 }
 
+// El TTL de 30 min liberó el stock de un checkout de Mercado Pago que se
+// inicio pero nunca se completo. Le mandamos un recordatorio al cliente para
+// que retome la compra si todavia le interesa.
+export async function sendAbandonedCartEmail(order: OrderForEmail) {
+  const resend = getResendClient();
+  if (!resend) return;
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: order.email,
+      subject: `${order.fullName}, ¿te olvidaste algo? - Nixon Studio`,
+      html: `
+        <h2>¡Hola, ${order.fullName}!</h2>
+        <p>Viste que empezaste una compra en Nixon Studio pero no llegaste a terminarla:</p>
+        <ul>${itemsListHtml(order)}</ul>
+        <p>El stock que habíamos reservado ya se liberó, así que si todavía te interesa
+        te recomendamos volver a agregarlo al carrito antes de que se agote.</p>
+        <p><a href="${siteUrl}/products">Volver a la tienda</a></p>
+      `,
+    });
+  } catch (error) {
+    console.error("Error enviando email de carrito abandonado:", error);
+  }
+}
+
 // El pago llegó después de que el TTL liberó el stock reservado y no se
 // pudo re-reservar (probablemente se lo llevó otro comprador). El pago se
 // confirma igual — nunca se ignora un cobro real — pero alguien tiene que

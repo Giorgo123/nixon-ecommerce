@@ -3,6 +3,7 @@
 import { useState } from "react";
 import useCartStore from "@/store/cart.store";
 import type { Product } from "@/features/products/types";
+import { trackEvent } from "@/lib/analytics";
 
 interface ProductActionsProps {
   product: Product;
@@ -37,6 +38,11 @@ export default function ProductActions({ product }: ProductActionsProps) {
       },
       1
     );
+    trackEvent("add_to_cart", {
+      currency: "ARS",
+      value: product.price,
+      items: [{ item_id: selectedVariant.id, item_name: product.name, price: product.price, quantity: 1 }],
+    });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   }
