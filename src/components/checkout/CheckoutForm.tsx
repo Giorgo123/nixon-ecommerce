@@ -11,6 +11,7 @@ export default function CheckoutForm() {
   const router = useRouter();
   const items = useCartStore((state) => state.items);
   const clearCart = useCartStore((state) => state.clearCart);
+  const subtotal = useCartStore((state) => state.getTotal());
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("shipping");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("mercadopago");
   const [fullName, setFullName] = useState("");
@@ -20,8 +21,51 @@ export default function CheckoutForm() {
   const [city, setCity] = useState("");
   const [stateValue, setStateValue] = useState("");
   const [zipCode, setZipCode] = useState("");
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number } | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  async function handleApplyCoupon() {
+    if (!couponInput.trim()) return;
+    setCouponLoading(true);
+    setCouponError(null);
+
+    try {
+      const response = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponInput, subtotal }),
+      });
+
+      const payload = (await response.json()) as {
+        error?: string;
+        code?: string;
+        discountAmount?: number;
+      };
+
+      if (!response.ok || !payload.code || payload.discountAmount === undefined) {
+        throw new Error(payload.error ?? "Cupón inválido");
+      }
+
+      setAppliedCoupon({ code: payload.code, discountAmount: payload.discountAmount });
+    } catch (couponValidationError) {
+      setAppliedCoupon(null);
+      setCouponError(
+        couponValidationError instanceof Error ? couponValidationError.message : "Error desconocido"
+      );
+    } finally {
+      setCouponLoading(false);
+    }
+  }
+
+  function removeCoupon() {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError(null);
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -35,13 +79,14 @@ export default function CheckoutForm() {
       deliveryMethod,
       ...(deliveryMethod === "shipping" ? { address, city, state: stateValue, zipCode } : {}),
     };
+    const couponCode = appliedCoupon?.code;
 
     try {
       if (paymentMethod === "transfer") {
         const response = await fetch("/api/checkout/transfer", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ customer, items }),
+          body: JSON.stringify({ customer, items, couponCode }),
         });
 
         if (!response.ok) {
@@ -60,7 +105,7 @@ export default function CheckoutForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ customer, items }),
+        body: JSON.stringify({ customer, items, couponCode }),
       });
 
       if (!response.ok) {
@@ -178,6 +223,58 @@ export default function CheckoutForm() {
             Al confirmar, te vamos a mostrar los datos para transferir. Preparamos tu pedido apenas veamos el pago acreditado.
           </p>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-xs uppercase tracking-[0.2em] text-black/50 dark:text-white/50">
+          Cupón de descuento
+        </p>
+        {appliedCoupon ? (
+          <div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm">
+            <span className="text-emerald-700 dark:text-emerald-300">
+              Cupón <strong>{appliedCoupon.code}</strong> aplicado: -$
+              {appliedCoupon.discountAmount.toLocaleString("es-AR")}
+            </span>
+            <button type="button" onClick={removeCoupon} className="text-xs font-medium text-red-500 hover:underline">
+              Quitar
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              value={couponInput}
+              onChange={(event) => setCouponInput(event.target.value)}
+              placeholder="Código de cupón"
+              className="flex-1 rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
+            />
+            <button
+              type="button"
+              onClick={handleApplyCoupon}
+              disabled={couponLoading || !couponInput.trim()}
+              className="shrink-0 rounded-xl border border-black/10 px-4 py-3 text-sm font-medium text-black transition-colors hover:border-black/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-white dark:hover:border-white/30"
+            >
+              {couponLoading ? "Verificando..." : "Aplicar"}
+            </button>
+          </div>
+        )}
+        {couponError && <p className="text-xs text-red-500">{couponError}</p>}
+      </div>
+
+      <div className="space-y-1 border-t border-black/10 pt-4 text-sm dark:border-white/10">
+        <div className="flex items-center justify-between text-black/60 dark:text-white/60">
+          <span>Subtotal</span>
+          <span>${subtotal.toLocaleString("es-AR")}</span>
+        </div>
+        {appliedCoupon && (
+          <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
+            <span>Descuento</span>
+            <span>-${appliedCoupon.discountAmount.toLocaleString("es-AR")}</span>
+          </div>
+        )}
+        <div className="flex items-center justify-between text-base font-semibold text-black dark:text-white">
+          <span>Total</span>
+          <span>${Math.max(0, subtotal - (appliedCoupon?.discountAmount ?? 0)).toLocaleString("es-AR")}</span>
+        </div>
       </div>
 
       {error && <p className="text-sm text-red-500">{error}</p>}

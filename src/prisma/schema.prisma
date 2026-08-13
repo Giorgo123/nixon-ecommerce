@@ -66,12 +66,27 @@ model Order {
   zipCode        String?
   trackingInfo   String? // texto libre: transportista + numero de seguimiento
   paymentMethod  String   @default("mercadopago") // "mercadopago" | "transfer"
+  couponCode     String?
+  discountAmount Float    @default(0)
   totalPrice     Float
   status         String   @default("pending")
   paymentId      String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   items OrderItem[]
+}
+
+model Coupon {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  type      String // "percentage" | "fixed"
+  value     Float // 10 = 10% si type=percentage, o $10 si type=fixed
+  maxUses   Int? // null = ilimitado
+  usedCount Int       @default(0)
+  expiresAt DateTime?
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model OrderItem {

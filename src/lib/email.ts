@@ -8,6 +8,8 @@ type OrderForEmail = {
   totalPrice: number;
   deliveryMethod: string;
   paymentMethod: string;
+  couponCode?: string | null;
+  discountAmount?: number;
   address: string | null;
   city: string | null;
   state: string | null;
@@ -38,6 +40,11 @@ function itemsListHtml(order: OrderForEmail) {
       return `<li>${item.quantity} x ${item.variant.product.name}${sizeLabel} — ${formatPrice(item.price * item.quantity)}</li>`;
     })
     .join("");
+}
+
+function discountLineHtml(order: OrderForEmail) {
+  if (!order.discountAmount || order.discountAmount <= 0) return "";
+  return `<p>Cupón ${order.couponCode}: -${formatPrice(order.discountAmount)}</p>`;
 }
 
 function deliveryLineHtml(order: OrderForEmail) {
@@ -78,6 +85,7 @@ export async function sendOrderReceivedEmail(order: OrderForEmail) {
         <h2>¡Gracias por tu compra, ${order.fullName}!</h2>
         <p>Recibimos tu pedido #${orderRef} por un total de ${formatPrice(order.totalPrice)}.</p>
         <ul>${itemsListHtml(order)}</ul>
+        ${discountLineHtml(order)}
         ${deliveryLineHtml(order)}
         ${transferInstructionsHtml(order)}
         <p>Te vamos a avisar en cuanto se confirme el pago.</p>
@@ -126,6 +134,7 @@ export async function sendPaymentConfirmedEmail(order: OrderForEmail) {
         <h2>¡Listo, ${order.fullName}! Tu pago fue confirmado.</h2>
         <p>Pedido #${orderRef} por ${formatPrice(order.totalPrice)}.</p>
         <ul>${itemsListHtml(order)}</ul>
+        ${discountLineHtml(order)}
         ${
           order.deliveryMethod === "pickup"
             ? "<p>Ya podés coordinar el retiro en Villa María, Córdoba — te contactamos por WhatsApp o email.</p>"

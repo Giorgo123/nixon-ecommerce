@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { createPendingOrder, StockError, OrderValidationError } from "@/lib/order";
+import { CouponError, allocateDiscountedUnitPrices } from "@/lib/coupon";
 import { sendOrderReceivedEmail } from "@/lib/email";
 import { createOrderAccessToken } from "@/lib/order-token";
 
@@ -28,16 +29,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { customer, items } = await request.json();
+    const { customer, items, couponCode } = await request.json();
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "El carrito está vacío" }, { status: 400 });
     }
 
-    const order = await createPendingOrder({ customer, items });
+    const order = await createPendingOrder({ customer, items, couponCode });
     await sendOrderReceivedEmail(order);
 
-    const mpItems = order.items.map((item: PendingOrderItem) => ({
+    const discountedUnitPrices = allocateDiscountedUnitPrices(
+      order.items.map((item: PendingOrderItem) => ({ price: item.price, quantity: item.quantity })),
+      order.discountAmount
+    );
+
+    const mpItems = order.items.map((item: PendingOrderItem, index: number) => ({
       id: item.variantId,
       title: item.variant.size
         ? `${item.variant.product.name} - Talle ${item.variant.size}`
@@ -47,7 +53,7 @@ export async function POST(request: NextRequest) {
       category_id: item.variant.product.category,
       quantity: item.quantity,
       currency_id: "ARS",
-      unit_price: item.price,
+      unit_price: discountedUnitPrices[index],
     }));
 
     const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
@@ -88,6 +94,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
     if (error instanceof OrderValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof CouponError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     return NextResponse.json(

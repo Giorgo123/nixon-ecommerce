@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { assertCouponUsable, computeDiscount, normalizeCouponCode, CouponError } from "@/lib/coupon";
 
 // Cuanto tiempo se reserva el stock de una orden "pending" antes de
 // liberarse solo. 30 min: no hay un numero "oficial" que publique
@@ -72,6 +73,7 @@ export async function createPendingOrder(input: {
     zipCode?: string;
   };
   items: Array<{ variantId: string; quantity: number }>;
+  couponCode?: string;
 }) {
   if (input.customer.deliveryMethod === "shipping") {
     const { address, city, state, zipCode } = input.customer;
@@ -114,11 +116,44 @@ export async function createPendingOrder(input: {
       });
     }
 
-    const totalPrice = orderItemsData.reduce(
+    const subtotal = orderItemsData.reduce(
       (total, item) => total + item.price * item.quantity,
       0
     );
 
+    let discountAmount = 0;
+    let appliedCouponCode: string | null = null;
+
+    if (input.couponCode) {
+      const code = normalizeCouponCode(input.couponCode);
+      const coupon = await tx.coupon.findUnique({ where: { code } });
+
+      if (!coupon) {
+        throw new CouponError(`El cupón "${code}" no existe`);
+      }
+
+      assertCouponUsable(coupon);
+
+      // Update condicional atomico (igual patron que el stock): evita que
+      // dos checkouts concurrentes lean el mismo usedCount y ambos pasen el
+      // limite de usos antes de que ninguno haya confirmado.
+      if (coupon.maxUses !== null) {
+        const consumed = await tx.coupon.updateMany({
+          where: { id: coupon.id, usedCount: { lt: coupon.maxUses } },
+          data: { usedCount: { increment: 1 } },
+        });
+        if (consumed.count === 0) {
+          throw new CouponError(`El cupón "${code}" alcanzó el límite de usos`);
+        }
+      } else {
+        await tx.coupon.update({ where: { id: coupon.id }, data: { usedCount: { increment: 1 } } });
+      }
+
+      discountAmount = computeDiscount(coupon, subtotal);
+      appliedCouponCode = coupon.code;
+    }
+
+    const totalPrice = subtotal - discountAmount;
     const paymentMethod = input.customer.paymentMethod ?? "mercadopago";
 
     return tx.order.create({
@@ -132,6 +167,8 @@ export async function createPendingOrder(input: {
         state: input.customer.state ?? null,
         zipCode: input.customer.zipCode ?? null,
         paymentMethod,
+        couponCode: appliedCouponCode,
+        discountAmount,
         totalPrice,
         // Las ordenes por transferencia no pasan por Mercado Pago, asi que
         // no tienen el TTL de 30 min (releaseExpiredPendingOrders solo mira

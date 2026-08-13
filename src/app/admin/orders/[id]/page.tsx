@@ -98,11 +98,25 @@ export default async function AdminOrderDetailPage({
             </div>
           ))}
         </div>
-        <div className="mt-6 flex items-center justify-between border-t border-black/10 pt-4 dark:border-white/10">
-          <span className="text-black/60 dark:text-white/60">Total</span>
-          <span className="text-lg font-semibold text-black dark:text-white">
-            ${order.totalPrice.toLocaleString("es-AR")}
-          </span>
+        <div className="mt-6 space-y-2 border-t border-black/10 pt-4 dark:border-white/10">
+          {order.discountAmount > 0 && (
+            <>
+              <div className="flex items-center justify-between text-sm text-black/60 dark:text-white/60">
+                <span>Subtotal</span>
+                <span>${(order.totalPrice + order.discountAmount).toLocaleString("es-AR")}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm text-emerald-600 dark:text-emerald-400">
+                <span>Cupón {order.couponCode}</span>
+                <span>-${order.discountAmount.toLocaleString("es-AR")}</span>
+              </div>
+            </>
+          )}
+          <div className="flex items-center justify-between">
+            <span className="text-black/60 dark:text-white/60">Total</span>
+            <span className="text-lg font-semibold text-black dark:text-white">
+              ${order.totalPrice.toLocaleString("es-AR")}
+            </span>
+          </div>
         </div>
       </section>
     </main>

@@ -94,6 +94,11 @@ export default async function SuccessPage({
                 <p className="font-medium text-black dark:text-white">
                   ${Number(order.totalPrice).toLocaleString("es-AR")}
                 </p>
+                {order.discountAmount > 0 && (
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                    Cupón {order.couponCode}: -${order.discountAmount.toLocaleString("es-AR")}
+                  </p>
+                )}
               </div>
               <div className="sm:col-span-2">
                 <p className="text-black/60 dark:text-white/60">Entrega</p>

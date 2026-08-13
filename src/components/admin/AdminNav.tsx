@@ -27,6 +27,9 @@ export default function AdminNav() {
           <Link href="/admin/orders" className={linkClasses}>
             Pedidos
           </Link>
+          <Link href="/admin/coupons" className={linkClasses}>
+            Cupones
+          </Link>
           <AdminLogoutButton />
         </>
       )}

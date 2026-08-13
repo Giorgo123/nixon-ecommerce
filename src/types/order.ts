@@ -28,6 +28,8 @@ export interface Order {
   zipCode: string | null;
   trackingInfo: string | null;
   paymentMethod: string;
+  couponCode: string | null;
+  discountAmount: number;
   items: OrderItem[];
   totalPrice: number;
   status: string;
