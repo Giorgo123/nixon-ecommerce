@@ -74,9 +74,11 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
         loop
         playsInline
         preload="metadata"
+        poster="/hero/itachi-poster.jpg"
         className="absolute inset-0 h-full w-full object-cover object-center"
       >
-        <source src="/hero/itachi.webm" type="video/webm" />
+        <source src="/hero/itachi-optimized.webm" type="video/webm" />
+        <source src="/hero/itachi-optimized.mp4" type="video/mp4" />
       </motion.video>
 
       {/* Overlay oscuro con gradiente */}
