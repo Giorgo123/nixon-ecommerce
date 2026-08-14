@@ -63,12 +63,18 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
   const [name, setName] = useState(product?.name ?? "");
   const [description, setDescription] = useState(product?.description ?? "");
   const [price, setPrice] = useState(product?.price?.toString() ?? "");
+  const [compareAtPrice, setCompareAtPrice] = useState(product?.compareAtPrice?.toString() ?? "");
   const [category, setCategory] = useState(product?.category ?? "remera");
   const [sizeStocks, setSizeStocks] = useState<Record<string, string>>(() => initialSizeStocks(product));
   const [singleStock, setSingleStock] = useState(() => initialSingleStock(product));
   const [seo, setSeo] = useState(product?.seo ?? "");
+  const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false);
+  const [materials, setMaterials] = useState(product?.materials ?? "");
+  const [careInstructions, setCareInstructions] = useState(product?.careInstructions ?? "");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(product?.image ?? null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | undefined>(product?.videoUrl);
   const [gallery, setGallery] = useState<GalleryItem[]>(
     () => (product?.images ?? []).map((url, i) => ({ key: `existing-${i}`, url, preview: url }))
   );
@@ -96,6 +102,17 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
     setGallery((prev) => prev.filter((item) => item.key !== key));
   }
 
+  function moveGalleryItem(key: string, direction: -1 | 1) {
+    setGallery((prev) => {
+      const index = prev.findIndex((item) => item.key === key);
+      const targetIndex = index + direction;
+      if (index === -1 || targetIndex < 0 || targetIndex >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+      return next;
+    });
+  }
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
@@ -114,6 +131,11 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
         imageUrl = await uploadImage(imageFile);
       }
 
+      let finalVideoUrl = videoUrl;
+      if (videoFile) {
+        finalVideoUrl = await uploadImage(videoFile);
+      }
+
       const galleryUrls: string[] = [];
       for (const item of gallery) {
         galleryUrls.push(item.url ?? (await uploadImage(item.file as File)));
@@ -127,9 +149,14 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
         name,
         description,
         price: parseFloat(price),
+        compareAtPrice: compareAtPrice.trim() ? parseFloat(compareAtPrice) : undefined,
         image: imageUrl,
+        videoUrl: finalVideoUrl || undefined,
         category,
         seo: seo || undefined,
+        isFeatured,
+        materials: materials.trim() || undefined,
+        careInstructions: careInstructions.trim() || undefined,
         variants,
         images: galleryUrls,
       };
@@ -184,19 +211,44 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className={labelClasses} htmlFor="price">Precio</label>
-            <input
-              id="price"
-              type="number"
-              min="0"
-              step="0.01"
-              className={inputClasses}
-              value={price}
-              onChange={(event) => setPrice(event.target.value)}
-              required
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <label className={labelClasses} htmlFor="price">Precio</label>
+              <input
+                id="price"
+                type="number"
+                min="0"
+                step="0.01"
+                className={inputClasses}
+                value={price}
+                onChange={(event) => setPrice(event.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={labelClasses} htmlFor="compareAtPrice">Precio anterior (opcional)</label>
+              <input
+                id="compareAtPrice"
+                type="number"
+                min="0"
+                step="0.01"
+                className={inputClasses}
+                value={compareAtPrice}
+                onChange={(event) => setCompareAtPrice(event.target.value)}
+                placeholder="Para mostrar % OFF"
+              />
+            </div>
           </div>
+
+          <label className="flex items-center gap-2 text-sm text-black/80 dark:text-white/80">
+            <input
+              type="checkbox"
+              checked={isFeatured}
+              onChange={(event) => setIsFeatured(event.target.checked)}
+              className="h-4 w-4 accent-red-500"
+            />
+            Producto estrella (aparece en el slider del hero)
+          </label>
 
           <div className="space-y-2">
             <label className={labelClasses} htmlFor="category">Categoría</label>
@@ -258,6 +310,30 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
               onChange={(event) => setSeo(event.target.value)}
             />
           </div>
+
+          <div className="space-y-2">
+            <label className={labelClasses} htmlFor="materials">Composición / materiales (opcional)</label>
+            <textarea
+              id="materials"
+              className={inputClasses}
+              rows={2}
+              value={materials}
+              onChange={(event) => setMaterials(event.target.value)}
+              placeholder="Ej: 100% Algodón peinado 24/1 de alto gramaje..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className={labelClasses} htmlFor="careInstructions">Cuidados (opcional)</label>
+            <textarea
+              id="careInstructions"
+              className={inputClasses}
+              rows={2}
+              value={careInstructions}
+              onChange={(event) => setCareInstructions(event.target.value)}
+              placeholder="Ej: Lavar con agua fría del revés, no planchar sobre la estampa."
+            />
+          </div>
         </div>
 
         <div className="space-y-6">
@@ -295,20 +371,71 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
             />
             {gallery.length > 0 && (
               <div className="mt-3 grid grid-cols-3 gap-2">
-                {gallery.map((item) => (
+                {gallery.map((item, index) => (
                   <div key={item.key} className="group relative aspect-square overflow-hidden rounded-xl border border-black/10 dark:border-white/10">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={item.preview} alt="Foto de galería" className="h-full w-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removeGalleryItem(item.key)}
-                      className="absolute right-1 top-1 rounded-full bg-black/70 px-2 py-0.5 text-xs font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100"
-                    >
-                      Quitar
-                    </button>
+                    <div className="absolute inset-x-1 top-1 flex justify-between opacity-0 transition-opacity group-hover:opacity-100">
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => moveGalleryItem(item.key, -1)}
+                          disabled={index === 0}
+                          className="rounded-full bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white disabled:opacity-30"
+                          aria-label="Mover antes"
+                        >
+                          ←
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveGalleryItem(item.key, 1)}
+                          disabled={index === gallery.length - 1}
+                          className="rounded-full bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white disabled:opacity-30"
+                          aria-label="Mover después"
+                        >
+                          →
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeGalleryItem(item.key)}
+                        className="rounded-full bg-black/70 px-2 py-0.5 text-xs font-semibold text-white"
+                      >
+                        Quitar
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className={labelClasses} htmlFor="video">Video de producto (opcional, mp4 o webm)</label>
+            <input
+              id="video"
+              type="file"
+              accept="video/mp4,video/webm"
+              className={inputClasses}
+              onChange={(event) => {
+                const file = event.target.files?.[0] ?? null;
+                setVideoFile(file);
+                if (file) setVideoUrl(undefined);
+              }}
+            />
+            {(videoFile || videoUrl) && (
+              <p className="text-xs text-black/60 dark:text-white/60">
+                {videoFile ? videoFile.name : "Video actual cargado"}
+                {videoUrl && !videoFile && (
+                  <button
+                    type="button"
+                    onClick={() => setVideoUrl(undefined)}
+                    className="ml-2 text-red-500 hover:underline"
+                  >
+                    Quitar
+                  </button>
+                )}
+              </p>
             )}
           </div>
         </div>

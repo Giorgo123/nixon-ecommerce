@@ -17,19 +17,24 @@ model Admin {
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  name        String
-  description String
-  price       Float
-  image       String // imagen de portada (cards, JSON-LD, emails, MP)
-  category    String
-  slug        String   @unique
-  seo         String?
-  active      Boolean  @default(true) // false = oculto de la tienda (soft-delete: preserva el historial de OrderItem)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  variants    ProductVariant[]
-  images      ProductImage[] // fotos adicionales de galeria, no incluye la portada
+  id               String   @id @default(cuid())
+  name             String
+  description      String
+  price            Float
+  compareAtPrice   Float? // precio "de lista" tachado; null = sin descuento
+  image            String // imagen de portada (cards, JSON-LD, emails, MP)
+  videoUrl         String? // video de producto opcional para la galeria
+  category         String
+  slug             String   @unique
+  seo              String?
+  active           Boolean  @default(true) // false = oculto de la tienda (soft-delete: preserva el historial de OrderItem)
+  isFeatured       Boolean  @default(false) // true = aparece en el slider de productos estrella del hero
+  materials        String? // composicion / materiales, texto libre por producto
+  careInstructions String? // instrucciones de cuidado, texto libre por producto
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  variants         ProductVariant[]
+  images           ProductImage[] // fotos adicionales de galeria, no incluye la portada
 }
 
 model ProductImage {

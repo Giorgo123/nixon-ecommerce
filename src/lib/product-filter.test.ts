@@ -11,6 +11,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     image: "/x.jpg",
     category: "oversize",
     slug: "remera-oversize-dark-art",
+    isFeatured: false,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     variants: [],

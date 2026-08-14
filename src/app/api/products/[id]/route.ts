@@ -33,9 +33,17 @@ export async function PUT(
           name: data.name,
           description: data.description || "",
           price: parseFloat(data.price),
+          compareAtPrice:
+            data.compareAtPrice !== undefined && data.compareAtPrice !== ""
+              ? parseFloat(data.compareAtPrice)
+              : null,
           image: data.image,
+          videoUrl: data.videoUrl || null,
           category: data.category || "remera",
           seo: data.seo,
+          isFeatured: Boolean(data.isFeatured),
+          materials: data.materials || null,
+          careInstructions: data.careInstructions || null,
         },
       });
 

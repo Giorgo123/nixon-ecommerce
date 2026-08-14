@@ -37,10 +37,15 @@ function toProduct(product: {
   name: string;
   description: string;
   price: number;
+  compareAtPrice: number | null;
   image: string;
+  videoUrl: string | null;
   category: string;
   slug: string;
   seo: string | null;
+  isFeatured: boolean;
+  materials: string | null;
+  careInstructions: string | null;
   createdAt: Date;
   updatedAt: Date;
   variants: Array<{ id: string; size: string | null; color: string | null; stock: number }>;
@@ -51,10 +56,15 @@ function toProduct(product: {
     name: product.name,
     description: product.description,
     price: product.price,
+    compareAtPrice: product.compareAtPrice ?? undefined,
     image: product.image,
+    videoUrl: product.videoUrl ?? undefined,
     category: product.category as Product["category"],
     slug: product.slug,
     seo: product.seo ?? undefined,
+    isFeatured: product.isFeatured,
+    materials: product.materials ?? undefined,
+    careInstructions: product.careInstructions ?? undefined,
     createdAt: product.createdAt.toISOString(),
     updatedAt: product.updatedAt.toISOString(),
     variants: product.variants.map((v) => ({ id: v.id, size: v.size, color: v.color, stock: v.stock })),

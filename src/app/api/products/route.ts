@@ -76,10 +76,18 @@ export async function POST(request: NextRequest) {
         name: data.name,
         description: data.description || "",
         price: parseFloat(data.price),
+        compareAtPrice:
+          data.compareAtPrice !== undefined && data.compareAtPrice !== ""
+            ? parseFloat(data.compareAtPrice)
+            : null,
         image: data.image,
+        videoUrl: data.videoUrl || null,
         category: data.category || "remera",
         slug,
         seo: data.seo,
+        isFeatured: Boolean(data.isFeatured),
+        materials: data.materials || null,
+        careInstructions: data.careInstructions || null,
         variants: {
           create: incomingVariants.map((v) => ({ size: v.size ?? null, stock: v.stock ?? 0 })),
         },
