@@ -3,8 +3,20 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ProductActions from "@/components/product/ProductActions";
 import ProductGallery from "@/components/product/ProductGallery";
+import Accordion from "@/components/product/Accordion";
+import TrustBox from "@/components/product/TrustBox";
+import ShareButtons from "@/components/product/ShareButtons";
+import CrossSell from "@/components/product/CrossSell";
+import NewsletterForm from "@/components/layout/NewsletterForm";
 import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
 import { catalogCategoryLabels } from "@/lib/categories";
+import {
+  SIZED_CATEGORIES,
+  SHIPPING_RETURNS_COPY,
+  PAYMENT_METHODS_COPY,
+  getMaterialsCopy,
+  getCareCopy,
+} from "@/lib/constants/commerce-copy";
 import type { Product } from "@/features/products/types";
 
 // Se revalida al instante cuando el admin crea/edita/borra este producto
@@ -78,16 +90,35 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await getCatalogProductBySlug(slug);
+  const [product, allProducts] = await Promise.all([
+    getCatalogProductBySlug(slug),
+    getCatalogProducts(),
+  ]);
 
   if (!product) {
     notFound();
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nixonstudio.com.ar";
   const price = product.price.toLocaleString("es-AR");
   const categoryLabel =
     catalogCategoryLabels[product.category] ?? product.category;
   const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
+  const isSizedCategory = SIZED_CATEGORIES.has(product.category);
+
+  const isOnSale = Boolean(product.compareAtPrice && product.compareAtPrice > product.price);
+  const discountPct = isOnSale
+    ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
+    : 0;
+  const installmentAmount = Math.ceil(product.price / 6).toLocaleString("es-AR");
+
+  const materialsCopy = getMaterialsCopy(product);
+  const careCopy = getCareCopy(product);
+
+  const crossSellProducts = allProducts
+    .filter((p) => p.id !== product.id && p.category === product.category)
+    .sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured))
+    .slice(0, 4);
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-16">
@@ -105,7 +136,11 @@ export default async function ProductDetailPage({
       </div>
 
       <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-        <ProductGallery images={[product.image, ...product.images]} alt={product.name} />
+        <ProductGallery
+          images={[product.image, ...product.images]}
+          videoUrl={product.videoUrl}
+          alt={product.name}
+        />
 
         <div className="space-y-6">
           <div className="space-y-3">
@@ -121,13 +156,28 @@ export default async function ProductDetailPage({
           </div>
 
           <div className="rounded-2xl border border-black/10 bg-black/5 p-5 dark:border-white/10 dark:bg-white/5">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-sm text-black/60 dark:text-white/60">
-                  Precio
+                <div className="flex items-baseline gap-3">
+                  <p className="text-3xl font-black text-black dark:text-white">
+                    ${price}
+                  </p>
+                  {isOnSale && (
+                    <>
+                      <p className="text-lg text-black/40 line-through dark:text-white/40">
+                        ${product.compareAtPrice!.toLocaleString("es-AR")}
+                      </p>
+                      <span className="rounded bg-red-600 px-2 py-0.5 text-xs font-bold uppercase text-white">
+                        -{discountPct}%
+                      </span>
+                    </>
+                  )}
+                </div>
+                <p className="mt-1 text-sm text-black/60 dark:text-white/60">
+                  Hasta 6x ${installmentAmount} sin interés
                 </p>
-                <p className="text-3xl font-black text-black dark:text-white">
-                  ${price}
+                <p className="mt-0.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                  Precio especial por Transferencia
                 </p>
               </div>
               <div className="text-right">
@@ -141,16 +191,33 @@ export default async function ProductDetailPage({
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/products"
-              className="inline-flex items-center justify-center rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5 dark:bg-white dark:text-black"
-            >
-              Seguir viendo
-            </Link>
-            <ProductActions product={product} />
+          <ProductActions product={product} />
+
+          <TrustBox />
+
+          <div>
+            {(materialsCopy || careCopy) && (
+              <Accordion title={isSizedCategory ? "Composición y cuidados" : "Materiales y terminación"}>
+                {materialsCopy && <p>{materialsCopy}</p>}
+                {careCopy && <p className="mt-2">{careCopy}</p>}
+              </Accordion>
+            )}
+            <Accordion title="Devoluciones y envíos">
+              <p>{SHIPPING_RETURNS_COPY}</p>
+            </Accordion>
+            <Accordion title="Métodos de pago">
+              <p>{PAYMENT_METHODS_COPY}</p>
+            </Accordion>
           </div>
+
+          <ShareButtons url={`${siteUrl}/products/${product.slug}`} title={product.name} />
         </div>
+      </div>
+
+      <CrossSell products={crossSellProducts} />
+
+      <div className="mt-16 max-w-md">
+        <NewsletterForm variant="adaptive" />
       </div>
     </main>
   );

@@ -9,11 +9,18 @@ export const revalidate = 300;
 
 export default async function Home() {
   const products = await getCatalogProducts();
-  const featuredProducts = products.slice(0, 4);
+  const starProducts = products.filter((product) => product.isFeatured).slice(0, 3);
+  // Si todavia no se marco ningun producto como estrella desde el admin, la
+  // seccion de destacados cae a los mas recientes para no quedar vacia; el
+  // slider del hero en cambio solo se muestra con productos curados.
+  const featuredProducts = (products.filter((product) => product.isFeatured).length > 0
+    ? products.filter((product) => product.isFeatured)
+    : products
+  ).slice(0, 4);
 
   return (
     <main className="min-h-screen bg-white dark:bg-black">
-      <HeroSection />
+      <HeroSection starProducts={starProducts} />
 
       <section id="featured" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-24">
         <div className="mb-12">

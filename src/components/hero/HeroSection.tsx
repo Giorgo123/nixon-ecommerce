@@ -8,8 +8,14 @@ import {
   useTransform,
   type Variants,
 } from "framer-motion";
+import type { Product } from "@/features/products/types";
+import FeaturedProductSlider from "@/components/hero/FeaturedProductSlider";
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  starProducts?: Product[];
+}
+
+export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
   const { scrollY } = useScroll();
   const reduceMotion = useReducedMotion();
   const particles = useMemo(
@@ -261,6 +267,8 @@ export default function HeroSection() {
         </motion.div>
         </motion.div>
       </motion.div>
+
+      <FeaturedProductSlider products={starProducts} />
 
       {/* Vignette Effect para oscurecer bordes */}
       <div className="absolute inset-0 pointer-events-none">
