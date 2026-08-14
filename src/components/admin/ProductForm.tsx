@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Product } from "@/features/products/types";
 import { catalogCategoryLabels, productCategories } from "@/lib/categories";
+import { SIZED_CATEGORIES } from "@/lib/constants/commerce-copy";
 
 interface ProductFormProps {
   mode: "create" | "edit";
@@ -15,7 +16,6 @@ const inputClasses =
 const labelClasses = "text-sm font-medium text-black/80 dark:text-white/80";
 
 const SIZES = ["S", "M", "L", "XL", "XXL"] as const;
-const SIZED_CATEGORIES = new Set(["remera", "oversize", "buzo"]);
 
 interface GalleryItem {
   key: string;
