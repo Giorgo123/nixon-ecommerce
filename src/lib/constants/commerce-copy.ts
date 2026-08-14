@@ -8,11 +8,11 @@ export const PROMO_BAR_TOP =
 export const PROMO_BAR_ROTATING = [
   "Exclusivo CABA y GBA: ¡Entrega express en 24 hs Hábiles!",
   "Envíos a todo el país",
-  "30 días de cambio",
+  "10 días de cambio",
 ];
 
 export const SHIPPING_RETURNS_COPY =
-  "Exclusivo CABA y GBA: ¡Entrega express en 24 hs Hábiles! Entregas a todo el país. Consultá la fecha estimada de entrega al realizar la compra. Podés devolver tu pedido por cualquier motivo, sin cargo, dentro de un plazo de 30 días.";
+  "Exclusivo CABA y GBA: ¡Entrega express en 24 hs Hábiles! Entregas a todo el país. Consultá la fecha estimada de entrega al realizar la compra. Podés devolver tu pedido por cualquier motivo, sin cargo, dentro de un plazo de 10 días.";
 
 export const PAYMENT_METHODS_COPY =
   "Aceptamos las siguientes opciones de pago: Tarjetas de Crédito, Tarjetas de Débito, Mercado Pago (dinero en cuenta y cuotas) y Transferencia Bancaria directa con descuento.";

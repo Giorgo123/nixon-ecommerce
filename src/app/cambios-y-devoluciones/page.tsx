@@ -62,7 +62,7 @@ export default function CambiosYDevolucionesPage() {
           <h2 className="text-lg font-semibold text-black dark:text-white">2. Cambios por talle o color</h2>
           <p className="mt-2">
             Si el producto no te queda o querés cambiarlo por otro talle/color disponible, escribinos
-            dentro de los <strong>30 días corridos</strong> de recibido a {CONTACT_EMAIL} indicando tu
+            dentro de los <strong>10 días corridos</strong> de recibido a {CONTACT_EMAIL} indicando tu
             número de pedido. El producto debe estar sin uso, con las etiquetas originales y en su
             empaque original.
           </p>
