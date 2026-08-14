@@ -11,7 +11,7 @@ import NewsletterForm from "@/components/layout/NewsletterForm";
 import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
 import { catalogCategoryLabels } from "@/lib/categories";
 import {
-  SIZED_CATEGORIES,
+  isSizedCategory,
   SHIPPING_RETURNS_COPY,
   PAYMENT_METHODS_COPY,
   getMaterialsCopy,
@@ -104,7 +104,7 @@ export default async function ProductDetailPage({
   const categoryLabel =
     catalogCategoryLabels[product.category] ?? product.category;
   const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
-  const isSizedCategory = SIZED_CATEGORIES.has(product.category);
+  const isSized = isSizedCategory(product.category);
 
   const isOnSale = Boolean(product.compareAtPrice && product.compareAtPrice > product.price);
   const discountPct = isOnSale
@@ -197,7 +197,7 @@ export default async function ProductDetailPage({
 
           <div>
             {(materialsCopy || careCopy) && (
-              <Accordion title={isSizedCategory ? "Composición y cuidados" : "Materiales y terminación"}>
+              <Accordion title={isSized ? "Composición y cuidados" : "Materiales y terminación"}>
                 {materialsCopy && <p>{materialsCopy}</p>}
                 {careCopy && <p className="mt-2">{careCopy}</p>}
               </Accordion>

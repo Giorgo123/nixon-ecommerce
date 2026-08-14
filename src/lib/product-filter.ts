@@ -1,4 +1,5 @@
 import type { Product } from "@/features/products/types";
+import { normalizeCategory } from "@/lib/categories";
 
 export type SortOption = "newest" | "price-asc" | "price-desc";
 
@@ -19,8 +20,10 @@ export function filterProducts(products: Product[], filters: ProductFilters): Pr
   const max = filters.maxPrice ?? null;
   const size = filters.size ?? null;
 
+  const normalizedCategory = normalizeCategory(category);
+
   const filtered = products.filter((product) => {
-    if (category !== "all" && product.category !== category) return false;
+    if (category !== "all" && normalizeCategory(product.category) !== normalizedCategory) return false;
 
     if (query) {
       const haystack = `${product.name} ${product.description}`.toLowerCase();

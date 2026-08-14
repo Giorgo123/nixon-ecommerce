@@ -64,6 +64,16 @@ describe("filterProducts", () => {
     expect(result.map((p) => p.id).sort()).toEqual(["2", "3"]);
   });
 
+  it("treats legacy 'oversize' category as equivalent to 'remera'", () => {
+    const mixed = [
+      makeProduct({ id: "1", category: "oversize" }),
+      makeProduct({ id: "2", category: "remera" }),
+      makeProduct({ id: "3", category: "taza" }),
+    ];
+    expect(filterProducts(mixed, { category: "remera" }).map((p) => p.id).sort()).toEqual(["1", "2"]);
+    expect(filterProducts(mixed, { category: "oversize" }).map((p) => p.id).sort()).toEqual(["1", "2"]);
+  });
+
   it("combines category, search and price range", () => {
     const result = filterProducts(products, { category: "oversize", search: "dark", minPrice: 4000, maxPrice: 5000 });
     expect(result.map((p) => p.id)).toEqual(["1"]);

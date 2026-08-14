@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductGrid from "@/components/product/ProductGrid";
 import type { Product } from "@/features/products/types";
-import { catalogCategoryLabels } from "@/lib/categories";
+import { catalogFilterLabels } from "@/lib/categories";
 import { filterProducts, type SortOption } from "@/lib/product-filter";
 
 interface ProductCatalogProps {
@@ -87,7 +87,7 @@ export default function ProductCatalog({ products, categories: baseCategories }:
                     : "border-black/10 bg-black/5 text-black hover:border-red-500/50 hover:bg-red-500/10 dark:border-white/10 dark:bg-white/5 dark:text-white",
                 ].join(" ")}
               >
-                {catalogCategoryLabels[category] ?? category}
+                {catalogFilterLabels[category] ?? category}
               </button>
             );
           })}

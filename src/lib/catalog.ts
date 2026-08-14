@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import type { Product } from "@/features/products/types";
+import { normalizeCategory } from "@/lib/categories";
 
 const productInclude = {
   variants: { orderBy: [{ size: "asc" as const }, { color: "asc" as const }] },
@@ -29,7 +30,10 @@ export async function getCatalogCategories() {
     select: { category: true },
     distinct: ["category"],
   });
-  return products.map((product) => product.category);
+  // Normaliza antes de dedupear para que "remera" y el legado "oversize" no
+  // aparezcan como dos categorias separadas en el catalogo.
+  const normalized = products.map((product) => normalizeCategory(product.category));
+  return Array.from(new Set(normalized));
 }
 
 function toProduct(product: {

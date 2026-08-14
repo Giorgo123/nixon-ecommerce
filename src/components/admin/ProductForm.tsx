@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Product } from "@/features/products/types";
 import { catalogCategoryLabels, productCategories } from "@/lib/categories";
-import { SIZED_CATEGORIES } from "@/lib/constants/commerce-copy";
+import { isSizedCategory } from "@/lib/constants/commerce-copy";
 
 interface ProductFormProps {
   mode: "create" | "edit";
@@ -81,7 +81,7 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const hasSizes = SIZED_CATEGORIES.has(category);
+  const hasSizes = isSizedCategory(category);
 
   function handleFileChange(file: File | null) {
     setImageFile(file);
