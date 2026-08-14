@@ -205,3 +205,23 @@ export async function sendStockConflictAlertEmail(order: OrderForEmail) {
     console.error("Error enviando alerta de conflicto de stock:", error);
   }
 }
+
+// No hay integracion con un servicio de email marketing todavia (Mailchimp,
+// Klaviyo, etc.) - hasta que se defina uno, cada suscripcion se avisa por
+// mail a la casilla de la tienda para que se sume a mano a donde corresponda.
+export async function sendNewsletterSignupNotification(email: string) {
+  const resend = getResendClient();
+  const notifyTo = process.env.STORE_NOTIFICATION_EMAIL;
+  if (!resend || !notifyTo) return;
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: notifyTo,
+      subject: "Nueva suscripción al newsletter",
+      html: `<p>Se suscribió: <strong>${email}</strong></p>`,
+    });
+  } catch (error) {
+    console.error("Error enviando notificación de newsletter:", error);
+  }
+}

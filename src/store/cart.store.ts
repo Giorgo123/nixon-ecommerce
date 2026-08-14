@@ -8,6 +8,9 @@ interface CartState {
   items: CartItem[];
   hasHydrated: boolean;
   setHasHydrated: (hydrated: boolean) => void;
+  isDrawerOpen: boolean;
+  openDrawer: () => void;
+  closeDrawer: () => void;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
   updateQuantity: (variantId: string, quantity: number) => void;
   removeItem: (variantId: string) => void;
@@ -22,6 +25,9 @@ const useCartStore = create<CartState>()(
       items: [],
       hasHydrated: false,
       setHasHydrated: (hydrated) => set({ hasHydrated: hydrated }),
+      isDrawerOpen: false,
+      openDrawer: () => set({ isDrawerOpen: true }),
+      closeDrawer: () => set({ isDrawerOpen: false }),
       addItem: (item, quantity = 1) =>
         set((state) => {
           const existingItem = state.items.find((i) => i.variantId === item.variantId);
@@ -62,6 +68,7 @@ const useCartStore = create<CartState>()(
     }),
     {
       name: "nixon-cart",
+      partialize: (state) => ({ items: state.items }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },

@@ -10,6 +10,20 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Paleta Dark Art de Nixon Studio. Uso: componentes de la tienda publica
+     (navbar, promo bars, hero, catalogo, PDP, footer) - NO el admin, que
+     mantiene su tema claro/oscuro generico existente. */
+  --color-nixon-bg: #0d0d0d;
+  --color-nixon-bg-deep: #080808;
+  --color-nixon-surface: #141414;
+  --color-nixon-surface-2: #1a1a1a;
+  --color-nixon-border: #262626;
+  --color-nixon-ink: #ffffff;
+  --color-nixon-ink-dim: #f3f4f6;
+  --color-nixon-muted: #9ca3af;
+  --color-nixon-crimson: #dc2626;
+  --color-nixon-crimson-bright: #ef4444;
 }
 
 @media (prefers-color-scheme: dark) {

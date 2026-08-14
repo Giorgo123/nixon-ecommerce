@@ -68,4 +68,37 @@ describe("filterProducts", () => {
     const result = filterProducts(products, { category: "oversize", search: "dark", minPrice: 4000, maxPrice: 5000 });
     expect(result.map((p) => p.id)).toEqual(["1"]);
   });
+
+  it("filters by size, matching any variant on the product", () => {
+    const sized = [
+      makeProduct({ id: "1", variants: [{ id: "v1", size: "M", color: null, stock: 2 }] }),
+      makeProduct({ id: "2", variants: [{ id: "v2", size: "L", color: null, stock: 2 }] }),
+    ];
+    expect(filterProducts(sized, { size: "M" }).map((p) => p.id)).toEqual(["1"]);
+  });
+
+  it("filters to only products with an active discount when onSaleOnly is set", () => {
+    const withDiscount = [
+      makeProduct({ id: "1", price: 4000, compareAtPrice: 5000 }),
+      makeProduct({ id: "2", price: 4000, compareAtPrice: undefined }),
+      makeProduct({ id: "3", price: 4000, compareAtPrice: 4000 }),
+    ];
+    expect(filterProducts(withDiscount, { onSaleOnly: true }).map((p) => p.id)).toEqual(["1"]);
+  });
+
+  it("sorts by price ascending and descending", () => {
+    const asc = filterProducts(products, { sort: "price-asc" });
+    expect(asc.map((p) => p.id)).toEqual(["3", "2", "1"]);
+
+    const desc = filterProducts(products, { sort: "price-desc" });
+    expect(desc.map((p) => p.id)).toEqual(["1", "2", "3"]);
+  });
+
+  it("sorts by newest (createdAt desc) by default", () => {
+    const withDates = [
+      makeProduct({ id: "old", createdAt: "2026-01-01T00:00:00.000Z" }),
+      makeProduct({ id: "new", createdAt: "2026-06-01T00:00:00.000Z" }),
+    ];
+    expect(filterProducts(withDates, {}).map((p) => p.id)).toEqual(["new", "old"]);
+  });
 });

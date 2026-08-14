@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
+import CartDrawer from "@/components/cart/CartDrawer";
 import { trackPageview } from "@/lib/analytics";
 
 export default function SiteShell({
@@ -25,6 +26,7 @@ export default function SiteShell({
       {!isAdminArea && <Navbar />}
       <div className="flex flex-1 flex-col">{children}</div>
       {!isAdminArea && <Footer />}
+      {!isAdminArea && <CartDrawer />}
     </>
   );
 }

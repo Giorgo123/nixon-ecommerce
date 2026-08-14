@@ -11,6 +11,7 @@ interface ProductActionsProps {
 
 export default function ProductActions({ product }: ProductActionsProps) {
   const addItem = useCartStore((state) => state.addItem);
+  const openDrawer = useCartStore((state) => state.openDrawer);
   const needsSizePicker = product.variants.length > 1;
 
   const firstInStock = product.variants.find((v) => v.stock > 0) ?? product.variants[0];
@@ -45,6 +46,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
+    openDrawer();
   }
 
   return (

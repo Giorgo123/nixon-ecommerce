@@ -13,9 +13,14 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
+  const openDrawer = useCartStore((state) => state.openDrawer);
 
   const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
   const singleVariant = product.variants.length === 1 ? product.variants[0] : null;
+  const isOnSale = Boolean(product.compareAtPrice && product.compareAtPrice > product.price);
+  const discountPct = isOnSale
+    ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
+    : 0;
 
   function handleQuickAdd() {
     if (!singleVariant) return;
@@ -39,6 +44,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       value: product.price,
       items: [{ item_id: singleVariant.id, item_name: product.name, price: product.price, quantity: 1 }],
     });
+    openDrawer();
   }
 
   return (
@@ -49,8 +55,21 @@ export default function ProductCard({ product }: ProductCardProps) {
             src={product.image}
             alt={product.name}
             fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover transition-transform duration-300 group-hover:scale-110"
           />
+          <div className="absolute left-2 top-2 flex flex-col gap-1.5">
+            {isOnSale && (
+              <span className="rounded bg-red-600 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+                -{discountPct}%
+              </span>
+            )}
+            {product.isFeatured && (
+              <span className="rounded bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-black">
+                Nuevo
+              </span>
+            )}
+          </div>
           {totalStock <= 0 && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
               <span className="font-semibold text-white">Agotado</span>
@@ -69,8 +88,15 @@ export default function ProductCard({ product }: ProductCardProps) {
           {product.description}
         </p>
         <div className="mt-4 flex items-center justify-between gap-3">
-          <span className="text-lg font-bold text-black dark:text-white">
-            ${product.price.toLocaleString("es-AR")}
+          <span className="flex items-baseline gap-2">
+            <span className="text-lg font-bold text-black dark:text-white">
+              ${product.price.toLocaleString("es-AR")}
+            </span>
+            {isOnSale && (
+              <span className="text-xs text-black/40 line-through dark:text-white/40">
+                ${product.compareAtPrice!.toLocaleString("es-AR")}
+              </span>
+            )}
           </span>
           <span className="rounded-full border border-black/10 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-black/60 dark:border-white/10 dark:text-white/60">
             {catalogCategoryLabels[product.category] ?? product.category}

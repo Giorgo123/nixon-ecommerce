@@ -86,7 +86,7 @@ export default function CartSummary({
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-base font-semibold text-black dark:border-white/10 dark:text-white"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-black/10 text-base font-semibold text-black dark:border-white/10 dark:text-white"
                   >
                     -
                   </button>
@@ -97,7 +97,7 @@ export default function CartSummary({
                     type="button"
                     disabled={item.quantity >= item.stock}
                     onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-base font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-white"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-black/10 text-base font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-white"
                   >
                     +
                   </button>

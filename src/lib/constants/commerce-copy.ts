@@ -1,0 +1,71 @@
+// Copies comerciales oficiales, centralizados para que navbar (barras de
+// promo), footer y ficha de producto (acordeones, trust box) no repitan
+// texto suelto por componente.
+
+export const PROMO_BAR_TOP =
+  "¡Hasta 6 cuotas sin interés con todos los bancos! • Descuento especial abonando por Transferencia";
+
+export const PROMO_BAR_ROTATING = [
+  "Exclusivo CABA y GBA: ¡Entrega express en 24 hs Hábiles!",
+  "Envíos a todo el país",
+  "30 días de cambio",
+];
+
+export const SHIPPING_RETURNS_COPY =
+  "Exclusivo CABA y GBA: ¡Entrega express en 24 hs Hábiles! Entregas a todo el país. Consultá la fecha estimada de entrega al realizar la compra. Podés devolver tu pedido por cualquier motivo, sin cargo, dentro de un plazo de 30 días.";
+
+export const PAYMENT_METHODS_COPY =
+  "Aceptamos las siguientes opciones de pago: Tarjetas de Crédito, Tarjetas de Débito, Mercado Pago (dinero en cuenta y cuotas) y Transferencia Bancaria directa con descuento.";
+
+export const TRUST_BOX_ITEMS = [
+  "Hasta 6 cuotas sin interés con todos los bancos.",
+  "Retiro en tienda gratis (Punto de entrega Villa María).",
+];
+
+export const NEWSLETTER_COPY = {
+  title: "Registrate para recibir las últimas novedades de Nixon Studio",
+  subtitle: "Acceso anticipado a drops exclusivos, ediciones limitadas y beneficios únicos.",
+};
+
+// Categorias que manejan talle S-XXL (remera cubre tanto "Remera Regular"
+// como el label "Remeras" del catalogo).
+export const SIZED_CATEGORIES = new Set(["remera", "oversize", "buzo"]);
+
+export const SIZE_GUIDE_CM: Array<{ size: string; chest: number; length: number }> = [
+  { size: "S", chest: 54, length: 72 },
+  { size: "M", chest: 57, length: 75 },
+  { size: "L", chest: 60, length: 78 },
+  { size: "XL", chest: 63, length: 81 },
+  { size: "XXL", chest: 66, length: 84 },
+];
+
+// Texto por defecto de "Composicion y cuidados" / "Materiales" cuando el
+// producto no tiene su propio texto cargado en el admin (ProductForm permite
+// sobreescribirlo por producto).
+export const DEFAULT_MATERIALS_BY_CATEGORY: Record<string, string> = {
+  remera:
+    "100% Algodón peinado 24/1 de alto gramaje, cuello cerrado de ribb 1x1, estampa serigráfica de alta densidad tacto cero.",
+  oversize:
+    "100% Algodón peinado 24/1 de alto gramaje, cuello cerrado de ribb 1x1, estampa serigráfica de alta densidad tacto cero.",
+  buzo:
+    "100% Algodón peinado 24/1 de alto gramaje, cuello cerrado de ribb 1x1, estampa serigráfica de alta densidad tacto cero.",
+  poster:
+    "Placa de aluminio reforzado de alta durabilidad (grosor 1.5mm), impresión directa UV con acabado mate anti-reflejo. Resistente al agua, al polvo y listo para colgar.",
+  taza: "Cerámica importada premium, acabado brillante de alta definición, capacidad 330ml. Apta para microondas y lavavajillas.",
+};
+
+export const DEFAULT_CARE_BY_CATEGORY: Record<string, string> = {
+  remera: "Lavar con agua fría del revés, no planchar sobre la estampa.",
+  oversize: "Lavar con agua fría del revés, no planchar sobre la estampa.",
+  buzo: "Lavar con agua fría del revés, no planchar sobre la estampa.",
+  poster: "",
+  taza: "",
+};
+
+export function getMaterialsCopy(product: { category: string; materials?: string }) {
+  return product.materials || DEFAULT_MATERIALS_BY_CATEGORY[product.category] || "";
+}
+
+export function getCareCopy(product: { category: string; careInstructions?: string }) {
+  return product.careInstructions || DEFAULT_CARE_BY_CATEGORY[product.category] || "";
+}
