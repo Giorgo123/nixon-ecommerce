@@ -8,6 +8,7 @@ const productInclude = {
 
 export async function getCatalogProducts(): Promise<Product[]> {
   const products = await prisma.product.findMany({
+    where: { active: true },
     orderBy: { createdAt: "desc" },
     include: productInclude,
   });
@@ -15,15 +16,19 @@ export async function getCatalogProducts(): Promise<Product[]> {
 }
 
 export async function getCatalogProductBySlug(slug: string): Promise<Product | null> {
-  const product = await prisma.product.findUnique({
-    where: { slug },
+  const product = await prisma.product.findFirst({
+    where: { slug, active: true },
     include: productInclude,
   });
   return product ? toProduct(product) : null;
 }
 
 export async function getCatalogCategories() {
-  const products = await prisma.product.findMany({ select: { category: true }, distinct: ["category"] });
+  const products = await prisma.product.findMany({
+    where: { active: true },
+    select: { category: true },
+    distinct: ["category"],
+  });
   return products.map((product) => product.category);
 }
 

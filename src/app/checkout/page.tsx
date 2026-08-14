@@ -1,4 +1,5 @@
 import CheckoutForm from "@/components/checkout/CheckoutForm";
+import CheckoutGuard from "@/components/checkout/CheckoutGuard";
 import CartSummary from "@/components/cart/CartSummary";
 import Link from "next/link";
 
@@ -7,6 +8,7 @@ export const dynamic = "force-dynamic";
 export default function CheckoutPage() {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-16">
+      <CheckoutGuard />
       <div className="mb-10 space-y-3">
         <p className="text-xs uppercase tracking-[0.3em] text-red-500">
           Checkout

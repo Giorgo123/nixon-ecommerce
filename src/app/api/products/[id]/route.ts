@@ -90,6 +90,11 @@ export async function PUT(
   }
 }
 
+// Soft-delete: un producto con pedidos historicos no se puede borrar de
+// verdad (Product -> ProductVariant es Cascade, pero OrderItem -> ProductVariant
+// es restrictivo a proposito, para no perder el historial de pedidos). En vez
+// de eso lo ocultamos de la tienda; sigue existiendo para las ordenes viejas
+// que lo referencian.
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -101,7 +106,7 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    const product = await prisma.product.delete({ where: { id } });
+    const product = await prisma.product.update({ where: { id }, data: { active: false } });
 
     revalidatePath("/");
     revalidatePath("/products");
@@ -109,7 +114,36 @@ export async function DELETE(
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("Error deleting product:", error);
-    return NextResponse.json({ error: "Error deleting product" }, { status: 500 });
+    console.error("Error deactivating product:", error);
+    return NextResponse.json({ error: "Error deactivating product" }, { status: 500 });
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!(await isAdminSessionActive())) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const data = await request.json();
+
+  if (typeof data.active !== "boolean") {
+    return NextResponse.json({ error: "Missing active field" }, { status: 400 });
+  }
+
+  try {
+    const product = await prisma.product.update({ where: { id }, data: { active: data.active } });
+
+    revalidatePath("/");
+    revalidatePath("/products");
+    revalidatePath(`/products/${product.slug}`);
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("Error updating product active state:", error);
+    return NextResponse.json({ error: "Error updating product" }, { status: 500 });
   }
 }

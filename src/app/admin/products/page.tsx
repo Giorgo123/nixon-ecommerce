@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { catalogCategoryLabels } from "@/lib/categories";
-import DeleteProductButton from "@/components/admin/DeleteProductButton";
+import ProductRowActions from "@/components/admin/ProductRowActions";
 import Pagination from "@/components/admin/Pagination";
 
 export const dynamic = "force-dynamic";
@@ -68,7 +68,14 @@ export default async function AdminProductsPage({
                       <Image src={product.image} alt={product.name} fill sizes="48px" className="object-cover" />
                     </div>
                     <div>
-                      <p className="font-medium text-black dark:text-white">{product.name}</p>
+                      <p className="flex items-center gap-2 font-medium text-black dark:text-white">
+                        {product.name}
+                        {!product.active && (
+                          <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-500">
+                            Inactivo
+                          </span>
+                        )}
+                      </p>
                       <p className="text-xs text-black/50 dark:text-white/50">{product.slug}</p>
                     </div>
                   </div>
@@ -90,7 +97,11 @@ export default async function AdminProductsPage({
                     >
                       Editar
                     </Link>
-                    <DeleteProductButton productId={product.id} productName={product.name} />
+                    <ProductRowActions
+                      productId={product.id}
+                      productName={product.name}
+                      active={product.active}
+                    />
                   </div>
                 </td>
               </tr>

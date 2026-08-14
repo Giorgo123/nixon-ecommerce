@@ -4,6 +4,7 @@ import { createPendingOrder, StockError, OrderValidationError } from "@/lib/orde
 import { CouponError, allocateDiscountedUnitPrices } from "@/lib/coupon";
 import { sendOrderReceivedEmail } from "@/lib/email";
 import { createOrderAccessToken } from "@/lib/order-token";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 type PendingOrderItem = {
   variantId: string;
@@ -22,6 +23,14 @@ type PendingOrderItem = {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIp(request);
+    if (!checkRateLimit(`checkout:${ip}`, 10, 15 * 60 * 1000)) {
+      return NextResponse.json(
+        { error: "Demasiados intentos. Probá de nuevo en unos minutos." },
+        { status: 429 }
+      );
+    }
+
     if (!process.env.MERCADOPAGO_ACCESS_TOKEN) {
       return NextResponse.json(
         { error: "Falta configurar MERCADOPAGO_ACCESS_TOKEN" },

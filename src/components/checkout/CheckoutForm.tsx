@@ -177,20 +177,76 @@ export default function CheckoutForm() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <input value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Nombre y apellido" className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10" />
-        <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" type="email" className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10" />
-        <input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="Teléfono" className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10" />
+        <input
+          value={fullName}
+          onChange={(event) => setFullName(event.target.value)}
+          placeholder="Nombre y apellido"
+          required
+          minLength={2}
+          autoComplete="name"
+          className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
+        />
+        <input
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="Email"
+          type="email"
+          required
+          inputMode="email"
+          autoComplete="email"
+          className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
+        />
+        <input
+          value={phone}
+          onChange={(event) => setPhone(event.target.value)}
+          placeholder="Teléfono"
+          type="tel"
+          required
+          minLength={6}
+          inputMode="tel"
+          autoComplete="tel"
+          className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
+        />
         {deliveryMethod === "shipping" && (
-          <input value={zipCode} onChange={(event) => setZipCode(event.target.value)} placeholder="CP" className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10" />
+          <input
+            value={zipCode}
+            onChange={(event) => setZipCode(event.target.value)}
+            placeholder="CP"
+            required
+            inputMode="numeric"
+            autoComplete="postal-code"
+            className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
+          />
         )}
       </div>
 
       {deliveryMethod === "shipping" && (
         <>
-          <input value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Dirección" className="w-full rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10" />
+          <input
+            value={address}
+            onChange={(event) => setAddress(event.target.value)}
+            placeholder="Dirección"
+            required
+            autoComplete="street-address"
+            className="w-full rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
+          />
           <div className="grid gap-4 sm:grid-cols-2">
-            <input value={city} onChange={(event) => setCity(event.target.value)} placeholder="Ciudad" className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10" />
-            <input value={stateValue} onChange={(event) => setStateValue(event.target.value)} placeholder="Provincia" className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10" />
+            <input
+              value={city}
+              onChange={(event) => setCity(event.target.value)}
+              placeholder="Ciudad"
+              required
+              autoComplete="address-level2"
+              className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
+            />
+            <input
+              value={stateValue}
+              onChange={(event) => setStateValue(event.target.value)}
+              placeholder="Provincia"
+              required
+              autoComplete="address-level1"
+              className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
+            />
           </div>
         </>
       )}

@@ -3,9 +3,18 @@ import { createPendingOrder, StockError, OrderValidationError } from "@/lib/orde
 import { CouponError } from "@/lib/coupon";
 import { sendOrderReceivedEmail } from "@/lib/email";
 import { createOrderAccessToken } from "@/lib/order-token";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIp(request);
+    if (!checkRateLimit(`checkout:${ip}`, 10, 15 * 60 * 1000)) {
+      return NextResponse.json(
+        { error: "Demasiados intentos. Probá de nuevo en unos minutos." },
+        { status: 429 }
+      );
+    }
+
     const { customer, items, couponCode } = await request.json();
 
     if (!Array.isArray(items) || items.length === 0) {

@@ -6,6 +6,8 @@ import type { CartItem } from "@/types/cart";
 
 interface CartState {
   items: CartItem[];
+  hasHydrated: boolean;
+  setHasHydrated: (hydrated: boolean) => void;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
   updateQuantity: (variantId: string, quantity: number) => void;
   removeItem: (variantId: string) => void;
@@ -18,6 +20,8 @@ const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      hasHydrated: false,
+      setHasHydrated: (hydrated) => set({ hasHydrated: hydrated }),
       addItem: (item, quantity = 1) =>
         set((state) => {
           const existingItem = state.items.find((i) => i.variantId === item.variantId);
@@ -58,6 +62,9 @@ const useCartStore = create<CartState>()(
     }),
     {
       name: "nixon-cart",
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

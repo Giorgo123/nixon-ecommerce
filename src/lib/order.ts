@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { assertCouponUsable, computeDiscount, normalizeCouponCode, CouponError } from "@/lib/coupon";
 import { sendAbandonedCartEmail } from "@/lib/email";
+import { isValidEmail } from "@/lib/validations";
 
 // Cuanto tiempo se reserva el stock de una orden "pending" antes de
 // liberarse solo. 30 min: no hay un numero "oficial" que publique
@@ -78,6 +79,17 @@ export async function createPendingOrder(input: {
   items: Array<{ variantId: string; quantity: number }>;
   couponCode?: string;
 }) {
+  const { fullName, email, phone } = input.customer;
+  if (!fullName?.trim() || fullName.trim().length < 2) {
+    throw new OrderValidationError("Falta el nombre completo");
+  }
+  if (!email || !isValidEmail(email)) {
+    throw new OrderValidationError("El email no es válido");
+  }
+  if (!phone?.trim() || phone.trim().length < 6) {
+    throw new OrderValidationError("Falta un teléfono de contacto válido");
+  }
+
   if (input.customer.deliveryMethod === "shipping") {
     const { address, city, state, zipCode } = input.customer;
     if (!address || !city || !state || !zipCode) {

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import ProductForm from "@/components/admin/ProductForm";
-import DeleteProductButton from "@/components/admin/DeleteProductButton";
+import ProductRowActions from "@/components/admin/ProductRowActions";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +34,7 @@ export default async function AdminEditProductPage({
         <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-white">
           Editar producto
         </h1>
-        <DeleteProductButton productId={product.id} productName={product.name} />
+        <ProductRowActions productId={product.id} productName={product.name} active={product.active} />
       </div>
 
       <ProductForm

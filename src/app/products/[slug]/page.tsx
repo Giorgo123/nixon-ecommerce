@@ -150,11 +150,6 @@ export default async function ProductDetailPage({
             </Link>
             <ProductActions product={product} />
           </div>
-
-          <div className="space-y-3 text-sm text-black/60 dark:text-white/60">
-            <p>Slug: {product.slug}</p>
-            <p>SEO: {product.seo}</p>
-          </div>
         </div>
       </div>
     </main>
