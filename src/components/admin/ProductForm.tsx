@@ -83,6 +83,14 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
 
   const hasSizes = isSizedCategory(category);
 
+  // Tildar un talle lo marca disponible con una cantidad por defecto que se
+  // puede ajustar al lado; destildarlo lo deja en 0 (sin stock). Pensado
+  // para carga rapida: "tildar lo que hay y listo", sin tener que pensar un
+  // numero exacto para cada talle si no hace falta.
+  function toggleSize(size: string, available: boolean) {
+    setSizeStocks((prev) => ({ ...prev, [size]: available ? "1" : "0" }));
+  }
+
   function handleFileChange(file: File | null) {
     setImageFile(file);
     setImagePreview(file ? URL.createObjectURL(file) : (product?.image ?? null));
@@ -267,26 +275,38 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
           </div>
 
           <div className="space-y-2">
-            <span className={labelClasses}>Stock {hasSizes ? "por talle" : ""}</span>
+            <span className={labelClasses}>{hasSizes ? "Talles disponibles" : "Unidades disponibles"}</span>
             {hasSizes ? (
-              <div className="grid grid-cols-5 gap-2">
-                {SIZES.map((size) => (
-                  <div key={size} className="space-y-1">
-                    <label className="text-xs text-black/60 dark:text-white/60" htmlFor={`stock-${size}`}>
-                      {size}
-                    </label>
-                    <input
-                      id={`stock-${size}`}
-                      type="number"
-                      min="0"
-                      className={inputClasses}
-                      value={sizeStocks[size]}
-                      onChange={(event) =>
-                        setSizeStocks((prev) => ({ ...prev, [size]: event.target.value }))
-                      }
-                    />
-                  </div>
-                ))}
+              <div className="space-y-2">
+                {SIZES.map((size) => {
+                  const stock = parseInt(sizeStocks[size], 10) || 0;
+                  const available = stock > 0;
+                  return (
+                    <div key={size} className="flex items-center gap-3">
+                      <label className="flex w-24 items-center gap-2 text-sm text-black dark:text-white">
+                        <input
+                          type="checkbox"
+                          checked={available}
+                          onChange={(event) => toggleSize(size, event.target.checked)}
+                          className="h-4 w-4 accent-red-500"
+                        />
+                        Talle {size}
+                      </label>
+                      {available && (
+                        <input
+                          type="number"
+                          min="1"
+                          aria-label={`Unidades disponibles talle ${size}`}
+                          className={`${inputClasses} w-28`}
+                          value={sizeStocks[size]}
+                          onChange={(event) =>
+                            setSizeStocks((prev) => ({ ...prev, [size]: event.target.value }))
+                          }
+                        />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <input

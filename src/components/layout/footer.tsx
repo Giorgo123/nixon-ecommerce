@@ -130,59 +130,85 @@ function SocialIcon({ href, label, children }: { href: string; label: string; ch
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
-      className="flex h-9 w-9 items-center justify-center rounded-full border border-nixon-border transition-colors hover:border-nixon-crimson hover:text-nixon-crimson-bright"
+      className="flex h-9 w-9 items-center justify-center rounded-full transition-transform hover:-translate-y-0.5"
     >
       {children}
     </a>
   );
 }
 
+// Iconos con los colores reales de marca (no monocromaticos) para que se
+// reconozcan de un vistazo, igual que en cualquier footer de ecommerce grande.
 function InstagramIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <rect x="3" y="3" width="18" height="18" rx="5" />
-      <circle cx="12" cy="12" r="4" />
-      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <defs>
+        <radialGradient id="ig-gradient" cx="30%" cy="107%" r="150%">
+          <stop offset="0%" stopColor="#fdf497" />
+          <stop offset="5%" stopColor="#fdf497" />
+          <stop offset="45%" stopColor="#fd5949" />
+          <stop offset="60%" stopColor="#d6249f" />
+          <stop offset="90%" stopColor="#285AEB" />
+        </radialGradient>
+      </defs>
+      <rect x="1" y="1" width="32" height="32" rx="9" fill="url(#ig-gradient)" />
+      <rect x="9" y="9" width="16" height="16" rx="5" fill="none" stroke="#fff" strokeWidth="1.8" />
+      <circle cx="17" cy="17" r="4.2" fill="none" stroke="#fff" strokeWidth="1.8" />
+      <circle cx="22.3" cy="11.7" r="1.1" fill="#fff" />
     </svg>
   );
 }
 
 function WhatsappIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 20.2 12 8.2 8.2 0 0 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1s-.7.8-.9 1c-.2.2-.3.2-.6.1a6.7 6.7 0 0 1-2-1.2 7.4 7.4 0 0 1-1.4-1.7c-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.3.2-.4a.5.5 0 0 0 0-.5c-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3.9 2.6 1.1 2.8.1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6a3.8 3.8 0 0 0 1.8.1c.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.2-1.2s-.2-.2-.4-.3Z" />
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <circle cx="17" cy="17" r="16" fill="#25D366" />
+      <path
+        fill="#fff"
+        d="M22.72 19.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.44-.52.15-.17.2-.3.3-.5.1-.19.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.62.71.23 1.36.19 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.42-.07-.12-.27-.19-.57-.34Z"
+      />
     </svg>
   );
 }
 
 function FacebookIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M13.5 21v-7.5H16l.4-3H13.5V8.4c0-.9.2-1.5 1.6-1.5H16.5V4.3A21 21 0 0 0 14.2 4c-2.3 0-3.9 1.4-3.9 4v2.5H8v3h2.3V21Z" />
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <circle cx="17" cy="17" r="16" fill="#1877F2" />
+      <path fill="#fff" d="M18.7 25v-8.4h2.8l.4-3.3h-3.2V11.2c0-.95.26-1.6 1.63-1.6h1.74V6.7A23.6 23.6 0 0 0 19.5 6.6c-2.53 0-4.27 1.55-4.27 4.4v2.3H12.4v3.3h2.83V25Z" />
     </svg>
   );
 }
 
 function XIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M18.3 3h3.2l-7 8 8.2 10h-6.4l-5-6.5L4.9 21H1.7l7.5-8.6L1.4 3h6.6l4.5 6Zm-1.1 16.2h1.8L7 4.7H5.1Z" />
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <circle cx="17" cy="17" r="16" fill="#000" />
+      <path
+        fill="#fff"
+        d="M20.53 9.5h2.4l-5.25 6 6.17 8.15h-4.83l-3.78-4.94-4.33 4.94H8.5l5.61-6.42L8.2 9.5h4.95l3.42 4.52Zm-.84 12.75h1.33L13.4 10.83h-1.43Z"
+      />
     </svg>
   );
 }
 
 function PinterestIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 2a10 10 0 0 0-3.6 19.3c0-.8 0-1.8.2-2.6l1.4-6s-.3-.7-.3-1.7c0-1.6.9-2.8 2.1-2.8 1 0 1.5.7 1.5 1.6 0 1-.6 2.5-1 3.9-.2 1.1.6 2 1.7 2 2 0 3.5-2.1 3.5-5.2 0-2.7-2-4.6-4.8-4.6-3.3 0-5.2 2.4-5.2 4.9 0 1 .4 2 .8 2.6.1.1.1.2.1.3l-.3 1.3c-.1.2-.2.3-.4.2-1.4-.7-2.3-2.7-2.3-4.4 0-3.6 2.6-6.9 7.5-6.9 4 0 7 2.8 7 6.6 0 3.9-2.5 7.1-5.9 7.1-1.2 0-2.3-.6-2.6-1.3l-.7 2.7c-.3 1-1 2.3-1.5 3.1A10 10 0 1 0 12 2Z" />
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <circle cx="17" cy="17" r="16" fill="#E60023" />
+      <path
+        fill="#fff"
+        d="M17 8.5c-4.7 0-8.5 3.4-8.5 8.1 0 3.5 2 5.4 3 5.4.4 0 .7-1.2.7-1.6 0-.4-.9-1.1-.9-2.9 0-3.2 2.4-5.8 5.9-5.8 3.2 0 5.5 1.9 5.5 4.9 0 3.2-1.6 5.9-3.9 5.9-1.3 0-2.3-1.1-2-2.5.4-1.6 1.2-3.3 1.2-4.5 0-2.5-3.5-2.1-3.5 1.3 0 .8.1 1.5.1 1.5s-1.1 4.7-1.3 5.6c-.4 1.6.1 4.2.1 4.4.1.1.2.1.3 0 .1-.2 1.5-2 2-3.6.1-.5.7-2.6.7-2.6.4.7 1.5 1.3 2.7 1.3 3.5 0 6.1-3.2 6.1-7.2 0-3.9-3.2-6.7-7.2-6.7Z"
+      />
     </svg>
   );
 }
 
 function YoutubeIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.1 5 12 5 12 5s-6.1 0-7.8.4a2.5 2.5 0 0 0-1.8 1.8A26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8C5.9 19 12 19 12 19s6.1 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8ZM10 15V9l5.2 3Z" />
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <rect x="1" y="6" width="32" height="22" rx="7" fill="#FF0000" />
+      <path fill="#fff" d="M14 12.5v9l8-4.5Z" />
     </svg>
   );
 }

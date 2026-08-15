@@ -8,8 +8,8 @@ const WHATSAPP_NUMBER = "5493535627388";
 
 export const SOCIAL_LINKS = {
   instagram: {
-    url: "https://instagram.com/nixonstudio",
-    handle: "@nixonstudio",
+    url: "https://www.instagram.com/nixonstudio98/?hl=es-la",
+    handle: "@nixonstudio98",
   },
   whatsapp: {
     number: WHATSAPP_NUMBER,

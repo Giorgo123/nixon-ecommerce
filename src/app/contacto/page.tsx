@@ -1,10 +1,9 @@
 import Link from "next/link";
+import { SOCIAL_LINKS, getWhatsappUrl } from "@/lib/constants/social";
 
 export const dynamic = "force-static";
 
 const CONTACT_EMAIL = "nicogeorgetti@gmail.com";
-const WHATSAPP_NUMBER = "5493535627388";
-const WHATSAPP_DISPLAY = "+54 9 3535 62-7388";
 
 const faqs = [
   {
@@ -39,8 +38,6 @@ const faqs = [
 ];
 
 export default function ContactoPage() {
-  const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}`;
-
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:py-16">
       <p className="text-xs uppercase tracking-[0.3em] text-red-500">Ayuda</p>
@@ -53,13 +50,13 @@ export default function ContactoPage() {
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         <a
-          href={whatsappHref}
+          href={getWhatsappUrl()}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-2xl border border-black/10 p-5 text-sm transition-colors hover:border-red-500/40 dark:border-white/10"
         >
           <p className="font-semibold text-black dark:text-white">WhatsApp</p>
-          <p className="mt-1 text-black/60 dark:text-white/60">{WHATSAPP_DISPLAY}</p>
+          <p className="mt-1 text-black/60 dark:text-white/60">{SOCIAL_LINKS.whatsapp.display}</p>
         </a>
         <a
           href={`mailto:${CONTACT_EMAIL}`}
@@ -69,13 +66,13 @@ export default function ContactoPage() {
           <p className="mt-1 text-black/60 dark:text-white/60">{CONTACT_EMAIL}</p>
         </a>
         <a
-          href="https://instagram.com/nixonstudio"
+          href={SOCIAL_LINKS.instagram.url}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-2xl border border-black/10 p-5 text-sm transition-colors hover:border-red-500/40 dark:border-white/10"
         >
           <p className="font-semibold text-black dark:text-white">Instagram</p>
-          <p className="mt-1 text-black/60 dark:text-white/60">@nixonstudio</p>
+          <p className="mt-1 text-black/60 dark:text-white/60">{SOCIAL_LINKS.instagram.handle}</p>
         </a>
       </div>
 
