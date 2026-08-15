@@ -1,56 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
-import { put } from "@vercel/blob";
+import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { isAdminSessionActive } from "@/lib/admin-session";
 
 const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
 
-const extensionByMimeType: Record<string, string> = {
-  "image/png": "png",
-  "image/jpeg": "jpg",
-  "image/webp": "webp",
-  "image/avif": "avif",
-  "image/gif": "gif",
-  "video/mp4": "mp4",
-  "video/webm": "webm",
-};
+const imageContentTypes = ["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"];
+const videoContentTypes = ["video/mp4", "video/webm"];
 
-const videoMimeTypes = new Set(["video/mp4", "video/webm"]);
-
+// Sube directo del navegador a Vercel Blob (no pasa el archivo por esta
+// funcion serverless): Vercel corta el body de cualquier request a una
+// funcion en ~4.5MB, asi que subir el archivo posta por ahi rompia fotos
+// medianas y CUALQUIER video (413 "Request Entity Too Large" en texto
+// plano, no JSON - de ahi el "Unexpected token 'R'" que se ve en el admin).
+// Esta ruta solo emite un token firmado de corta duracion; el archivo viaja
+// directo del navegador al storage.
 export async function POST(request: NextRequest) {
-  if (!(await isAdminSessionActive())) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  }
+  const body = (await request.json()) as HandleUploadBody;
 
-  const formData = await request.formData();
-  const file = formData.get("file");
+  try {
+    const jsonResponse = await handleUpload({
+      body,
+      request,
+      onBeforeGenerateToken: async (pathname, clientPayload) => {
+        if (!(await isAdminSessionActive())) {
+          throw new Error("No autorizado");
+        }
 
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Falta el archivo" }, { status: 400 });
-  }
+        const isVideo = clientPayload === "video";
 
-  const extension = extensionByMimeType[file.type];
+        return {
+          allowedContentTypes: isVideo ? videoContentTypes : imageContentTypes,
+          maximumSizeInBytes: isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE,
+          addRandomSuffix: true,
+        };
+      },
+    });
 
-  if (!extension) {
+    return NextResponse.json(jsonResponse);
+  } catch (error) {
     return NextResponse.json(
-      { error: "El archivo debe ser una imagen (png, jpg, webp, avif o gif) o un video (mp4, webm)" },
+      { error: error instanceof Error ? error.message : "No se pudo generar el token de subida" },
       { status: 400 }
     );
   }
-
-  const isVideo = videoMimeTypes.has(file.type);
-  const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
-
-  if (file.size > maxSize) {
-    return NextResponse.json(
-      { error: isVideo ? "El video no puede superar los 50MB" : "La imagen no puede superar los 8MB" },
-      { status: 400 }
-    );
-  }
-
-  const blob = await put(`products/${crypto.randomUUID()}.${extension}`, file, {
-    access: "public",
-  });
-
-  return NextResponse.json({ url: blob.url });
 }

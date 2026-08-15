@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import useCartStore from "@/store/cart.store";
 import { trackEvent } from "@/lib/analytics";
+import { parseJsonResponse } from "@/lib/utils";
 
 type DeliveryMethod = "shipping" | "pickup";
 type PaymentMethod = "mercadopago" | "transfer";
@@ -41,11 +42,11 @@ export default function CheckoutForm() {
         body: JSON.stringify({ code: couponInput, subtotal }),
       });
 
-      const payload = (await response.json()) as {
+      const payload = await parseJsonResponse<{
         error?: string;
         code?: string;
         discountAmount?: number;
-      };
+      }>(response);
 
       if (!response.ok || !payload.code || payload.discountAmount === undefined) {
         throw new Error(payload.error ?? "Cupón inválido");
@@ -102,12 +103,14 @@ export default function CheckoutForm() {
           body: JSON.stringify({ customer, items, couponCode }),
         });
 
-        if (!response.ok) {
-          const payload = (await response.json()) as { error?: string };
+        const payload = await parseJsonResponse<{ error?: string; orderId?: string; token?: string }>(
+          response
+        );
+
+        if (!response.ok || !payload.orderId || !payload.token) {
           throw new Error(payload.error ?? "No se pudo registrar el pedido");
         }
 
-        const payload = (await response.json()) as { orderId: string; token: string };
         clearCart();
         router.push(`/success?orderId=${payload.orderId}&token=${payload.token}`);
         return;
@@ -121,12 +124,12 @@ export default function CheckoutForm() {
         body: JSON.stringify({ customer, items, couponCode }),
       });
 
-      if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
+      const payload = await parseJsonResponse<{ error?: string; initPoint?: string }>(response);
+
+      if (!response.ok || !payload.initPoint) {
         throw new Error(payload.error ?? "No se pudo iniciar el checkout");
       }
 
-      const payload = (await response.json()) as { initPoint: string };
       clearCart();
       router.push(payload.initPoint);
     } catch (checkoutError) {

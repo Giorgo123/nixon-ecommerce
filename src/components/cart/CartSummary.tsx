@@ -19,7 +19,7 @@ export default function CartSummary({
   const getTotal = useCartStore((state) => state.getTotal);
 
   const subtotal = getTotal();
-  const shipping : number = 0;
+  const shipping: number = 0;
   const total = subtotal + shipping;
 
   return (

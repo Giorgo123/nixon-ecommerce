@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { NEWSLETTER_COPY } from "@/lib/constants/commerce-copy";
+import { parseJsonResponse } from "@/lib/utils";
 
 interface NewsletterFormProps {
   // "dark" = fondo siempre oscuro (footer). "adaptive" = sigue el tema
@@ -27,7 +28,7 @@ export default function NewsletterForm({ variant = "dark" }: NewsletterFormProps
       });
 
       if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
+        const payload = await parseJsonResponse(response);
         throw new Error(payload.error ?? "No se pudo registrar el email");
       }
 

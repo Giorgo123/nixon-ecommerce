@@ -29,9 +29,6 @@ export const NEWSLETTER_COPY = {
   subtitle: "Acceso anticipado a drops exclusivos, ediciones limitadas y beneficios únicos.",
 };
 
-// Categorias canonicas que manejan talle S-XXL.
-export const SIZED_CATEGORIES = new Set(["remera", "buzo"]);
-
 // Chequeo tolerante: normaliza el string (trim + lowercase) y reconoce
 // singular/plural de las categorias con talle, mas "oversize" como alias de
 // compatibilidad para productos viejos que todavia tienen esa categoria

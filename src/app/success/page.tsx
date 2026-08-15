@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Order } from "@/types/order";
 import { BANK_TRANSFER_INFO } from "@/lib/constants";
 import PurchaseTracker from "@/components/analytics/PurchaseTracker";
+import { parseJsonResponse } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ async function getOrder(orderId: string, token: string) {
     return null;
   }
 
-  return (await response.json()) as Order;
+  return await parseJsonResponse<Order>(response);
 }
 
 export default async function SuccessPage({

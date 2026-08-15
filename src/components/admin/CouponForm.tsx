@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { parseJsonResponse } from "@/lib/utils";
 
 const inputClasses =
   "w-full rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm text-black placeholder:text-black/40 focus:border-red-500 focus:outline-none dark:border-white/10 dark:bg-black dark:text-white dark:placeholder:text-white/40";
@@ -36,7 +37,7 @@ export default function CouponForm() {
       });
 
       if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
+        const payload = await parseJsonResponse(response);
         throw new Error(payload.error ?? "No se pudo crear el cupón");
       }
 

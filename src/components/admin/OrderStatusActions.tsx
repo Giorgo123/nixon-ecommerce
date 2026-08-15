@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { parseJsonResponse } from "@/lib/utils";
 
 const statuses = [
   { value: "pending", label: "Pendiente" },
@@ -47,7 +48,7 @@ export default function OrderStatusActions({
       });
 
       if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
+        const payload = await parseJsonResponse(response);
         throw new Error(payload.error ?? "No se pudo actualizar el estado");
       }
 

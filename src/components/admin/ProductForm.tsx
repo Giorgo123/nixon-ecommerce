@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { upload } from "@vercel/blob/client";
 import type { Product } from "@/features/products/types";
 import { catalogCategoryLabels, productCategories } from "@/lib/categories";
 import { isSizedCategory } from "@/lib/constants/commerce-copy";
+import { parseJsonResponse } from "@/lib/utils";
 
 interface ProductFormProps {
   mode: "create" | "edit";
@@ -40,22 +42,39 @@ function initialSingleStock(product?: Product): string {
   return (defaultVariant?.stock ?? 0).toString();
 }
 
-async function uploadImage(file: File): Promise<string> {
-  const uploadData = new FormData();
-  uploadData.append("file", file);
+const extensionByMimeType: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+  "image/avif": "avif",
+  "image/gif": "gif",
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+};
 
-  const uploadResponse = await fetch("/api/admin/upload", {
-    method: "POST",
-    body: uploadData,
-  });
+// Sube directo del navegador a Vercel Blob (no pasa el archivo por nuestro
+// servidor): Vercel corta el body de cualquier funcion serverless en
+// ~4.5MB, asi que subir el archivo posta por ahi rompia fotos medianas y
+// CUALQUIER video con un 413 en texto plano (de ahi el "Unexpected token
+// 'R'... is not valid JSON" que se veia en el admin). /api/admin/upload
+// ahora solo emite un token firmado de corta duracion.
+async function uploadFile(file: File, kind: "image" | "video" = "image"): Promise<string> {
+  const extension = extensionByMimeType[file.type] ?? file.name.split(".").pop() ?? "bin";
 
-  if (!uploadResponse.ok) {
-    const payload = (await uploadResponse.json()) as { error?: string };
-    throw new Error(payload.error ?? "No se pudo subir la imagen");
+  try {
+    const blob = await upload(`products/${crypto.randomUUID()}.${extension}`, file, {
+      access: "public",
+      handleUploadUrl: "/api/admin/upload",
+      clientPayload: kind,
+    });
+    return blob.url;
+  } catch (error) {
+    throw new Error(
+      error instanceof Error && error.message
+        ? error.message
+        : "No se pudo subir el archivo. Probá con uno más liviano."
+    );
   }
-
-  const uploadResult = (await uploadResponse.json()) as { url: string };
-  return uploadResult.url;
 }
 
 export default function ProductForm({ mode, product }: ProductFormProps) {
@@ -136,17 +155,17 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
       let imageUrl = product?.image ?? "";
 
       if (imageFile) {
-        imageUrl = await uploadImage(imageFile);
+        imageUrl = await uploadFile(imageFile, "image");
       }
 
       let finalVideoUrl = videoUrl;
       if (videoFile) {
-        finalVideoUrl = await uploadImage(videoFile);
+        finalVideoUrl = await uploadFile(videoFile, "video");
       }
 
       const galleryUrls: string[] = [];
       for (const item of gallery) {
-        galleryUrls.push(item.url ?? (await uploadImage(item.file as File)));
+        galleryUrls.push(item.url ?? (await uploadFile(item.file as File, "image")));
       }
 
       const variants = hasSizes
@@ -179,7 +198,7 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
       );
 
       if (!response.ok) {
-        const responsePayload = (await response.json()) as { error?: string };
+        const responsePayload = await parseJsonResponse(response);
         throw new Error(responsePayload.error ?? "No se pudo guardar el producto");
       }
 

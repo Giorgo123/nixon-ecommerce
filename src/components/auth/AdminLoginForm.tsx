@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { parseJsonResponse } from "@/lib/utils";
 
 export default function AdminLoginForm() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function AdminLoginForm() {
       });
 
       if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
+        const payload = await parseJsonResponse(response);
         throw new Error(payload.error ?? "No se pudo iniciar sesión");
       }
 
