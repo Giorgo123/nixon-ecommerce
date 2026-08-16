@@ -114,14 +114,19 @@ export async function createPendingOrder(input: {
         throw new StockError("Uno de los productos del carrito ya no existe");
       }
 
+      // La tienda funciona a pedido: no se bloquea la compra por falta de
+      // stock cargado, se descuenta igual (puede quedar negativo, que es la
+      // señal de "hay que reponer/fabricar N unidades" para quien prepara el
+      // pedido) en vez de rechazar el checkout. Sigue siendo un updateMany
+      // atomico por id para no correr una condicion de carrera con otro
+      // checkout concurrente sobre el mismo variant.
       const decremented = await tx.productVariant.updateMany({
-        where: { id: item.variantId, stock: { gte: item.quantity } },
+        where: { id: item.variantId },
         data: { stock: { decrement: item.quantity } },
       });
 
       if (decremented.count === 0) {
-        const sizeLabel = variant.size ? ` (talle ${variant.size})` : "";
-        throw new StockError(`Sin stock suficiente de "${variant.product.name}"${sizeLabel}`);
+        throw new StockError(`Uno de los productos del carrito ya no existe`);
       }
 
       orderItemsData.push({

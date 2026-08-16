@@ -98,11 +98,23 @@ export async function PUT(
   }
 }
 
-// Soft-delete: un producto con pedidos historicos no se puede borrar de
-// verdad (Product -> ProductVariant es Cascade, pero OrderItem -> ProductVariant
-// es restrictivo a proposito, para no perder el historial de pedidos). En vez
-// de eso lo ocultamos de la tienda; sigue existiendo para las ordenes viejas
-// que lo referencian.
+// Borrado real cuando es posible. Product->ProductVariant es Cascade, pero
+// OrderItem->ProductVariant es restrictivo a proposito (para no perder el
+// historial de pedidos) - un producto que ya tuvo al menos un pedido no se
+// puede borrar de la base sin romper esa orden vieja. En ese caso, en vez de
+// fallar, se lo oculta (mismo efecto para la tienda: desaparece del
+// catalogo) y se avisa por que no se borro de verdad.
+function isForeignKeyRestrictError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes("P2003") ||
+    message.includes("P2014") ||
+    message.includes("23001") ||
+    message.toLowerCase().includes("foreign key constraint") ||
+    message.toLowerCase().includes("violates restrict")
+  );
+}
+
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -114,16 +126,36 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    const product = await prisma.product.update({ where: { id }, data: { active: false } });
+    const product = await prisma.product.delete({ where: { id } });
 
     revalidatePath("/");
     revalidatePath("/products");
     revalidatePath(`/products/${product.slug}`);
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, mode: "deleted" });
   } catch (error) {
-    console.error("Error deactivating product:", error);
-    return NextResponse.json({ error: "Error deactivating product" }, { status: 500 });
+    if (isForeignKeyRestrictError(error)) {
+      try {
+        const product = await prisma.product.update({ where: { id }, data: { active: false } });
+
+        revalidatePath("/");
+        revalidatePath("/products");
+        revalidatePath(`/products/${product.slug}`);
+
+        return NextResponse.json({
+          ok: true,
+          mode: "hidden",
+          reason:
+            "Este producto tiene pedidos asociados, así que no se puede borrar sin perder ese historial. Se ocultó de la tienda en su lugar.",
+        });
+      } catch (fallbackError) {
+        console.error("Error hiding product after failed delete:", fallbackError);
+        return NextResponse.json({ error: "No se pudo borrar ni ocultar el producto" }, { status: 500 });
+      }
+    }
+
+    console.error("Error deleting product:", error);
+    return NextResponse.json({ error: "No se pudo borrar el producto" }, { status: 500 });
   }
 }
 

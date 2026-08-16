@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import useCartStore, { sanitizeItems } from "./cart.store";
+import useCartStore, { MAX_QUANTITY_PER_ITEM, sanitizeItems } from "./cart.store";
 import type { CartItem } from "@/types/cart";
 
 function makeItem(overrides: Partial<Omit<CartItem, "quantity">> = {}) {
@@ -36,9 +36,9 @@ describe("cart.store", () => {
     expect(useCartStore.getState().items[0].quantity).toBe(3);
   });
 
-  it("caps the quantity at the variant's stock", () => {
-    useCartStore.getState().addItem(makeItem({ stock: 4 }), 10);
-    expect(useCartStore.getState().items[0].quantity).toBe(4);
+  it("caps the quantity at MAX_QUANTITY_PER_ITEM regardless of stock (la tienda funciona a pedido)", () => {
+    useCartStore.getState().addItem(makeItem({ stock: 0 }), 999);
+    expect(useCartStore.getState().items[0].quantity).toBe(MAX_QUANTITY_PER_ITEM);
   });
 
   it("keeps different variants as separate line items", () => {
@@ -47,10 +47,10 @@ describe("cart.store", () => {
     expect(useCartStore.getState().items).toHaveLength(2);
   });
 
-  it("updateQuantity caps at stock and removes the item at zero", () => {
-    useCartStore.getState().addItem(makeItem({ stock: 4 }), 1);
-    useCartStore.getState().updateQuantity("variant-m", 10);
-    expect(useCartStore.getState().items[0].quantity).toBe(4);
+  it("updateQuantity caps at MAX_QUANTITY_PER_ITEM and removes the item at zero", () => {
+    useCartStore.getState().addItem(makeItem({ stock: 0 }), 1);
+    useCartStore.getState().updateQuantity("variant-m", 999);
+    expect(useCartStore.getState().items[0].quantity).toBe(MAX_QUANTITY_PER_ITEM);
 
     useCartStore.getState().updateQuantity("variant-m", 0);
     expect(useCartStore.getState().items).toHaveLength(0);

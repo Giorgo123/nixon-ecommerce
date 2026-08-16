@@ -13,9 +13,11 @@ export default function CrossSell({ products }: CrossSellProps) {
       <h2 className="text-xl font-black tracking-tight text-black dark:text-white sm:text-2xl">
         También te puede gustar
       </h2>
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+      <div className="mt-6 -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:gap-4">
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <div key={product.id} className="w-[46%] shrink-0 snap-start sm:w-[31%] lg:w-[23%]">
+            <ProductCard product={product} />
+          </div>
         ))}
       </div>
     </section>

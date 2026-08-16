@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterProducts } from "./product-filter";
+import { buildCrossSell, filterProducts } from "./product-filter";
 import type { Product } from "@/features/products/types";
 
 function makeProduct(overrides: Partial<Product> = {}): Product {
@@ -110,5 +110,57 @@ describe("filterProducts", () => {
       makeProduct({ id: "new", createdAt: "2026-06-01T00:00:00.000Z" }),
     ];
     expect(filterProducts(withDates, {}).map((p) => p.id)).toEqual(["new", "old"]);
+  });
+});
+
+describe("buildCrossSell", () => {
+  it("never includes the product itself", () => {
+    const current = makeProduct({ id: "current", category: "remera" });
+    const pool = [current, makeProduct({ id: "other", category: "remera" })];
+    expect(buildCrossSell(current, pool).some((p) => p.id === "current")).toBe(false);
+  });
+
+  it("prioritizes same-category products over other categories", () => {
+    const current = makeProduct({ id: "current", category: "remera" });
+    const pool = [
+      current,
+      makeProduct({ id: "same-1", category: "remera" }),
+      makeProduct({ id: "same-2", category: "remera" }),
+      makeProduct({ id: "other-1", category: "taza" }),
+    ];
+    const result = buildCrossSell(current, pool);
+    const sameCategoryIds = result.filter((p) => p.category === "remera").map((p) => p.id);
+    expect(sameCategoryIds.sort()).toEqual(["same-1", "same-2"]);
+    expect(result.map((p) => p.id)).toContain("other-1");
+  });
+
+  it("treats legacy 'oversize' as the same category as 'remera' for matching", () => {
+    const current = makeProduct({ id: "current", category: "oversize" });
+    const pool = [current, makeProduct({ id: "same", category: "remera" })];
+    expect(buildCrossSell(current, pool).map((p) => p.id)).toEqual(["same"]);
+  });
+
+  it("fills up to 8 products by pulling from other categories when there aren't enough related ones", () => {
+    const current = makeProduct({ id: "current", category: "remera" });
+    const pool = [
+      current,
+      ...Array.from({ length: 10 }, (_, i) => makeProduct({ id: `p${i}`, category: "taza" })),
+    ];
+    expect(buildCrossSell(current, pool)).toHaveLength(8);
+  });
+
+  it("caps at 8 even when there are more related products available", () => {
+    const current = makeProduct({ id: "current", category: "remera" });
+    const pool = [
+      current,
+      ...Array.from({ length: 12 }, (_, i) => makeProduct({ id: `p${i}`, category: "remera" })),
+    ];
+    expect(buildCrossSell(current, pool)).toHaveLength(8);
+  });
+
+  it("returns fewer than 8 when the whole catalog is smaller than that", () => {
+    const current = makeProduct({ id: "current", category: "remera" });
+    const pool = [current, makeProduct({ id: "only-other", category: "taza" })];
+    expect(buildCrossSell(current, pool)).toHaveLength(1);
   });
 });

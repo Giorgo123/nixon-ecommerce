@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import useCartStore from "@/store/cart.store";
+import useCartStore, { MAX_QUANTITY_PER_ITEM } from "@/store/cart.store";
 
 interface CartSummaryProps {
   showActions?: boolean;
@@ -95,7 +95,7 @@ export default function CartSummary({
                   </span>
                   <button
                     type="button"
-                    disabled={item.quantity >= item.stock}
+                    disabled={item.quantity >= MAX_QUANTITY_PER_ITEM}
                     onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
                     className="flex h-11 w-11 items-center justify-center rounded-full border border-black/10 text-base font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-white"
                   >

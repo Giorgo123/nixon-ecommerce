@@ -10,6 +10,7 @@ import CrossSell from "@/components/product/CrossSell";
 import NewsletterForm from "@/components/layout/NewsletterForm";
 import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
 import { catalogCategoryLabels } from "@/lib/categories";
+import { buildCrossSell } from "@/lib/product-filter";
 import {
   isSizedCategory,
   SHIPPING_RETURNS_COPY,
@@ -115,10 +116,7 @@ export default async function ProductDetailPage({
   const materialsCopy = getMaterialsCopy(product);
   const careCopy = getCareCopy(product);
 
-  const crossSellProducts = allProducts
-    .filter((p) => p.id !== product.id && p.category === product.category)
-    .sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured))
-    .slice(0, 4);
+  const crossSellProducts = buildCrossSell(product, allProducts);
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-16">
@@ -182,10 +180,10 @@ export default async function ProductDetailPage({
               </div>
               <div className="text-right">
                 <p className="text-sm text-black/60 dark:text-white/60">
-                  Stock
+                  Disponibilidad
                 </p>
                 <p className="text-lg font-semibold text-black dark:text-white">
-                  {totalStock > 0 ? `${totalStock} disponibles` : "Agotado"}
+                  {totalStock > 0 ? `${totalStock} disponibles` : "A pedido"}
                 </p>
               </div>
             </div>

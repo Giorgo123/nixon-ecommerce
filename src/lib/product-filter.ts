@@ -1,5 +1,6 @@
 import type { Product } from "@/features/products/types";
 import { normalizeCategory } from "@/lib/categories";
+import { shuffle } from "@/lib/utils";
 
 export type SortOption = "newest" | "price-asc" | "price-desc";
 
@@ -43,6 +44,22 @@ export function filterProducts(products: Product[], filters: ProductFilters): Pr
   });
 
   return sortProducts(filtered, filters.sort ?? "newest");
+}
+
+const CROSS_SELL_TARGET = 8;
+
+// "Tambien te puede gustar": prioriza la misma categoria (mezclada al azar
+// en cada visita, como el carrusel de Nike), y completa con otras
+// categorias si no hay suficientes productos relacionados para llenar el
+// carrusel.
+export function buildCrossSell(product: Product, allProducts: Product[]): Product[] {
+  const others = allProducts.filter((p) => p.id !== product.id);
+  const productCategory = normalizeCategory(product.category);
+
+  const sameCategory = shuffle(others.filter((p) => normalizeCategory(p.category) === productCategory));
+  const otherCategories = shuffle(others.filter((p) => normalizeCategory(p.category) !== productCategory));
+
+  return [...sameCategory, ...otherCategories].slice(0, CROSS_SELL_TARGET);
 }
 
 function sortProducts(products: Product[], sort: SortOption): Product[] {

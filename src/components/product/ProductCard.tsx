@@ -69,12 +69,12 @@ export default function ProductCard({ product }: ProductCardProps) {
                 Nuevo
               </span>
             )}
+            {totalStock <= 0 && (
+              <span className="rounded bg-black/70 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+                A pedido
+              </span>
+            )}
           </div>
-          {totalStock <= 0 && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-              <span className="font-semibold text-white">Agotado</span>
-            </div>
-          )}
         </div>
       </Link>
 
@@ -104,9 +104,8 @@ export default function ProductCard({ product }: ProductCardProps) {
           {singleVariant ? (
             <button
               type="button"
-              disabled={totalStock <= 0}
               onClick={handleQuickAdd}
-              className="rounded-full bg-black px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 disabled:cursor-not-allowed disabled:bg-black/30 dark:bg-white dark:text-black dark:hover:bg-white/80 dark:disabled:bg-white/30"
+              className="rounded-full bg-black px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
             >
               Agregar
             </button>

@@ -4,6 +4,12 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { CartItem } from "@/types/cart";
 
+// Tope de sanidad por linea de carrito. Ya no se limita por stock real: la
+// tienda funciona a pedido (el cliente puede pedir un talle aunque figure
+// sin stock cargado, y se coordina el envio/entrega manualmente), asi que
+// el stock del variant dejo de ser un techo valido para la cantidad.
+export const MAX_QUANTITY_PER_ITEM = 10;
+
 interface CartState {
   items: CartItem[];
   hasHydrated: boolean;
@@ -63,7 +69,7 @@ const useCartStore = create<CartState>()(
           const existingItem = state.items.find((i) => i.variantId === item.variantId);
 
           if (existingItem) {
-            const cappedQuantity = Math.min(existingItem.quantity + quantity, item.stock);
+            const cappedQuantity = Math.min(existingItem.quantity + quantity, MAX_QUANTITY_PER_ITEM);
             return {
               items: state.items.map((i) =>
                 i.variantId === item.variantId ? { ...i, quantity: cappedQuantity } : i
@@ -72,7 +78,7 @@ const useCartStore = create<CartState>()(
           }
 
           return {
-            items: [...state.items, { ...item, quantity: Math.min(quantity, item.stock) }],
+            items: [...state.items, { ...item, quantity: Math.min(quantity, MAX_QUANTITY_PER_ITEM) }],
           };
         }),
       updateQuantity: (variantId, quantity) =>
@@ -82,7 +88,7 @@ const useCartStore = create<CartState>()(
               ? state.items.filter((item) => item.variantId !== variantId)
               : state.items.map((item) =>
                   item.variantId === variantId
-                    ? { ...item, quantity: Math.min(quantity, item.stock) }
+                    ? { ...item, quantity: Math.min(quantity, MAX_QUANTITY_PER_ITEM) }
                     : item
                 ),
         })),
