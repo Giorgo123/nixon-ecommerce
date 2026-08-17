@@ -30,13 +30,12 @@ export default function ProductRowActions({ productId, productName, active }: Pr
     }
   }
 
-  // Intenta borrar de verdad; si el producto tiene pedidos asociados el
-  // servidor lo oculta en su lugar (no se puede borrar sin perder ese
-  // historial) y avisa por que.
+  // Borra el producto de la base para siempre, incluido su historial de
+  // pedidos asociado. Para conservar el historial, usar "Ocultar" en su lugar.
   async function handleDelete() {
     if (
       !confirm(
-        `¿Eliminar "${productName}" definitivamente? Si nunca tuvo pedidos, se borra de la base. Si tuvo pedidos, se oculta en su lugar para no perder ese historial.`
+        `¿Eliminar "${productName}" definitivamente? Esto borra el producto y, si tuvo pedidos, también esas líneas de pedido. No se puede deshacer. Si preferís conservar el historial, usá "Ocultar".`
       )
     ) {
       return;
@@ -44,15 +43,8 @@ export default function ProductRowActions({ productId, productName, active }: Pr
     setLoading(true);
     try {
       const response = await fetch(`/api/products/${productId}`, { method: "DELETE" });
-      const payload = (await response.json().catch(() => ({}))) as {
-        error?: string;
-        mode?: "deleted" | "hidden";
-        reason?: string;
-      };
+      const payload = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) throw new Error(payload.error ?? "No se pudo eliminar el producto");
-      if (payload.mode === "hidden" && payload.reason) {
-        alert(payload.reason);
-      }
       router.refresh();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Error desconocido");

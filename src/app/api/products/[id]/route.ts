@@ -98,23 +98,11 @@ export async function PUT(
   }
 }
 
-// Borrado real cuando es posible. Product->ProductVariant es Cascade, pero
-// OrderItem->ProductVariant es restrictivo a proposito (para no perder el
-// historial de pedidos) - un producto que ya tuvo al menos un pedido no se
-// puede borrar de la base sin romper esa orden vieja. En ese caso, en vez de
-// fallar, se lo oculta (mismo efecto para la tienda: desaparece del
-// catalogo) y se avisa por que no se borro de verdad.
-function isForeignKeyRestrictError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return (
-    message.includes("P2003") ||
-    message.includes("P2014") ||
-    message.includes("23001") ||
-    message.toLowerCase().includes("foreign key constraint") ||
-    message.toLowerCase().includes("violates restrict")
-  );
-}
-
+// Borrado real y definitivo. OrderItem->ProductVariant es restrictivo a
+// proposito, asi que si el producto ya tuvo pedidos hay que borrar esas
+// lineas de pedido primero (se pierde ese detalle historico) para poder
+// borrar el producto. Si se quiere conservar el historial, usar "Ocultar"
+// (PATCH active:false) en vez de este endpoint.
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -126,7 +114,10 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    const product = await prisma.product.delete({ where: { id } });
+    const product = await prisma.$transaction(async (tx) => {
+      await tx.orderItem.deleteMany({ where: { variant: { productId: id } } });
+      return tx.product.delete({ where: { id } });
+    });
 
     revalidatePath("/");
     revalidatePath("/products");
@@ -134,26 +125,6 @@ export async function DELETE(
 
     return NextResponse.json({ ok: true, mode: "deleted" });
   } catch (error) {
-    if (isForeignKeyRestrictError(error)) {
-      try {
-        const product = await prisma.product.update({ where: { id }, data: { active: false } });
-
-        revalidatePath("/");
-        revalidatePath("/products");
-        revalidatePath(`/products/${product.slug}`);
-
-        return NextResponse.json({
-          ok: true,
-          mode: "hidden",
-          reason:
-            "Este producto tiene pedidos asociados, así que no se puede borrar sin perder ese historial. Se ocultó de la tienda en su lugar.",
-        });
-      } catch (fallbackError) {
-        console.error("Error hiding product after failed delete:", fallbackError);
-        return NextResponse.json({ error: "No se pudo borrar ni ocultar el producto" }, { status: 500 });
-      }
-    }
-
     console.error("Error deleting product:", error);
     return NextResponse.json({ error: "No se pudo borrar el producto" }, { status: 500 });
   }
