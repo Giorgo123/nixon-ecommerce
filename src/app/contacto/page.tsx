@@ -1,7 +1,14 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { SOCIAL_LINKS, getWhatsappUrl } from "@/lib/constants/social";
 
 export const dynamic = "force-static";
+
+export const metadata: Metadata = {
+  title: "Contacto y preguntas frecuentes — Nixon Studio",
+  description:
+    "Contactate con Nixon Studio por WhatsApp, email o Instagram, y resolvé tus dudas sobre envíos, medios de pago y cambios.",
+};
 
 const CONTACT_EMAIL = "nicogeorgetti@gmail.com";
 

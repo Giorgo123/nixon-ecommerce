@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import ProductCatalog from "@/components/product/ProductCatalog";
 import { getCatalogCategories, getCatalogProducts } from "@/lib/catalog";
 
@@ -6,6 +7,12 @@ import { getCatalogCategories, getCatalogProducts } from "@/lib/catalog";
 // (ver revalidatePath en src/app/api/products); esto es solo un respaldo
 // por si algo cambia la DB sin pasar por esas rutas.
 export const revalidate = 300;
+
+export const metadata: Metadata = {
+  title: "Catálogo completo — Nixon Studio",
+  description:
+    "Explorá el catálogo completo de Nixon Studio: remeras oversize, streetwear y dark art, con filtros por categoría, talle y precio.",
+};
 
 export default async function ProductsPage() {
   const [products, categories] = await Promise.all([

@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
+
 export const dynamic = "force-static";
+
+export const metadata: Metadata = {
+  title: "Cambios y Devoluciones — Nixon Studio",
+  description: "Política de cambios, devoluciones y derecho de arrepentimiento en Nixon Studio.",
+};
 
 const CONTACT_EMAIL = "nicogeorgetti@gmail.com";
 
