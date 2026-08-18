@@ -341,12 +341,15 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
           </div>
 
           <div className="space-y-2">
-            <label className={labelClasses} htmlFor="seo">SEO (opcional)</label>
+            <label className={labelClasses} htmlFor="seo">
+              Meta description para buscadores (opcional)
+            </label>
             <input
               id="seo"
               className={inputClasses}
               value={seo}
               onChange={(event) => setSeo(event.target.value)}
+              placeholder="Lo que Google muestra como resumen. Si lo dejás vacío, se usa la descripción del producto."
             />
           </div>
 

@@ -47,12 +47,14 @@ export async function generateMetadata({
 
   if (!product) return {};
 
+  const metaDescription = product.seo || product.description;
+
   return {
     title: `${product.name} — Nixon Studio`,
-    description: product.description,
+    description: metaDescription,
     openGraph: {
       title: product.name,
-      description: product.description,
+      description: metaDescription,
       images: [product.image, ...product.images].map(absoluteImageUrl),
     },
   };
