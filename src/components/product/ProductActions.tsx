@@ -5,6 +5,7 @@ import useCartStore from "@/store/cart.store";
 import type { Product } from "@/features/products/types";
 import { trackEvent } from "@/lib/analytics";
 import SizeGuideModal from "@/components/product/SizeGuideModal";
+import { sortBySize } from "@/lib/constants/commerce-copy";
 
 interface ProductActionsProps {
   product: Product;
@@ -66,7 +67,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
             <SizeGuideModal />
           </div>
           <div className="flex flex-wrap gap-2">
-            {product.variants.map((variant) => {
+            {sortBySize(product.variants).map((variant) => {
               const isSelected = variant.id === selectedVariantId;
 
               return (

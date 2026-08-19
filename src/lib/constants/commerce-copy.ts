@@ -38,6 +38,14 @@ export function isSizedCategory(category: string): boolean {
   return ["remera", "remeras", "buzo", "buzos", "oversize"].includes(normalized);
 }
 
+export const SIZE_ORDER = ["S", "M", "L", "XL", "XXL"];
+
+export function sortBySize<T extends { size?: string | null }>(items: T[]): T[] {
+  return [...items].sort(
+    (a, b) => SIZE_ORDER.indexOf(a.size ?? "") - SIZE_ORDER.indexOf(b.size ?? "")
+  );
+}
+
 export const SIZE_GUIDE_CM: Array<{ size: string; chest: number; length: number }> = [
   { size: "S", chest: 54, length: 72 },
   { size: "M", chest: 57, length: 75 },

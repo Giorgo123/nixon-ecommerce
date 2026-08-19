@@ -150,7 +150,7 @@ export default async function ProductDetailPage({
             <h1 className="text-3xl font-black tracking-tight text-black dark:text-white sm:text-4xl">
               {product.name}
             </h1>
-            <p className="text-base leading-7 text-black/70 dark:text-white/70">
+            <p className="whitespace-pre-line text-base leading-7 text-black/70 dark:text-white/70">
               {product.description}
             </p>
           </div>

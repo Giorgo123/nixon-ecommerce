@@ -241,6 +241,11 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
           </motion.a>
         </motion.div>
 
+        {/* Productos estrella */}
+        <motion.div variants={fadeUp} className="mt-10 hidden w-full sm:block">
+          <FeaturedProductSlider products={starProducts} />
+        </motion.div>
+
         {/* Social Proof */}
         <motion.div
           variants={fadeUp}
@@ -269,8 +274,6 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
         </motion.div>
         </motion.div>
       </motion.div>
-
-      <FeaturedProductSlider products={starProducts} />
 
       {/* Vignette Effect para oscurecer bordes */}
       <div className="absolute inset-0 pointer-events-none">

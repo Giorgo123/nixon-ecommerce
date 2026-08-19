@@ -79,12 +79,15 @@ export default function ProductCard({ product }: ProductCardProps) {
       </Link>
 
       <div className="p-4">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-black/50 dark:text-white/50">
+          {catalogCategoryLabels[product.category] ?? product.category}
+        </p>
         <Link href={`/products/${product.slug}`}>
-          <h3 className="line-clamp-2 text-sm font-semibold text-black dark:text-white">
+          <h3 className="mt-1 line-clamp-2 text-sm font-semibold text-black dark:text-white">
             {product.name}
           </h3>
         </Link>
-        <p className="mt-2 line-clamp-2 text-xs text-gray-600 dark:text-gray-400">
+        <p className="mt-2 line-clamp-2 whitespace-pre-line text-xs text-gray-600 dark:text-gray-400">
           {product.description}
         </p>
         <div className="mt-4 flex items-center justify-between gap-3">
@@ -98,21 +101,18 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             )}
           </span>
-          <span className="rounded-full border border-black/10 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-black/60 dark:border-white/10 dark:text-white/60">
-            {catalogCategoryLabels[product.category] ?? product.category}
-          </span>
           {singleVariant ? (
             <button
               type="button"
               onClick={handleQuickAdd}
-              className="rounded-full bg-black px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
+              className="shrink-0 rounded-full bg-black px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
             >
               Agregar
             </button>
           ) : (
             <Link
               href={`/products/${product.slug}`}
-              className="rounded-full bg-black px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
+              className="shrink-0 rounded-full bg-black px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
             >
               Elegir talle
             </Link>
