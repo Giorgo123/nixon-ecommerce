@@ -45,7 +45,6 @@ export async function POST(request: NextRequest) {
     }
 
     const order = await createPendingOrder({ customer, items, couponCode });
-    await sendOrderReceivedEmail(order);
 
     const discountedUnitPrices = allocateDiscountedUnitPrices(
       order.items.map((item: PendingOrderItem) => ({ price: item.price, quantity: item.quantity })),
@@ -97,6 +96,14 @@ export async function POST(request: NextRequest) {
     }
 
     const preference = (await response.json()) as { init_point: string };
+
+    // El mail de "pedido recibido" se manda solo aca, ya confirmado que
+    // Mercado Pago devolvio un link de pago real. Si se mandaba antes y
+    // esta llamada fallaba, el cliente recibia la confirmacion igual
+    // aunque no pudiera pagar - quedaba confundido pensando que el pedido
+    // ya estaba hecho.
+    await sendOrderReceivedEmail(order);
+
     return NextResponse.json({ initPoint: preference.init_point });
   } catch (error) {
     if (error instanceof StockError) {
