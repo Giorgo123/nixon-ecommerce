@@ -16,33 +16,36 @@ export default function ProductCard({ product }: ProductCardProps) {
   const openDrawer = useCartStore((state) => state.openDrawer);
 
   const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
-  const singleVariant = product.variants.length === 1 ? product.variants[0] : null;
+  // Talle por default para el agregado rapido desde la tarjeta: el primero
+  // con stock real, o el primero de la lista si ninguno tiene (a pedido).
+  const defaultVariant =
+    product.variants.find((v) => v.stock > 0) ?? product.variants[0] ?? null;
   const isOnSale = Boolean(product.compareAtPrice && product.compareAtPrice > product.price);
   const discountPct = isOnSale
     ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
     : 0;
 
   function handleQuickAdd() {
-    if (!singleVariant) return;
+    if (!defaultVariant) return;
     addItem(
       {
-        variantId: singleVariant.id,
+        variantId: defaultVariant.id,
         productId: product.id,
         slug: product.slug,
         name: product.name,
         image: product.image,
         price: product.price,
         category: product.category,
-        size: singleVariant.size,
-        color: singleVariant.color,
-        stock: singleVariant.stock,
+        size: defaultVariant.size,
+        color: defaultVariant.color,
+        stock: defaultVariant.stock,
       },
       1
     );
     trackEvent("add_to_cart", {
       currency: "ARS",
       value: product.price,
-      items: [{ item_id: singleVariant.id, item_name: product.name, price: product.price, quantity: 1 }],
+      items: [{ item_id: defaultVariant.id, item_name: product.name, price: product.price, quantity: 1 }],
     });
     openDrawer();
   }
@@ -101,22 +104,14 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             )}
           </span>
-          {singleVariant ? (
-            <button
-              type="button"
-              onClick={handleQuickAdd}
-              className="w-full rounded-full bg-black px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
-            >
-              Agregar al carrito
-            </button>
-          ) : (
-            <Link
-              href={`/products/${product.slug}`}
-              className="block w-full rounded-full bg-black px-3 py-2 text-center text-xs font-semibold text-white transition-colors hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
-            >
-              Agregar al carrito
-            </Link>
-          )}
+          <button
+            type="button"
+            onClick={handleQuickAdd}
+            disabled={!defaultVariant}
+            className="w-full rounded-full bg-black px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-white/80"
+          >
+            Agregar al carrito
+          </button>
         </div>
       </div>
     </article>
