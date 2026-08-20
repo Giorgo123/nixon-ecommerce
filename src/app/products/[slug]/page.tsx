@@ -7,7 +7,6 @@ import Accordion from "@/components/product/Accordion";
 import TrustBox from "@/components/product/TrustBox";
 import ShareButtons from "@/components/product/ShareButtons";
 import CrossSell from "@/components/product/CrossSell";
-import NewsletterForm from "@/components/layout/NewsletterForm";
 import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
 import { catalogCategoryLabels } from "@/lib/categories";
 import { buildCrossSell } from "@/lib/product-filter";
@@ -215,10 +214,6 @@ export default async function ProductDetailPage({
       </div>
 
       <CrossSell products={crossSellProducts} />
-
-      <div className="mt-16 max-w-md">
-        <NewsletterForm variant="adaptive" />
-      </div>
     </main>
   );
 }

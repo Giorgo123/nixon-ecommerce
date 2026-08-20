@@ -242,7 +242,7 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
         </motion.div>
 
         {/* Productos estrella */}
-        <motion.div variants={fadeUp} className="mt-10 hidden w-full sm:block">
+        <motion.div variants={fadeUp} className="mt-8 w-full sm:mt-10">
           <FeaturedProductSlider products={starProducts} />
         </motion.div>
 
