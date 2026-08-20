@@ -61,7 +61,7 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
   };
 
   return (
-    <section className="relative w-full h-screen overflow-hidden flex items-center justify-center">
+    <section className="relative w-full min-h-screen overflow-hidden flex items-center justify-center">
 
       {/* Background Image con Parallax */}
       <motion.video
@@ -155,7 +155,7 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
         initial="hidden"
         animate="show"
         style={{ y: contentParallax }}
-        className="relative z-10 w-full h-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
+        className="relative z-10 w-full min-h-full flex flex-col items-center justify-center px-4 py-24 sm:px-6 lg:px-8 max-w-7xl mx-auto"
       >
         <motion.div className="flex w-full flex-col items-center justify-center">
         {/* Badge de colección */}
