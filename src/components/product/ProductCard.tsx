@@ -90,7 +90,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <p className="mt-2 line-clamp-2 whitespace-pre-line text-xs text-gray-600 dark:text-gray-400">
           {product.description}
         </p>
-        <div className="mt-4 flex items-center justify-between gap-3">
+        <div className="mt-4 space-y-2">
           <span className="flex items-baseline gap-2">
             <span className="text-lg font-bold text-black dark:text-white">
               ${product.price.toLocaleString("es-AR")}
@@ -105,16 +105,16 @@ export default function ProductCard({ product }: ProductCardProps) {
             <button
               type="button"
               onClick={handleQuickAdd}
-              className="shrink-0 rounded-full bg-black px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
+              className="w-full rounded-full bg-black px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
             >
-              Agregar
+              Agregar al carrito
             </button>
           ) : (
             <Link
               href={`/products/${product.slug}`}
-              className="shrink-0 rounded-full bg-black px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
+              className="block w-full rounded-full bg-black px-3 py-2 text-center text-xs font-semibold text-white transition-colors hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
             >
-              Elegir talle
+              Agregar al carrito
             </Link>
           )}
         </div>
