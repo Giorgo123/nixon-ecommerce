@@ -20,6 +20,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   // con stock real, o el primero de la lista si ninguno tiene (a pedido).
   const defaultVariant =
     product.variants.find((v) => v.stock > 0) ?? product.variants[0] ?? null;
+  const hoverImage = product.images[0] ?? null;
   const isOnSale = Boolean(product.compareAtPrice && product.compareAtPrice > product.price);
   const discountPct = isOnSale
     ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
@@ -59,8 +60,21 @@ export default function ProductCard({ product }: ProductCardProps) {
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-110"
+            className={
+              hoverImage
+                ? "object-cover transition-opacity duration-300 group-hover:opacity-0"
+                : "object-cover"
+            }
           />
+          {hoverImage && (
+            <Image
+              src={hoverImage}
+              alt={product.name}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+            />
+          )}
           <div className="absolute left-2 top-2 flex flex-col gap-1.5">
             {isOnSale && (
               <span className="rounded bg-red-600 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
