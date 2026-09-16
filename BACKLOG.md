@@ -22,4 +22,30 @@ Filtro `?paymentMethod=` (Todos/Mercado Pago/Transferencia) server-side sobre `p
 
 ---
 
-Sin pendientes abiertos por ahora. Nuevos ítems se agregan acá solo si de verdad refuerzan la tienda, con el mismo formato: motivo + qué se hizo/qué falta.
+## ⏳ Pendientes de verificación en vivo (bloqueados desde este entorno, no fallados)
+
+Auditoría completa del flujo de compra (código, tests, DB real en lectura, servidor local) sin encontrar fallas nuevas más allá de las corregidas arriba. Estos puntos específicos no se pudieron ejecutar porque requieren cosas que este entorno no tiene — no son "no funciona", son "no se pudo probar desde acá".
+
+### 6. Pago real con tarjeta crédito/débito, dinero en cuenta y efectivo
+**Por qué está bloqueado**: no hay forma de generar credenciales de prueba de Mercado Pago sin entrar a la cuenta real (Tus integraciones → Credenciales de prueba) — requiere acceso al panel web de MP, que no tengo.
+**Qué falta**: correr una compra de test por cada medio de pago activo en la cuenta, con las tarjetas oficiales de test de MP (aprobada / rechazada / pendiente).
+
+### 7. Webhook real de Mercado Pago con firma válida
+**Por qué está bloqueado**: requiere un pago real + un servidor públicamente alcanzable para que MP entregue el webhook — `localhost` no lo es.
+**Qué falta**: probar contra el dominio real desplegado (no local), confirmar en el panel de MP (Webhooks → historial) que la entrega devuelve 200, y que el pedido pasa a `paid`/`rejected` sin quedar en `pending`.
+
+### 8. Notificaciones de compra por email en producción
+**Por qué está bloqueado**: este entorno local no tiene `RESEND_API_KEY` configurada.
+**Qué falta**: confirmar en producción que llegan el mail de "pedido recibido" y el de "pago confirmado".
+
+### 9. Cuotas mostradas = cuotas efectivamente cobradas
+**Por qué está bloqueado**: solo se puede comparar contra un cobro real con tarjeta.
+**Qué falta**: en la misma compra de test de tarjeta (ítem 6), comparar la cuota que mostró `InstallmentsInfo` contra lo que Mercado Pago cobró de verdad.
+
+### 10. Expiración real de sesión admin
+**Por qué está bloqueado**: sin `SESSION_SECRET` local no se puede firmar un JWT de prueba ya vencido para probarlo en vivo.
+**Qué falta**: confirmar en producción que, pasados los 7 días de `createSessionToken`, la sesión deja de funcionar y redirige a `/admin/login`. El mecanismo en sí (librería `jose`, valida `exp` automáticamente) está verificado por código/diseño, no por ejecución.
+
+---
+
+Nuevos ítems se agregan acá solo si de verdad refuerzan la tienda, con el mismo formato: motivo + qué se hizo/qué falta.
