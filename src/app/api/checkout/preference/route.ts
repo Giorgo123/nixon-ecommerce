@@ -5,6 +5,7 @@ import { CouponError, allocateDiscountedUnitPrices } from "@/lib/coupon";
 import { sendOrderReceivedEmail } from "@/lib/email";
 import { createOrderAccessToken } from "@/lib/order-token";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { EXCLUDED_PAYMENT_METHODS, EXCLUDED_PAYMENT_TYPES } from "@/lib/constants/payment-methods";
 
 type PendingOrderItem = {
   variantId: string;
@@ -64,6 +65,9 @@ export async function POST(request: NextRequest) {
       unit_price: discountedUnitPrices[index],
     }));
 
+    const hasExcludedPaymentMethods =
+      EXCLUDED_PAYMENT_TYPES.length > 0 || EXCLUDED_PAYMENT_METHODS.length > 0;
+
     const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
       method: "POST",
       headers: {
@@ -84,6 +88,16 @@ export async function POST(request: NextRequest) {
         },
         auto_return: "approved",
         external_reference: order.id,
+        ...(hasExcludedPaymentMethods && {
+          payment_methods: {
+            ...(EXCLUDED_PAYMENT_TYPES.length > 0 && {
+              excluded_payment_types: EXCLUDED_PAYMENT_TYPES.map((id) => ({ id })),
+            }),
+            ...(EXCLUDED_PAYMENT_METHODS.length > 0 && {
+              excluded_payment_methods: EXCLUDED_PAYMENT_METHODS.map((id) => ({ id })),
+            }),
+          },
+        }),
       }),
     });
 
