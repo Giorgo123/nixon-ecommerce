@@ -1,6 +1,7 @@
 import Link from "next/link";
 import HeroSection from "@/components/hero/HeroSection";
 import ProductGrid from "@/components/product/ProductGrid";
+import ProductRevealBanner from "@/components/home/ProductRevealBanner";
 import { getCatalogProducts } from "@/lib/catalog";
 
 // Se revalida al instante cuando el admin crea/edita/borra un producto
@@ -17,6 +18,13 @@ export default async function Home() {
     ? products.filter((product) => product.isFeatured)
     : products
   ).slice(0, 4);
+
+  // Fotos distintas a las de "Destacados" cuando el catalogo alcanza, para
+  // que el banner no repita exactamente el mismo set de imagenes que ya se
+  // vio arriba en la misma pantalla.
+  const featuredIds = new Set(featuredProducts.map((product) => product.id));
+  const nonFeatured = products.filter((product) => !featuredIds.has(product.id));
+  const bannerProducts = (nonFeatured.length >= 3 ? nonFeatured : products).slice(0, 3);
 
   return (
     <main className="min-h-screen bg-white dark:bg-black">
@@ -51,6 +59,8 @@ export default async function Home() {
           </Link>
         </div>
       </section>
+
+      <ProductRevealBanner products={bannerProducts} />
     </main>
   );
 }
