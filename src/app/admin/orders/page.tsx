@@ -19,13 +19,25 @@ const statusBadgeClasses: Record<string, string> = {
   pending_transfer: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
 };
 
+const PAYMENT_METHOD_FILTERS = [
+  { value: undefined, label: "Todos" },
+  { value: "mercadopago", label: "Mercado Pago" },
+  { value: "transfer", label: "Transferencia" },
+] as const;
+
+function isValidPaymentMethod(value: string | undefined): value is "mercadopago" | "transfer" {
+  return value === "mercadopago" || value === "transfer";
+}
+
 export default async function AdminOrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; paymentMethod?: string }>;
 }) {
-  const { page: pageParam } = await searchParams;
+  const { page: pageParam, paymentMethod: paymentMethodParam } = await searchParams;
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
+  const paymentMethod = isValidPaymentMethod(paymentMethodParam) ? paymentMethodParam : undefined;
+  const where = paymentMethod ? { paymentMethod } : undefined;
 
   let orders: Awaited<ReturnType<typeof prisma.order.findMany>> = [];
   let totalOrders = 0;
@@ -34,6 +46,7 @@ export default async function AdminOrdersPage({
   try {
     [orders, totalOrders] = await Promise.all([
       prisma.order.findMany({
+        where,
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * PAGE_SIZE,
         take: PAGE_SIZE,
@@ -45,7 +58,7 @@ export default async function AdminOrdersPage({
           },
         },
       }),
-      prisma.order.count(),
+      prisma.order.count({ where }),
     ]);
   } catch (error) {
     if (isDatabaseConnectionError(error)) {
@@ -66,6 +79,29 @@ export default async function AdminOrdersPage({
         <p className="text-sm text-black/60 dark:text-white/60">
           {totalOrders} orden{totalOrders === 1 ? "" : "es"} en total.
         </p>
+      </div>
+
+      <div className="mb-6 flex flex-wrap gap-2">
+        {PAYMENT_METHOD_FILTERS.map((filter) => {
+          const isActive = filter.value === paymentMethod;
+          const href = filter.value
+            ? `/admin/orders?paymentMethod=${filter.value}`
+            : "/admin/orders";
+          return (
+            <Link
+              key={filter.label}
+              href={href}
+              className={[
+                "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                isActive
+                  ? "border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400"
+                  : "border-black/10 text-black hover:border-black/30 dark:border-white/10 dark:text-white dark:hover:border-white/30",
+              ].join(" ")}
+            >
+              {filter.label}
+            </Link>
+          );
+        })}
       </div>
 
       <div className="space-y-4">
@@ -114,7 +150,12 @@ export default async function AdminOrdersPage({
         ))}
       </div>
 
-      <Pagination basePath="/admin/orders" currentPage={page} totalPages={totalPages} />
+      <Pagination
+        basePath="/admin/orders"
+        currentPage={page}
+        totalPages={totalPages}
+        queryParams={{ paymentMethod }}
+      />
     </main>
   );
 }
