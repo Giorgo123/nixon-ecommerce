@@ -68,38 +68,55 @@ export async function POST(request: NextRequest) {
     const hasExcludedPaymentMethods =
       EXCLUDED_PAYMENT_TYPES.length > 0 || EXCLUDED_PAYMENT_METHODS.length > 0;
 
-    const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN ?? ""}`,
-        "Content-Type": "application/json",
-        "X-Idempotency-Key": randomUUID(),
-      },
-      body: JSON.stringify({
-        items: mpItems,
-        payer: {
-          name: customer?.fullName,
-          email: customer?.email,
+    let response: Response;
+    try {
+      response = await fetch("https://api.mercadopago.com/checkout/preferences", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN ?? ""}`,
+          "Content-Type": "application/json",
+          "X-Idempotency-Key": randomUUID(),
         },
-        back_urls: {
-          success: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/success?orderId=${order.id}&token=${createOrderAccessToken(order.id)}`,
-          pending: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/checkout?status=pending`,
-          failure: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/checkout?status=failure`,
-        },
-        auto_return: "approved",
-        external_reference: order.id,
-        ...(hasExcludedPaymentMethods && {
-          payment_methods: {
-            ...(EXCLUDED_PAYMENT_TYPES.length > 0 && {
-              excluded_payment_types: EXCLUDED_PAYMENT_TYPES.map((id) => ({ id })),
-            }),
-            ...(EXCLUDED_PAYMENT_METHODS.length > 0 && {
-              excluded_payment_methods: EXCLUDED_PAYMENT_METHODS.map((id) => ({ id })),
-            }),
+        // Sin esto, si Mercado Pago no responde, esta llamada cuelga hasta el
+        // timeout de la plataforma (Vercel) y el cliente nunca ve un error
+        // propio — solo una pantalla en blanco que tarda hasta 60s en cortar.
+        signal: AbortSignal.timeout(15_000),
+        body: JSON.stringify({
+          items: mpItems,
+          payer: {
+            name: customer?.fullName,
+            email: customer?.email,
           },
+          back_urls: {
+            success: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/success?orderId=${order.id}&token=${createOrderAccessToken(order.id)}`,
+            pending: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/checkout?status=pending`,
+            failure: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/checkout?status=failure`,
+          },
+          auto_return: "approved",
+          external_reference: order.id,
+          ...(hasExcludedPaymentMethods && {
+            payment_methods: {
+              ...(EXCLUDED_PAYMENT_TYPES.length > 0 && {
+                excluded_payment_types: EXCLUDED_PAYMENT_TYPES.map((id) => ({ id })),
+              }),
+              ...(EXCLUDED_PAYMENT_METHODS.length > 0 && {
+                excluded_payment_methods: EXCLUDED_PAYMENT_METHODS.map((id) => ({ id })),
+              }),
+            },
+          }),
         }),
-      }),
-    });
+      });
+    } catch (fetchError) {
+      const timedOut = fetchError instanceof Error && fetchError.name === "TimeoutError";
+      return NextResponse.json(
+        {
+          error: timedOut
+            ? "Mercado Pago no respondió a tiempo. Probá de nuevo en unos minutos."
+            : "No se pudo conectar con Mercado Pago",
+        },
+        { status: 502 }
+      );
+    }
 
     if (!response.ok) {
       const errorBody = await response.text();

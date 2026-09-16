@@ -17,7 +17,17 @@ export async function GET(
   const { id } = await params;
   const token = new URL(request.url).searchParams.get("token");
 
-  if (!(await isAdminSessionActive()) && !verifyOrderAccessToken(id, token)) {
+  // Falla cerrado: si algo se rompe validando la sesión/token (ej. falta
+  // SESSION_SECRET), nunca se debe devolver el pedido — se responde 401 en
+  // vez de dejar que el error suba sin manejar.
+  let isAuthorized: boolean;
+  try {
+    isAuthorized = (await isAdminSessionActive()) || verifyOrderAccessToken(id, token);
+  } catch {
+    isAuthorized = false;
+  }
+
+  if (!isAuthorized) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
