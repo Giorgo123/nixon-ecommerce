@@ -24,11 +24,13 @@ const statusClasses: Record<string, string> = {
 interface OrderStatusActionsProps {
   orderId: string;
   currentStatus: string;
+  paymentMethod: string;
 }
 
 export default function OrderStatusActions({
   orderId,
   currentStatus,
+  paymentMethod,
 }: OrderStatusActionsProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -77,6 +79,17 @@ export default function OrderStatusActions({
       >
         {currentStatus}
       </div>
+
+      {paymentMethod === "transfer" && currentStatus === "pending_transfer" && (
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => updateStatus("paid")}
+          className="mt-4 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-700 transition-colors hover:border-emerald-500/60 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-300"
+        >
+          Confirmar transferencia recibida
+        </button>
+      )}
 
       <div className="mt-4 flex flex-wrap gap-3">
         {statuses.map((status) => (

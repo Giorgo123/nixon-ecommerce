@@ -71,7 +71,11 @@ export default async function AdminOrderDetailPage({
           )}
         </section>
 
-        <OrderStatusActions orderId={order.id} currentStatus={order.status} />
+        <OrderStatusActions
+          orderId={order.id}
+          currentStatus={order.status}
+          paymentMethod={order.paymentMethod}
+        />
       </div>
 
       <section className="mt-8 rounded-3xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-black">
