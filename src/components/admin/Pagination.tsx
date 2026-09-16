@@ -4,9 +4,22 @@ interface PaginationProps {
   basePath: string;
   currentPage: number;
   totalPages: number;
+  /** Extra query params (e.g. active filters) to preserve across page links. */
+  queryParams?: Record<string, string | undefined>;
 }
 
-export default function Pagination({ basePath, currentPage, totalPages }: PaginationProps) {
+function buildHref(basePath: string, page: number, queryParams?: Record<string, string | undefined>) {
+  const params = new URLSearchParams();
+  if (queryParams) {
+    for (const [key, value] of Object.entries(queryParams)) {
+      if (value) params.set(key, value);
+    }
+  }
+  params.set("page", String(page));
+  return `${basePath}?${params.toString()}`;
+}
+
+export default function Pagination({ basePath, currentPage, totalPages, queryParams }: PaginationProps) {
   if (totalPages <= 1) return null;
 
   const prevPage = Math.max(1, currentPage - 1);
@@ -15,7 +28,7 @@ export default function Pagination({ basePath, currentPage, totalPages }: Pagina
   return (
     <div className="mt-6 flex items-center justify-between text-sm">
       <Link
-        href={`${basePath}?page=${prevPage}`}
+        href={buildHref(basePath, prevPage, queryParams)}
         aria-disabled={currentPage === 1}
         className={[
           "rounded-full border border-black/10 px-4 py-2 font-medium text-black dark:border-white/10 dark:text-white",
@@ -28,7 +41,7 @@ export default function Pagination({ basePath, currentPage, totalPages }: Pagina
         Página {currentPage} de {totalPages}
       </p>
       <Link
-        href={`${basePath}?page=${nextPage}`}
+        href={buildHref(basePath, nextPage, queryParams)}
         aria-disabled={currentPage === totalPages}
         className={[
           "rounded-full border border-black/10 px-4 py-2 font-medium text-black dark:border-white/10 dark:text-white",
