@@ -106,6 +106,45 @@ describe("createPendingOrder", () => {
     ).resolves.toBeDefined();
   });
 
+  it("rechaza cantidad negativa (evita inflar stock e imprimir un total negativo)", async () => {
+    productVariant.findMany.mockResolvedValue([fakeVariant]);
+
+    await expect(
+      createPendingOrder({
+        customer: baseCustomer,
+        items: [{ variantId: "variant-1", quantity: -5 }],
+      })
+    ).rejects.toBeInstanceOf(OrderValidationError);
+    expect(productVariant.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("rechaza cantidad no entera y cantidad por encima del máximo permitido", async () => {
+    productVariant.findMany.mockResolvedValue([fakeVariant]);
+
+    await expect(
+      createPendingOrder({
+        customer: baseCustomer,
+        items: [{ variantId: "variant-1", quantity: 2.5 }],
+      })
+    ).rejects.toBeInstanceOf(OrderValidationError);
+
+    await expect(
+      createPendingOrder({
+        customer: baseCustomer,
+        items: [{ variantId: "variant-1", quantity: 999 }],
+      })
+    ).rejects.toBeInstanceOf(OrderValidationError);
+  });
+
+  it("rechaza un variantId inválido", async () => {
+    await expect(
+      createPendingOrder({
+        customer: baseCustomer,
+        items: [{ variantId: "", quantity: 1 }],
+      })
+    ).rejects.toBeInstanceOf(OrderValidationError);
+  });
+
   it("rechaza el checkout si un producto del carrito ya no existe", async () => {
     productVariant.findMany.mockResolvedValue([]); // no matchea variant-1
 

@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { assertCouponUsable, computeDiscount, normalizeCouponCode, CouponError } from "@/lib/coupon";
 import { sendAbandonedCartEmail } from "@/lib/email";
 import { isValidEmail } from "@/lib/validations";
+import { MAX_QUANTITY_PER_ITEM } from "@/store/cart.store";
 
 // Cuanto tiempo se reserva el stock de una orden "pending" antes de
 // liberarse solo. 30 min: no hay un numero "oficial" que publique
@@ -94,6 +95,27 @@ export async function createPendingOrder(input: {
     const { address, city, state, zipCode } = input.customer;
     if (!address || !city || !state || !zipCode) {
       throw new OrderValidationError("Falta la dirección de envío");
+    }
+  }
+
+  // La cantidad viaja tal cual desde el cliente hasta el decremento de stock
+  // y el cálculo del total — sin este chequeo, un negativo infla el stock
+  // (decrement de un número negativo) y arma un total negativo/absurdo antes
+  // de que Mercado Pago llegue a rechazar el precio.
+  if (!Array.isArray(input.items) || input.items.length === 0) {
+    throw new OrderValidationError("El carrito está vacío");
+  }
+  for (const item of input.items) {
+    if (typeof item.variantId !== "string" || !item.variantId) {
+      throw new OrderValidationError("Uno de los productos del carrito es inválido");
+    }
+    if (
+      typeof item.quantity !== "number" ||
+      !Number.isInteger(item.quantity) ||
+      item.quantity < 1 ||
+      item.quantity > MAX_QUANTITY_PER_ITEM
+    ) {
+      throw new OrderValidationError(`La cantidad debe ser entre 1 y ${MAX_QUANTITY_PER_ITEM}`);
     }
   }
 

@@ -27,5 +27,13 @@ export function checkRateLimit(key: string, maxAttempts = MAX_ATTEMPTS, windowMs
 }
 
 export function getClientIp(request: Request) {
-  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  // El primer valor de X-Forwarded-For lo puede mandar el propio cliente
+  // (spoofeable) — cada proxy real por el que pasa la request AGREGA su
+  // propio valor al final, así que el último es el que efectivamente se
+  // conectó al servidor (en Vercel, su edge). Confiar en el primero permite
+  // esquivar el rate-limit mandando un header distinto en cada intento.
+  const header = request.headers.get("x-forwarded-for");
+  if (!header) return "unknown";
+  const parts = header.split(",").map((part) => part.trim()).filter(Boolean);
+  return parts[parts.length - 1] ?? "unknown";
 }

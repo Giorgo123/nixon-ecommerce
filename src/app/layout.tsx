@@ -4,6 +4,7 @@ import "./globals.css";
 import SiteShell from "@/components/layout/SiteShell";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import { SOCIAL_LINKS } from "@/lib/constants/social";
+import { safeJsonLd } from "@/lib/utils";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -68,7 +69,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-white text-black dark:bg-black dark:text-white">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(organizationJsonLd()) }}
         />
         <GoogleAnalytics />
         <SiteShell>{children}</SiteShell>

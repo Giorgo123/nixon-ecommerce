@@ -6,6 +6,7 @@ import ProductGallery from "@/components/product/ProductGallery";
 import Accordion from "@/components/product/Accordion";
 import TrustBox from "@/components/product/TrustBox";
 import ShareButtons from "@/components/product/ShareButtons";
+import { safeJsonLd } from "@/lib/utils";
 import CrossSell from "@/components/product/CrossSell";
 import InstallmentsInfo from "@/components/payments/InstallmentsInfo";
 import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
@@ -123,7 +124,7 @@ export default async function ProductDetailPage({
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-16">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd(product, totalStock)) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(productJsonLd(product, totalStock)) }}
       />
       <div className="mb-8">
         <Link

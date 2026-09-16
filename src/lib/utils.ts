@@ -2,6 +2,16 @@ export function cn(...classes: Array<string | undefined | null | false>) {
   return classes.filter(Boolean).join(" ");
 }
 
+// JSON.stringify() dentro de un <script type="application/ld+json"> con
+// dangerouslySetInnerHTML es vulnerable a XSS: si el dato serializado (ej.
+// el nombre de un producto cargado desde el admin) contiene literalmente
+// "</script>", el navegador cierra el tag ahí y cualquier HTML/script que
+// venga después en la página se vuelve código vivo. Escapar "<" rompe esa
+// secuencia sin afectar el JSON (que sigue siendo válido: < es "<").
+export function safeJsonLd(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
 // Vercel (u otro proxy intermedio) puede devolver un error de plataforma en
 // texto plano ANTES de que el request llegue a nuestro route handler (413
 // por body muy grande, 504 por timeout, etc.) - un response.json() directo

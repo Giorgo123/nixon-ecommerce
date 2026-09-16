@@ -32,11 +32,23 @@ describe("checkRateLimit", () => {
 });
 
 describe("getClientIp", () => {
-  it("reads the first IP from x-forwarded-for", () => {
+  it("reads the last IP from x-forwarded-for (the closest real hop, not client-spoofable)", () => {
     const request = new Request("http://localhost", {
       headers: { "x-forwarded-for": "1.2.3.4, 5.6.7.8" },
     });
-    expect(getClientIp(request)).toBe("1.2.3.4");
+    expect(getClientIp(request)).toBe("5.6.7.8");
+  });
+
+  it("is not fooled by a client sending a different fake first value each time", () => {
+    const real = "9.9.9.9";
+    const first = new Request("http://localhost", {
+      headers: { "x-forwarded-for": `1.1.1.1, ${real}` },
+    });
+    const second = new Request("http://localhost", {
+      headers: { "x-forwarded-for": `2.2.2.2, ${real}` },
+    });
+    expect(getClientIp(first)).toBe(real);
+    expect(getClientIp(second)).toBe(real);
   });
 
   it("falls back to unknown when the header is missing", () => {
