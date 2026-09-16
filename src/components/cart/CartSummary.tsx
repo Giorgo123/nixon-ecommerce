@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import useCartStore, { MAX_QUANTITY_PER_ITEM } from "@/store/cart.store";
+import InstallmentsInfo from "@/components/payments/InstallmentsInfo";
 
 interface CartSummaryProps {
   showActions?: boolean;
@@ -127,6 +128,7 @@ export default function CartSummary({
             ${total.toLocaleString("es-AR")}
           </span>
         </div>
+        {total > 0 && <InstallmentsInfo amount={total} variant="compact" />}
       </div>
 
       {showActions && items.length > 0 && (

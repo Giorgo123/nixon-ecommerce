@@ -7,6 +7,7 @@ import Accordion from "@/components/product/Accordion";
 import TrustBox from "@/components/product/TrustBox";
 import ShareButtons from "@/components/product/ShareButtons";
 import CrossSell from "@/components/product/CrossSell";
+import InstallmentsInfo from "@/components/payments/InstallmentsInfo";
 import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
 import { catalogCategoryLabels } from "@/lib/categories";
 import { buildCrossSell } from "@/lib/product-filter";
@@ -112,7 +113,6 @@ export default async function ProductDetailPage({
   const discountPct = isOnSale
     ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
     : 0;
-  const installmentAmount = Math.ceil(product.price / 6).toLocaleString("es-AR");
 
   const materialsCopy = getMaterialsCopy(product);
   const careCopy = getCareCopy(product);
@@ -172,9 +172,6 @@ export default async function ProductDetailPage({
                     </>
                   )}
                 </div>
-                <p className="mt-1 text-sm text-black/60 dark:text-white/60">
-                  Hasta 6x ${installmentAmount} sin interés
-                </p>
                 <p className="mt-0.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                   Precio especial por Transferencia
                 </p>
@@ -187,6 +184,10 @@ export default async function ProductDetailPage({
                   {totalStock > 0 ? `${totalStock} disponibles` : "A pedido"}
                 </p>
               </div>
+            </div>
+
+            <div className="mt-4 border-t border-black/10 pt-4 dark:border-white/10">
+              <InstallmentsInfo amount={product.price} variant="detailed" />
             </div>
           </div>
 

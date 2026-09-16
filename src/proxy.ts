@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminSessionCookie } from "@/lib/auth-cookie";
 import { verifySessionToken } from "@/lib/session-token";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isAdminPath = pathname.startsWith("/admin");
   const isLoginPath = pathname === "/admin/login";

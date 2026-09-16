@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import useCartStore from "@/store/cart.store";
 import { trackEvent } from "@/lib/analytics";
 import { parseJsonResponse } from "@/lib/utils";
+import InstallmentsInfo from "@/components/payments/InstallmentsInfo";
 
 type DeliveryMethod = "shipping" | "pickup";
 type PaymentMethod = "mercadopago" | "transfer";
@@ -348,6 +349,13 @@ export default function CheckoutForm() {
           <span>${Math.max(0, subtotal - (appliedCoupon?.discountAmount ?? 0)).toLocaleString("es-AR")}</span>
         </div>
       </div>
+
+      {paymentMethod === "mercadopago" && (
+        <InstallmentsInfo
+          amount={Math.max(0, subtotal - (appliedCoupon?.discountAmount ?? 0))}
+          variant="detailed"
+        />
+      )}
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 

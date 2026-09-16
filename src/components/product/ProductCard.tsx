@@ -6,6 +6,7 @@ import useCartStore from "@/store/cart.store";
 import type { Product } from "@/features/products/types";
 import { catalogCategoryLabels } from "@/lib/categories";
 import { trackEvent } from "@/lib/analytics";
+import InstallmentsInfo from "@/components/payments/InstallmentsInfo";
 
 interface ProductCardProps {
   product: Product;
@@ -104,6 +105,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             )}
           </span>
+          <InstallmentsInfo amount={product.price} variant="compact" />
           <button
             type="button"
             onClick={handleQuickAdd}

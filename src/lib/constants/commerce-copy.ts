@@ -5,7 +5,7 @@
 import { normalizeCategory } from "@/lib/categories";
 
 export const PROMO_BAR_TOP =
-  "¡Hasta 6 cuotas sin interés con todos los bancos! • Descuento especial abonando por Transferencia";
+  "¡Hasta 6 cuotas sin interés con tarjetas participantes! • Descuento especial abonando por Transferencia";
 
 export const PROMO_BAR_ROTATING = [
   "Exclusivo CBA: ¡Entrega express en 24 hs Hábiles!",
@@ -20,7 +20,7 @@ export const PAYMENT_METHODS_COPY =
   "Aceptamos las siguientes opciones de pago: Tarjetas de Crédito, Tarjetas de Débito, Mercado Pago (dinero en cuenta y cuotas) y Transferencia Bancaria directa con descuento.";
 
 export const TRUST_BOX_ITEMS = [
-  "Hasta 6 cuotas sin interés con todos los bancos.",
+  "Hasta 6 cuotas sin interés con tarjetas participantes.",
   "Retiro en tienda gratis (Punto de entrega Villa María).",
 ];
 

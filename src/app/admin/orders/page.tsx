@@ -92,15 +92,20 @@ export default async function AdminOrdersPage({
                 </p>
               </div>
               <div className="text-right text-sm">
-                <p
-                  className={[
-                    "inline-flex rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em]",
-                    statusBadgeClasses[order.status] ?? "border-black/10 text-black dark:border-white/10 dark:text-white",
-                  ].join(" ")}
-                >
-                  {order.status}
-                </p>
-                <p className="font-semibold text-black dark:text-white">
+                <div className="flex items-center justify-end gap-1.5">
+                  <p
+                    className={[
+                      "inline-flex rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em]",
+                      statusBadgeClasses[order.status] ?? "border-black/10 text-black dark:border-white/10 dark:text-white",
+                    ].join(" ")}
+                  >
+                    {order.status}
+                  </p>
+                  <p className="inline-flex rounded-full border border-black/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-black/60 dark:border-white/10 dark:text-white/60">
+                    {order.paymentMethod === "transfer" ? "Transferencia" : "Mercado Pago"}
+                  </p>
+                </div>
+                <p className="mt-1 font-semibold text-black dark:text-white">
                   ${order.totalPrice.toLocaleString("es-AR")}
                 </p>
               </div>

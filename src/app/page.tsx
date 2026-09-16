@@ -1,6 +1,11 @@
 import Link from "next/link";
 import HeroSection from "@/components/hero/HeroSection";
 import ProductGrid from "@/components/product/ProductGrid";
+import ValueProps from "@/components/home/ValueProps";
+import InstallmentsShowcase from "@/components/home/InstallmentsShowcase";
+import BrandManifesto from "@/components/home/BrandManifesto";
+import Testimonials from "@/components/home/Testimonials";
+import Lookbook from "@/components/home/Lookbook";
 import { getCatalogProducts } from "@/lib/catalog";
 
 // Se revalida al instante cuando el admin crea/edita/borra un producto
@@ -17,10 +22,16 @@ export default async function Home() {
     ? products.filter((product) => product.isFeatured)
     : products
   ).slice(0, 4);
+  const referenceAmount =
+    products.length > 0
+      ? products.reduce((sum, product) => sum + product.price, 0) / products.length
+      : 0;
 
   return (
     <main className="min-h-screen bg-white dark:bg-black">
       <HeroSection starProducts={starProducts} />
+
+      <ValueProps />
 
       <section id="featured" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-24">
         <div className="mb-12">
@@ -51,6 +62,11 @@ export default async function Home() {
           </Link>
         </div>
       </section>
+
+      <InstallmentsShowcase referenceAmount={referenceAmount} />
+      <BrandManifesto />
+      <Testimonials />
+      <Lookbook products={products} />
     </main>
   );
 }
