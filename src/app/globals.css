@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Tailwind v4: el variant `dark:` sigue prefers-color-scheme por defecto.
+   La tienda publica es siempre oscura (identidad Dark Art), asi que forzamos
+   el variant a activarse por la clase `.dark` en un ancestro (ver SiteShell)
+   en vez de depender del SO del visitante. El admin no recibe esta clase y
+   sigue con su propio tema claro/oscuro genuino basado en el SO. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

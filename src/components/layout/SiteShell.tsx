@@ -22,13 +22,17 @@ export default function SiteShell({
     }
   }, [pathname, isAdminArea]);
 
+  if (isAdminArea) {
+    return <div className="flex flex-1 flex-col">{children}</div>;
+  }
+
   return (
-    <>
-      {!isAdminArea && <Navbar />}
+    <div className="dark flex flex-1 flex-col">
+      <Navbar />
       <div className="flex flex-1 flex-col">{children}</div>
-      {!isAdminArea && <Footer />}
-      {!isAdminArea && <CartDrawer />}
-      {!isAdminArea && <WhatsappButton />}
-    </>
+      <Footer />
+      <CartDrawer />
+      <WhatsappButton />
+    </div>
   );
 }
