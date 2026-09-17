@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import CartDrawer from "@/components/cart/CartDrawer";
+import WhatsappButton from "@/components/layout/WhatsappButton";
+import BackToTopButton from "@/components/layout/BackToTopButton";
 import { trackPageview } from "@/lib/analytics";
 
 export default function SiteShell({
@@ -27,6 +29,8 @@ export default function SiteShell({
       <div className="flex flex-1 flex-col">{children}</div>
       {!isAdminArea && <Footer />}
       {!isAdminArea && <CartDrawer />}
+      {!isAdminArea && <WhatsappButton />}
+      {!isAdminArea && <BackToTopButton />}
     </>
   );
 }
