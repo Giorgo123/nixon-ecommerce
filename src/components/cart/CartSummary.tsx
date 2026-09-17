@@ -46,9 +46,17 @@ export default function CartSummary({
 
       <div className="mt-5 space-y-3">
         {items.length === 0 ? (
-          <p className="text-sm text-black/60 dark:text-white/60">
-            Todavía no agregaste productos.
-          </p>
+          <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-black/10 px-4 py-10 text-center dark:border-white/10">
+            <p className="text-sm text-black/60 dark:text-white/60">
+              Todavía no agregaste productos. Tu carrito está esperando algo con onda.
+            </p>
+            <Link
+              href="/products"
+              className="inline-flex items-center justify-center rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white dark:bg-white dark:text-black"
+            >
+              Ver catálogo
+            </Link>
+          </div>
         ) : (
           items.map((item) => (
             <div
@@ -108,26 +116,28 @@ export default function CartSummary({
         )}
       </div>
 
-      <div className="mt-6 space-y-3 border-t border-black/10 pt-4 dark:border-white/10">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-black/60 dark:text-white/60">Subtotal</span>
-          <span className="font-medium text-black dark:text-white">
-            ${subtotal.toLocaleString("es-AR")}
-          </span>
+      {items.length > 0 && (
+        <div className="mt-6 space-y-3 border-t border-black/10 pt-4 dark:border-white/10">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-black/60 dark:text-white/60">Subtotal</span>
+            <span className="font-medium text-black dark:text-white">
+              ${subtotal.toLocaleString("es-AR")}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-black/60 dark:text-white/60">Envío</span>
+            <span className="font-medium text-emerald-600 dark:text-emerald-400">
+              Gratis a todo el país
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-base">
+            <span className="font-medium text-black dark:text-white">Total</span>
+            <span className="text-lg font-semibold text-black dark:text-white">
+              ${total.toLocaleString("es-AR")}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-black/60 dark:text-white/60">Envío</span>
-          <span className="font-medium text-emerald-600 dark:text-emerald-400">
-            Gratis a todo el país
-          </span>
-        </div>
-        <div className="flex items-center justify-between text-base">
-          <span className="font-medium text-black dark:text-white">Total</span>
-          <span className="text-lg font-semibold text-black dark:text-white">
-            ${total.toLocaleString("es-AR")}
-          </span>
-        </div>
-      </div>
+      )}
 
       {showActions && items.length > 0 && (
         <div className="mt-6 space-y-3">

@@ -35,22 +35,30 @@ export default async function SuccessPage({
   searchParams: Promise<{ orderId?: string; token?: string }>;
 }) {
   const { orderId, token } = await searchParams;
-  const order = orderId && token ? await getOrder(orderId, token) : null;
+  const hasOrderParams = Boolean(orderId && token);
+  const order = hasOrderParams ? await getOrder(orderId!, token!) : null;
   const awaitingTransfer = order?.paymentMethod === "transfer" && order.status === "pending_transfer";
+  const orderNotFound = hasOrderParams && !order;
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-16">
       <div className="mx-auto max-w-2xl space-y-6 rounded-3xl border border-black/10 bg-black/5 p-8 dark:border-white/10 dark:bg-white/5">
         <p className="text-xs uppercase tracking-[0.3em] text-red-500">
-          {awaitingTransfer ? "Pedido registrado" : "Pago exitoso"}
+          {orderNotFound ? "No encontramos tu pedido" : awaitingTransfer ? "Pedido registrado" : "Pago exitoso"}
         </p>
         <h1 className="text-3xl font-black tracking-tight text-black dark:text-white">
-          {awaitingTransfer ? "¡Gracias! Ya casi está" : "Gracias por tu compra"}
+          {orderNotFound
+            ? "No pudimos mostrar el detalle"
+            : awaitingTransfer
+              ? "¡Gracias! Ya casi está"
+              : "Gracias por tu compra"}
         </h1>
         <p className="text-sm text-black/70 dark:text-white/70">
           {order
             ? `Tu orden ${order.id} quedó registrada y está ${statusLabels[order.status] ?? order.status}.`
-            : "Tu pago fue procesado. Estamos recuperando el detalle de la orden."}
+            : orderNotFound
+              ? "El link de esta orden expiró o no es válido. Si ya pagaste, revisá tu email — ahí te enviamos la confirmación con el detalle."
+              : "Estamos procesando tu pedido. Si acabás de completar el pago, en unos minutos te llega la confirmación por email."}
         </p>
 
         {order && (
