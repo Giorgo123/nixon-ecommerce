@@ -188,6 +188,9 @@ export default async function ProductDetailPage({
             </div>
 
             <div className="mt-4 border-t border-black/10 pt-4 dark:border-white/10">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-black/40 dark:text-white/40">
+                Financiación
+              </p>
               <InstallmentsInfo amount={product.price} variant="detailed" />
             </div>
           </div>
