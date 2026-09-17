@@ -101,10 +101,17 @@ export default function InstallmentsInfo({
   }
 
   const data = result.data;
-  const interestFreeMax =
+  // Nos quedamos con la opción completa (no solo el número de cuotas) para
+  // poder mostrar también su installmentAmount real — misma tarjeta/plan que
+  // define el "hasta Nx", no un promedio ni un cálculo aparte.
+  const bestInterestFreeOption =
     data?.options
       ?.filter((option) => option.interestFree)
-      .reduce((max, option) => Math.max(max, option.installments), 0) ?? 0;
+      .reduce<InstallmentOption | null>(
+        (best, option) => (!best || option.installments > best.installments ? option : best),
+        null
+      ) ?? null;
+  const interestFreeMax = bestInterestFreeOption?.installments ?? 0;
 
   if (result.status === "error" || !data?.configured || !data.available || interestFreeMax === 0) {
     if (variant === "compact") {
@@ -126,10 +133,15 @@ export default function InstallmentsInfo({
     );
   }
 
+  // Si por algún motivo la API no trajo installmentAmount (undefined/0),
+  // no mostramos un monto roto ("$0" / "$undefined") — caemos al texto sin
+  // monto, que sigue siendo válido.
+  const perInstallmentAmount = bestInterestFreeOption?.installmentAmount || 0;
+
   if (variant === "compact") {
     return (
       <p className={`text-xs font-medium text-red-500 ${className}`}>
-        Hasta {interestFreeMax}x sin interés
+        Hasta {interestFreeMax}x{perInstallmentAmount > 0 ? ` $${perInstallmentAmount.toLocaleString("es-AR")}` : ""} sin interés
       </p>
     );
   }
@@ -142,6 +154,7 @@ export default function InstallmentsInfo({
     >
       <p className="text-sm font-semibold text-black dark:text-white">
         Hasta {interestFreeMax} cuotas sin interés
+        {perInstallmentAmount > 0 ? ` de $${perInstallmentAmount.toLocaleString("es-AR")}` : ""}
       </p>
       {issuers.length > 0 && (
         <p className="mt-1 text-xs text-black/60 dark:text-white/60">
