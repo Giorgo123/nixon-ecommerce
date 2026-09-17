@@ -87,6 +87,31 @@ Reescritos: `TRUST_BOX_ITEMS[0]` y `PROMO_BAR_TOP` en `commerce-copy.ts`, los do
 ## ✅ 31. Copy de marketing del Hero — hecho
 Subtítulo cambiado de "Remeras Oversize • Streetwear • Dark Art / Diseños premium con identidad propia" a "Streetwear oversize con identidad dark art / Piezas que no vas a ver en cualquier lado" (mismo registro que `BrandManifesto.tsx`). CTA secundario "Explorar Más" → "Ver Destacados" (más específico, ese link scrollea a `#featured`). Los labels de navegación "Catálogo"/"Contacto" del navbar se dejaron intactos a propósito — son navegación funcional, no copy de marketing, y tocarlos perjudicaría la usabilidad sin beneficio real.
 
+## ✅ 32. Monto real por cuota en InstallmentsInfo — hecho
+`InstallmentsInfo` ya estaba montado en `ProductCard` (compact) y en la PDP (detailed) desde el commit inicial del rediseño — no se volvió a agregar el componente, se le agregó el dato que faltaba. Antes solo mostraba "Hasta Nx sin interés"; ahora también muestra el monto por cuota real (`installmentAmount`, que la API de Mercado Pago ya devuelve y no se estaba usando) — ej. "Hasta 3x $13.708 sin interés". Si `installmentAmount` no viene, cae al texto anterior sin monto en vez de mostrar `$0`/`$undefined`. El fallback sin cuotas disponibles no se tocó.
+
+**Diagnóstico de la API real** (código, sin credenciales de MP en este entorno — ver ítem 6 más abajo para la prueba con cuenta real): sin `MERCADOPAGO_ACCESS_TOKEN`, `/api/mercadopago/installments` responde `{ configured: false, options: [] }` (mensaje genérico honesto). Un plan de cuotas nuevo que Mercado Pago active en una tarjeta ya consultada (Visa/Master/Amex) se refleja automáticamente sin tocar código — el fetch es directo a la API real, sin filtro de planes. Única lista fija real: `DEFAULT_PAYMENT_METHOD_IDS` decide qué marcas consultar *antes* de que el comprador tipee su tarjeta (sin `bin`); si el comprador tipea la tarjeta, se consulta por `bin` real y esa lista no aplica.
+
+## ✅ 33. Jerarquía visual de la sección de cuotas en la PDP — hecho (parcial)
+Se agregó un eyebrow "Financiación" arriba de `InstallmentsInfo` en el bloque de precio de la PDP, mismo patrón visual que ya usa `InstallmentsShowcase.tsx` en el home — consistencia entre ambas secciones. No se rediseñó un "ver más detalle" expandible con múltiples planes: el componente `InstallmentsInfo` ya resuelve la jerarquía internamente (opción destacada arriba, issuers y texto legal más chicos debajo) y tocar eso en paralelo con el ítem 32 tenía riesgo real de conflicto — queda como posible mejora futura si en algún momento se necesita comparar varios planes lado a lado.
+
+## ✅ 34. Testimonios: título más humano + loop continuo — hecho
+Eyebrow "Lo que dicen" → "En la calle"; heading "Quienes ya se lo pusieron" → "Quienes ya andan con esto puesto" (sin insinuar "reseña verificada" — siguen siendo contenido editorial de marca). El carrusel, antes de scroll manual únicamente, ahora loopea solo (mismo patrón de marquee que `PromoBar.tsx`, con `useMotionValue`/`useAnimationFrame` en vez del atajo de keyframes para poder pausar en hover/focus sin salto visual — las quotes son texto largo, necesitan tiempo de lectura). Array de testimonios sin cambios.
+
+## ✅ 35. Botón "volver arriba" — hecho
+Aparece después de 400px de scroll, sube al tope con scroll suave. Apilado arriba del botón de WhatsApp (`bottom-24` vs `bottom-5`, mismo tamaño `h-14 w-14`, mismo `z-50`) sin superponerse, oculto en `/admin` igual que el resto de los widgets flotantes.
+
+## ✅ 36. Flechas de navegación en CrossSell (PDP) — hecho
+"También te puede gustar" pasó de solo-swipe a tener flechas izquierda/derecha que scrollean una página visible con `scrollBy` suave. Visibilidad calculada en vivo con `scrollLeft`/`scrollWidth`/`clientWidth` (nunca una flecha "fantasma" sin contenido hacia donde ir). Ocultas en mobile a propósito (el swipe táctil ya es el patrón esperado ahí).
+
+---
+
+### Propuesta pendiente de aprobación — páginas nuevas para el navbar
+Investigación (sin código, dropdown de Catálogo por hover ya estaba implementado desde el ítem 23 — no se reimplementó):
+1. **`/nosotros`** ("Nuestra historia"): explicaría el origen del proyecto y, con transparencia, la decisión ya tomada de usar fan art autorizado. Requiere texto/fotos reales del dueño — sin eso no se arranca.
+2. **`/guia-de-talles`**: compilar `SIZE_GUIDE_CM`/materiales/cuidado (ya existen como datos reales) en una página propia, accesible sin entrar a un producto. El de menor esfuerzo y mayor certeza — cero contenido nuevo que inventar.
+3. **`/drops`**: el newsletter ya promete "drops exclusivos, ediciones limitadas" sin que el modelo de datos tenga ningún campo que lo represente. Requiere migración de schema + UI de admin — esfuerzo alto, solo tiene sentido si el negocio va a operar lanzamientos por tandas reales; si no, más honesto sacar esa frase del newsletter.
+
 ---
 
 ## ⏳ Pendientes de verificación en vivo (bloqueados desde este entorno, no fallados)
