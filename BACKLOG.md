@@ -50,6 +50,25 @@ Fijo, esquina inferior derecha, usa el número real ya existente en `constants/s
 ## ✅ 20. Copy del PromoBar corregido contra el código real + efecto cinta — hecho
 "Hasta 6 cuotas... con todos los bancos" y "descuento especial por transferencia" no tenían respaldo real en el código (el máximo de cuotas lo decide MP en vivo y varía; no existe ningún descuento automático por transferencia en `order.ts`) — copy corregido para no prometer lo que no se cumple, en vez de inventar un descuento sin que el negocio lo haya definido. Franja superior del `PromoBar` con efecto de cinta (marquee), estática si `prefers-reduced-motion`.
 
+## ✅ 22. Tema oscuro forzado en toda la tienda pública — hecho (bloqueante de marca)
+**Por qué sumaba**: el variant `dark:` de Tailwind seguía `prefers-color-scheme` del SO del visitante — con el equipo en modo claro, todo el sitio debajo del Hero (catálogo, PDP, carrito, checkout, success) se veía blanco, rompiendo la identidad Dark Art justo después del Hero.
+`globals.css`: `@custom-variant dark (&:where(.dark, .dark *))`. `SiteShell.tsx`: la tienda pública se envuelve en `div.dark` (admin no la recibe, sigue con su propio tema). Confirmado en vivo con curl: home con `class="dark..."`, `/admin/login` sin ella.
+
+## ✅ 23. Navbar: dropdown "Catálogo" con categorías + `?category=` funcional — hecho
+"Catálogo" pasó a ser un dropdown (desktop: hover/click con `aria-expanded`, cierra con Escape/click afuera; mobile: sublista expandible en el menú) con Remeras/Buzos/Tazas/Posters/Ver todo. `ProductCatalog.tsx` ahora lee `?category=` como estado inicial (mismo patrón que ya usaba `search`) — antes el link no aplicaba ningún filtro.
+
+## ✅ 24. Fan-out de fetches de cuotas en el catálogo — hecho
+`InstallmentsInfo.tsx` memoiza la promesa de `/api/mercadopago/installments` por monto exacto (no redondeado, para no alterar la cuota real mostrada) — varias tarjetas con el mismo precio comparten una sola llamada en vez de una por componente.
+
+## ✅ 25. Quick-add en ProductCard muestra el talle — hecho
+El botón pasa a decir "Agregar (Talle X)" cuando el producto tiene más de un talle, en vez de agregar uno elegido a ciegas sin que el comprador lo vea hasta abrir el carrito.
+
+## ✅ 26. Copy honesto en /success + alt real en galería + foco en CartDrawer — hecho
+`/success`: distingue "link de orden inválido/vencido" de "checkout en curso sin parámetros todavía", con CTA de WhatsApp en el primer caso — ninguno afirma un pago confirmado sin verificarlo. `ProductGallery.tsx`: thumbnails con `alt` descriptivo real en vez de `alt=""`. `CartDrawer.tsx`: mueve el foco al botón de cerrar al abrir, lo devuelve al trigger al cerrar.
+
+## ✅ 27. Auditoría senior de percepción de marca — hecho lo rápido/bajo riesgo
+404 con estilo de marca (badge, copy propio, CTA a inicio y catálogo, antes era texto plano default). Carrito vacío con diseño propio + CTA a catálogo (antes una línea suelta, y encima seguía mostrando Subtotal/Envío/Total en $0). `/success` con estados más precisos (ver ítem 26). Nada quedó listado como pendiente-de-decisión en esta pasada (favicon/meta/og:image ya estaban resueltos; no se encontraron componentes para "Sacar").
+
 ---
 
 ## ⏳ Pendientes de verificación en vivo (bloqueados desde este entorno, no fallados)
