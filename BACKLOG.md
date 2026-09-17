@@ -75,6 +75,18 @@ El botón pasa a decir "Agregar (Talle X)" cuando el producto tiene más de un t
 ## ✅ 21. CSP completo (script-src/connect-src) — hecho
 `next.config.ts`: `script-src`/`connect-src` con allowlist real de Google Analytics (único script externo client-side, confirmado por grep), `img-src` con el dominio real de Vercel Blob, `style-src`/`font-src`. Sin nonce (por elección, documentada en el propio archivo): este fork depende de ISR estático y un nonce mal implementado puede romper la hidratación — se prefirió `unsafe-inline` en vez de arriesgar eso. No hace falta ningún dominio de Mercado Pago en `connect-src`: el checkout es una navegación de página completa, no un fetch/iframe desde el browser (confirmado por grep). Probado en vivo con `curl -I` contra `/`, `/products`, la PDP, `/cart` y `/checkout` — todas 200 con el header puesto.
 
+## ✅ 28. Reveal-on-scroll en los 3 productos del Hero — hecho
+`FeaturedProductSlider.tsx` no tenía animación de entrada propia (heredaba el fade del contenedor padre del Hero, que dispara al montar, no al scrollear). Ahora reusa el patrón exacto de `ProductRevealBanner.tsx` (`staggerContainer` + `slideVariant` izquierda/derecha/izquierda alternado, `whileInView` con `viewport={{ once: true, amount: 0.3 }}`, gateado por `useReducedMotion` con fallback directo sin transición).
+
+## ✅ 29. Copy de cuotas más contundente (sin cambiar el contenido verificable) — hecho
+Reescritos: `TRUST_BOX_ITEMS[0]` y `PROMO_BAR_TOP` en `commerce-copy.ts`, los dos fallbacks de `InstallmentsInfo.tsx` (compact y detailed, cuando no hay cuotas sin interés vigentes), y el heading/subheading de `InstallmentsShowcase.tsx`. Se sacaron construcciones débiles ("mirá el detalle real en el producto", "no en promesas") por un tono más directo — ningún texto nuevo agrega un número de cuotas ni un banco fijo, la info sigue viniendo 100% de `InstallmentsInfo` en vivo contra Mercado Pago.
+
+## ✅ 30. Lookbook rediseñado a mosaico bento inmersivo — hecho
+`Lookbook.tsx` (última sección del home, ya era la sección de fotos de Instagram — no se creó una sección paralela, se extendió la existente por regla de `design.md`). Pasó de un grid parejo de 3 columnas contenido a `max-w-6xl` a un mosaico `grid-cols-4` con 1 tile grande (`col-span-2 row-span-2`) + el resto chicos, ancho ampliado a `max-w-7xl`, overlay con ícono de Instagram al hover, y CTA final "Ver el catálogo completo en Instagram". `collectLookbookPhotos()` (deduplicación de fotos reales del catálogo) no se tocó.
+
+## ✅ 31. Copy de marketing del Hero — hecho
+Subtítulo cambiado de "Remeras Oversize • Streetwear • Dark Art / Diseños premium con identidad propia" a "Streetwear oversize con identidad dark art / Piezas que no vas a ver en cualquier lado" (mismo registro que `BrandManifesto.tsx`). CTA secundario "Explorar Más" → "Ver Destacados" (más específico, ese link scrollea a `#featured`). Los labels de navegación "Catálogo"/"Contacto" del navbar se dejaron intactos a propósito — son navegación funcional, no copy de marketing, y tocarlos perjudicaría la usabilidad sin beneficio real.
+
 ---
 
 ## ⏳ Pendientes de verificación en vivo (bloqueados desde este entorno, no fallados)

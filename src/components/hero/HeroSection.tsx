@@ -210,10 +210,10 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
 
         {/* Subtítulo */}
         <motion.p variants={fadeUp} className="mt-6 text-center text-base sm:text-lg lg:text-xl text-zinc-200 font-light max-w-2xl">
-          Remeras Oversize • Streetwear • Dark Art
+          Streetwear oversize con identidad dark art
           <br />
           <span className="text-sm sm:text-base text-zinc-400">
-            Diseños premium con identidad propia
+            Piezas que no vas a ver en cualquier lado
           </span>
         </motion.p>
 
@@ -237,7 +237,7 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
             whileTap={reduceMotion ? undefined : { scale: 0.95 }}
             className="px-8 py-4 border-2 border-red-500/50 text-white font-bold rounded-lg backdrop-blur-sm transition-all duration-300"
           >
-            Explorar Más
+            Ver Destacados
           </motion.a>
         </motion.div>
 

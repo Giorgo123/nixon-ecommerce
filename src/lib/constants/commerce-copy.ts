@@ -13,7 +13,7 @@ import { normalizeCategory } from "@/lib/categories";
 // paymentMethod === "transfer" (ver src/lib/order.ts), así que prometerlo acá
 // sería una afirmación sin lógica detrás.
 export const PROMO_BAR_TOP =
-  "Cuotas sin interés con tarjetas participantes — mirá el detalle real en cada producto • Envío gratis a todo el país";
+  "Cuotas sin interés con tarjetas participantes, calculadas en vivo • Envío gratis a todo el país";
 
 export const PROMO_BAR_ROTATING = [
   "Exclusivo CBA: ¡Entrega express en 24 hs Hábiles!",
@@ -28,7 +28,7 @@ export const PAYMENT_METHODS_COPY =
   "Aceptamos las siguientes opciones de pago: Tarjetas de Crédito, Tarjetas de Débito, Mercado Pago (dinero en cuenta y cuotas) y Transferencia Bancaria directa.";
 
 export const TRUST_BOX_ITEMS = [
-  "Cuotas sin interés con tarjetas participantes — mirá el detalle real en el producto.",
+  "Cuotas sin interés con tarjetas participantes, calculadas en vivo con Mercado Pago.",
   "Retiro en tienda gratis (Punto de entrega Villa María).",
 ];
 

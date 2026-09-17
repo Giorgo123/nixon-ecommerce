@@ -110,7 +110,8 @@ export default function InstallmentsInfo({
     if (variant === "compact") {
       return (
         <p className={`text-xs text-black/50 dark:text-white/50 ${className}`}>
-          Cuotas sujetas a la oferta vigente de Mercado Pago
+          Sin cuotas sin interés vigentes en este momento — Mercado Pago define el resto de
+          las opciones al pagar.
         </p>
       );
     }
@@ -119,8 +120,8 @@ export default function InstallmentsInfo({
       <div
         className={`rounded-2xl border border-black/10 bg-black/5 p-4 text-sm text-black/60 dark:border-white/10 dark:bg-white/5 dark:text-white/60 ${className}`}
       >
-        Las cuotas disponibles se calculan sobre tu tarjeta en el paso de pago de
-        Mercado Pago. Promociones sujetas a la oferta vigente.
+        El detalle de cuotas se confirma con tu tarjeta en el paso de pago — Mercado Pago
+        aplica las promociones vigentes al momento de la compra.
       </div>
     );
   }
