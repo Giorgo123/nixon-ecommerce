@@ -1,6 +1,12 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import {
+  motion,
+  useAnimationFrame,
+  useMotionValue,
+  useReducedMotion,
+} from "framer-motion";
 
 const testimonials = [
   {
@@ -43,6 +49,91 @@ const testimonials = [
   },
 ];
 
+// Velocidad del loop en px/segundo. A diferencia del PromoBar (duration fija
+// porque el copy es corto), acá las quotes son largas y el track se mueve con
+// requestAnimationFrame a velocidad constante: así el pausado por hover/focus
+// corta y retoma exactamente donde quedó, sin el salto que produciría
+// reiniciar un keyframe ["0%", "-50%"] a mitad de camino.
+const MARQUEE_SPEED_PX_S = 40;
+
+type Testimonial = (typeof testimonials)[number];
+
+function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
+  return (
+    <figure className="w-70 shrink-0 rounded-2xl border border-black/6 bg-white p-6 dark:border-white/8 dark:bg-zinc-950 sm:w-80">
+      <div className="mb-4 text-red-500">{"★★★★★"}</div>
+      <blockquote className="text-sm leading-relaxed text-black/80 dark:text-white/80">
+        &ldquo;{testimonial.quote}&rdquo;
+      </blockquote>
+      <figcaption className="mt-5 flex items-center gap-3">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-xs font-bold text-white dark:bg-white dark:text-black">
+          {testimonial.name
+            .split(" ")
+            .map((part) => part[0])
+            .join("")}
+        </span>
+        <span className="text-xs text-black/60 dark:text-white/60">
+          <span className="font-semibold text-black dark:text-white">{testimonial.name}</span>
+          {" · "}
+          {testimonial.city}
+          <br />
+          {testimonial.item}
+        </span>
+      </figcaption>
+    </figure>
+  );
+}
+
+// Loop continuo tipo marquee (mismo patrón que PromoBar.tsx: contenido
+// duplicado una vez para que el ciclo sea perfecto). Se pausa en hover/focus
+// porque acá son quotes de texto largas, no un banner corto: necesitan
+// tiempo de lectura sin competir contra el movimiento.
+function TestimonialMarquee() {
+  const [isPaused, setIsPaused] = useState(false);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [loopWidth, setLoopWidth] = useState(0);
+  const x = useMotionValue(0);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const measure = () => setLoopWidth(track.scrollWidth / 2);
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(track);
+    return () => observer.disconnect();
+  }, []);
+
+  useAnimationFrame((_, delta) => {
+    if (isPaused || loopWidth === 0) return;
+    let next = x.get() - (MARQUEE_SPEED_PX_S * delta) / 1000;
+    if (next <= -loopWidth) {
+      next += loopWidth;
+    }
+    x.set(next);
+  });
+
+  const loopedTestimonials = [...testimonials, ...testimonials];
+
+  return (
+    <div
+      className="-mx-4 overflow-hidden px-4 sm:-mx-6 sm:px-6"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocus={() => setIsPaused(true)}
+      onBlur={() => setIsPaused(false)}
+    >
+      <motion.div ref={trackRef} className="flex w-max gap-4 pb-4" style={{ x }}>
+        {loopedTestimonials.map((testimonial, index) => (
+          <TestimonialCard key={`${testimonial.name}-${index}`} testimonial={testimonial} />
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
 export default function Testimonials() {
   const reduceMotion = useReducedMotion();
 
@@ -51,48 +142,23 @@ export default function Testimonials() {
       <div className="mb-10 flex items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-red-500">
-            Lo que dicen
+            En la calle
           </p>
           <h2 className="mt-3 text-2xl font-black tracking-tight text-black dark:text-white sm:text-3xl">
-            Quienes ya se lo pusieron
+            Quienes ya andan con esto puesto
           </h2>
         </div>
       </div>
 
-      <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 [&::-webkit-scrollbar]:hidden">
-        {testimonials.map((testimonial, index) => (
-          <motion.figure
-            key={testimonial.name}
-            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.5, delay: reduceMotion ? 0 : index * 0.05 }}
-            className="w-70 shrink-0 snap-start rounded-2xl border border-black/6 bg-white p-6 dark:border-white/8 dark:bg-zinc-950 sm:w-80"
-          >
-            <div className="mb-4 text-red-500">{"★★★★★"}</div>
-            <blockquote className="text-sm leading-relaxed text-black/80 dark:text-white/80">
-              &ldquo;{testimonial.quote}&rdquo;
-            </blockquote>
-            <figcaption className="mt-5 flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-xs font-bold text-white dark:bg-white dark:text-black">
-                {testimonial.name
-                  .split(" ")
-                  .map((part) => part[0])
-                  .join("")}
-              </span>
-              <span className="text-xs text-black/60 dark:text-white/60">
-                <span className="font-semibold text-black dark:text-white">
-                  {testimonial.name}
-                </span>
-                {" · "}
-                {testimonial.city}
-                <br />
-                {testimonial.item}
-              </span>
-            </figcaption>
-          </motion.figure>
-        ))}
-      </div>
+      {reduceMotion ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {testimonials.map((testimonial) => (
+            <TestimonialCard key={testimonial.name} testimonial={testimonial} />
+          ))}
+        </div>
+      ) : (
+        <TestimonialMarquee />
+      )}
     </section>
   );
 }
