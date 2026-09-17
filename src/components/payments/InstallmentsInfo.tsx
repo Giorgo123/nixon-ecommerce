@@ -22,6 +22,46 @@ interface InstallmentsInfoProps {
   className?: string;
 }
 
+// Varias tarjetas de producto en la misma página pueden pedir cuotas para el
+// mismo monto (o incluso montos distintos en paralelo) al mismo tiempo. Sin
+// este cache, cada <InstallmentsInfo> dispara su propio fetch aunque otro
+// componente ya esté esperando la misma respuesta, multiplicando llamadas a
+// /api/mercadopago/installments (y, detrás, 3 llamadas a la API de MP por
+// cada una) en /products. Se comparte la MISMA promesa entre instancias con
+// igual `amount` redondeado — no se toca el monto de cada tarjeta, cada una
+// sigue mostrando su cuota real. El cache server-side de 30 min de la route
+// ya evita pegarle a Mercado Pago de nuevo; esto solo evita pegarle al propio
+// endpoint N veces en paralelo desde el navegador antes de que ese cache
+// exista o se resuelva.
+const CLIENT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 min, acotado para no quedar stale en sesiones largas
+const installmentsCache = new Map<
+  number,
+  { promise: Promise<InstallmentsResponse>; timestamp: number }
+>();
+
+function fetchInstallmentsShared(roundedAmount: number): Promise<InstallmentsResponse> {
+  const cached = installmentsCache.get(roundedAmount);
+  const now = Date.now();
+  if (cached && now - cached.timestamp < CLIENT_CACHE_TTL_MS) {
+    return cached.promise;
+  }
+
+  const promise = fetch(`/api/mercadopago/installments?amount=${roundedAmount}`)
+    .then((response) => {
+      if (!response.ok) throw new Error("installments request failed");
+      return response.json() as Promise<InstallmentsResponse>;
+    })
+    .catch((error) => {
+      // No cachear fallas: que el próximo componente (o un retry futuro)
+      // pueda volver a intentar en vez de quedar pegado a un error viejo.
+      installmentsCache.delete(roundedAmount);
+      throw error;
+    });
+
+  installmentsCache.set(roundedAmount, { promise, timestamp: now });
+  return promise;
+}
+
 export default function InstallmentsInfo({
   amount,
   variant = "compact",
@@ -35,11 +75,7 @@ export default function InstallmentsInfo({
 
     let cancelled = false;
 
-    fetch(`/api/mercadopago/installments?amount=${roundedAmount}`)
-      .then((response) => {
-        if (!response.ok) throw new Error("installments request failed");
-        return response.json() as Promise<InstallmentsResponse>;
-      })
+    fetchInstallmentsShared(roundedAmount)
       .then((payload) => {
         if (cancelled) return;
         setResult({ amount: roundedAmount, status: "ready", data: payload });
