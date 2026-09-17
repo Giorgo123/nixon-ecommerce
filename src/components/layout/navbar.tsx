@@ -2,12 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useSyncExternalStore } from "react";
+import { motion, useMotionValueEvent, useReducedMotion, useScroll } from "framer-motion";
 import useCartStore from "@/store/cart.store";
 import PromoBar from "@/components/layout/PromoBar";
 
 const subscribeNoop = () => () => {};
+
+// Distancia mínima de scroll entre cambios de dirección para evitar
+// parpadeo por jitter (trackpads, rebote de rueda, etc.).
+const SCROLL_DIRECTION_THRESHOLD = 4;
 
 export default function Navbar() {
   const router = useRouter();
@@ -21,6 +26,34 @@ export default function Navbar() {
   const [searchValue, setSearchValue] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const reduceMotion = useReducedMotion();
+  const headerRef = useRef<HTMLElement>(null);
+  const lastScrollY = useRef(0);
+  const [headerHidden, setHeaderHidden] = useState(false);
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    // Con reduced motion, el header queda siempre visible, sin animación.
+    if (reduceMotion) {
+      if (headerHidden) setHeaderHidden(false);
+      lastScrollY.current = latest;
+      return;
+    }
+
+    const headerHeight = headerRef.current?.offsetHeight ?? 64;
+    const previous = lastScrollY.current;
+    const delta = latest - previous;
+
+    // No ocultar cerca del tope de la página, para evitar parpadeo.
+    if (latest < headerHeight) {
+      setHeaderHidden(false);
+    } else if (Math.abs(delta) > SCROLL_DIRECTION_THRESHOLD) {
+      setHeaderHidden(delta > 0);
+    }
+
+    lastScrollY.current = latest;
+  });
+
   function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const query = searchValue.trim();
@@ -30,8 +63,15 @@ export default function Navbar() {
 
   return (
     <div className="sticky top-0 z-40">
-      <PromoBar />
-      <header className="border-b border-nixon-border bg-nixon-bg/95 backdrop-blur">
+      <div className="relative z-10">
+        <PromoBar />
+      </div>
+      <motion.header
+        ref={headerRef}
+        animate={reduceMotion ? { y: "0%" } : { y: headerHidden ? "-100%" : "0%" }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="relative border-b border-nixon-border bg-nixon-bg/95 backdrop-blur"
+      >
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:h-16 sm:px-6">
           <button
             type="button"
@@ -123,7 +163,7 @@ export default function Navbar() {
             </Link>
           </nav>
         )}
-      </header>
+      </motion.header>
     </div>
   );
 }
