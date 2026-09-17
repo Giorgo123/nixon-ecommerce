@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductGrid from "@/components/product/ProductGrid";
 import type { Product } from "@/features/products/types";
-import { catalogFilterLabels } from "@/lib/categories";
+import { catalogFilterLabels, normalizeCategory } from "@/lib/categories";
 import { filterProducts, type SortOption } from "@/lib/product-filter";
 
 interface ProductCatalogProps {
@@ -26,7 +26,13 @@ const inputClasses =
 export default function ProductCatalog({ products, categories: baseCategories }: ProductCatalogProps) {
   const searchParams = useSearchParams();
 
-  const [activeCategory, setActiveCategory] = useState("all");
+  // Deep-link desde el dropdown "Catálogo" del navbar (/products?category=...):
+  // se lee una sola vez como estado inicial, sin useEffect, para no disparar
+  // un segundo render. Mismo patrón que "search" más abajo.
+  const [activeCategory, setActiveCategory] = useState(() => {
+    const category = searchParams.get("category");
+    return category ? normalizeCategory(category) : "all";
+  });
   // Deep-link desde el buscador del navbar (/products?search=...): se lee
   // una sola vez como estado inicial, sin useEffect, para no disparar un
   // segundo render.
