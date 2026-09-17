@@ -2,17 +2,26 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useSyncExternalStore } from "react";
 import { motion, useMotionValueEvent, useReducedMotion, useScroll } from "framer-motion";
 import useCartStore from "@/store/cart.store";
 import PromoBar from "@/components/layout/PromoBar";
+import { productCategories, catalogFilterLabels } from "@/lib/categories";
 
 const subscribeNoop = () => () => {};
 
 // Distancia mínima de scroll entre cambios de dirección para evitar
 // parpadeo por jitter (trackpads, rebote de rueda, etc.).
 const SCROLL_DIRECTION_THRESHOLD = 4;
+
+const catalogLinks = [
+  ...productCategories.map((category) => ({
+    href: `/products?category=${category}`,
+    label: catalogFilterLabels[category] ?? category,
+  })),
+  { href: "/products", label: "Ver todo" },
+];
 
 export default function Navbar() {
   const router = useRouter();
@@ -25,6 +34,32 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [mobileCatalogOpen, setMobileCatalogOpen] = useState(false);
+  const catalogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!catalogOpen) return;
+
+    function handleClickOutside(event: MouseEvent) {
+      if (catalogRef.current && !catalogRef.current.contains(event.target as Node)) {
+        setCatalogOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setCatalogOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [catalogOpen]);
 
   const reduceMotion = useReducedMotion();
   const headerRef = useRef<HTMLElement>(null);
@@ -91,9 +126,42 @@ export default function Navbar() {
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm font-medium text-nixon-ink-dim sm:flex">
-            <Link href="/products" className="transition-colors hover:text-nixon-crimson-bright">
-              Catálogo
-            </Link>
+            <div
+              ref={catalogRef}
+              className="relative"
+              onMouseEnter={() => setCatalogOpen(true)}
+              onMouseLeave={() => setCatalogOpen(false)}
+            >
+              <button
+                type="button"
+                onClick={() => setCatalogOpen((open) => !open)}
+                aria-expanded={catalogOpen}
+                aria-haspopup="true"
+                className="flex items-center gap-1 transition-colors hover:text-nixon-crimson-bright"
+              >
+                Catálogo
+                <ChevronIcon open={catalogOpen} />
+              </button>
+
+              {catalogOpen && (
+                <div
+                  role="menu"
+                  className="absolute left-0 top-full z-50 mt-2 w-56 rounded-xl border border-nixon-border bg-nixon-surface py-2 shadow-lg shadow-black/40"
+                >
+                  {catalogLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      role="menuitem"
+                      onClick={() => setCatalogOpen(false)}
+                      className="block px-4 py-2.5 text-sm text-nixon-ink-dim transition-colors hover:bg-nixon-bg hover:text-nixon-crimson-bright"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
             <Link href="/contacto" className="transition-colors hover:text-nixon-crimson-bright">
               Contacto
             </Link>
@@ -147,13 +215,32 @@ export default function Navbar() {
 
         {menuOpen && (
           <nav className="flex flex-col gap-1 border-t border-nixon-border px-4 py-3 text-sm font-medium text-nixon-ink-dim sm:hidden">
-            <Link
-              href="/products"
-              onClick={() => setMenuOpen(false)}
-              className="rounded-lg px-2 py-3 hover:bg-nixon-surface hover:text-nixon-crimson-bright"
+            <button
+              type="button"
+              onClick={() => setMobileCatalogOpen((open) => !open)}
+              aria-expanded={mobileCatalogOpen}
+              className="flex items-center justify-between rounded-lg px-2 py-3 text-left hover:bg-nixon-surface hover:text-nixon-crimson-bright"
             >
               Catálogo
-            </Link>
+              <ChevronIcon open={mobileCatalogOpen} />
+            </button>
+            {mobileCatalogOpen && (
+              <div className="flex flex-col gap-1 pl-4">
+                {catalogLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setMobileCatalogOpen(false);
+                    }}
+                    className="rounded-lg px-2 py-2.5 text-sm text-nixon-muted hover:bg-nixon-surface hover:text-nixon-crimson-bright"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            )}
             <Link
               href="/contacto"
               onClick={() => setMenuOpen(false)}
@@ -179,6 +266,23 @@ function MenuIcon({ open }: { open: boolean }) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+      className={`transition-transform ${open ? "rotate-180" : ""}`}
+    >
+      <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
