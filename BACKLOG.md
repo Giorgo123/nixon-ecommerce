@@ -20,6 +20,36 @@ Nuevo `src/lib/constants/payment-methods.ts` con `EXCLUDED_PAYMENT_TYPES`/`EXCLU
 **Por qué sumaba**: no había forma de ver solo los pedidos de un medio de pago puntual (ej. priorizar transferencias pendientes, que necesitan acción manual).
 Filtro `?paymentMethod=` (Todos/Mercado Pago/Transferencia) server-side sobre `prisma.order.findMany`/`count`, con tabs en la UI. `Pagination.tsx` ahora acepta `queryParams` opcional para preservar el filtro al cambiar de página. Verificado por código/tests; falta ver el filtro funcionando con pedidos reales de ambos medios de pago en una DB con datos.
 
+## ✅ 11. Auditoría de seguridad — hecho
+RCE crítica no autenticada en Next.js (16.3.0 → 16.3.5), `quantity` del carrito sin validar (permitía inflar stock y armar un total negativo con un número negativo), `X-Forwarded-For` spoofeable en el rate-limit (tomaba el primer valor, el cliente puede mandarlo; ahora toma el último, el que agrega el proxy real), XSS en JSON-LD (`</script>` en nombre/descripción de producto rompía el tag — ahora se escapa), headers de seguridad ausentes (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, CSP mínimo). Riesgo aceptado: 8 vulnerabilidades restantes de `npm audit` son todas de herramientas de dev/build (vitest, browserslist, js-yaml, prisma CLI) que nunca corren contra tráfico real — el único fix automático de esa cadena bajaría `prisma` de 6.19.3 a 6.12.0 (downgrade), no se aplica sin evaluarlo aparte. CSP completo (allowlist de `script-src`/`connect-src`) queda pendiente — ver ítem 21 más abajo.
+
+## ✅ 12. Banner de 3 fotos con revelación deslizante — hecho
+Nuevo `ProductRevealBanner.tsx` (fotos reales de producto, no destacadas para no repetir lo ya visto en "Destacados"), mismo patrón de motion que `HeroSection.tsx` adaptado con `x` en vez de `y`. Ubicado entre "Destacados" y "Cómo comprar".
+
+## ✅ 13. Header auto-hide al scrollear — hecho
+El `<header>` del navbar se oculta/reaparece según dirección de scroll; el `PromoBar` sticky arriba queda siempre fijo, sin que el auto-hide lo tape.
+
+## ✅ 14. Diagnóstico de llamadas a /api/mercadopago/installments — hecho, sin hallazgos
+"N tarjetas → N fetches con distinto `amount`" es el comportamiento esperado (cada `InstallmentsInfo` cotiza su propio monto); el `useEffect` depende de un número primitivo derivado (`Math.round(amount)`), no de una referencia que cambie en cada render — no hay duplicación real. No se tocó código.
+
+## ✅ 15. Sacar links visibles a /admin del sitio público — hecho
+Ícono de candado (desktop y mobile) removido de `navbar.tsx`. El acceso admin sigue funcionando igual por URL directa — sin cambios en `proxy.ts`/JWT/rate-limit/bcrypt.
+
+## ✅ 16. Hover en ProductCard usa foto de galería real — hecho
+Si `product.images.length > 0`, el hover hace crossfade a `product.images[0]` (sin zoom); si no hay galería, la portada queda estática sin efecto.
+
+## ✅ 17. Calidad visual del Lookbook — hecho
+`collectLookbookPhotos()` evita fotos de portada repetidas completando con `product.images[0]` cuando hace falta variedad; `sizes` corregido (subestimaba el ancho real de la celda, servía una imagen más chica de lo renderizado).
+
+## ✅ 18. Motion en secciones del home + nueva sección "Cómo comprar" — hecho
+`ValueProps`, `InstallmentsShowcase`, `BrandManifesto`, `Lookbook` ahora animan al entrar en viewport (mismo patrón `fadeUp`/`staggerContainer`). Nueva `HowItWorks.tsx`: 3 pasos reales del flujo de compra, copy verificable, no duplica `PromoBar`/`TrustBox`/`ValueProps`.
+
+## ✅ 19. Botón flotante de WhatsApp — hecho
+Fijo, esquina inferior derecha, usa el número real ya existente en `constants/social.ts` (`getWhatsappUrl()`), montado en `SiteShell` junto a `CartDrawer`.
+
+## ✅ 20. Copy del PromoBar corregido contra el código real + efecto cinta — hecho
+"Hasta 6 cuotas... con todos los bancos" y "descuento especial por transferencia" no tenían respaldo real en el código (el máximo de cuotas lo decide MP en vivo y varía; no existe ningún descuento automático por transferencia en `order.ts`) — copy corregido para no prometer lo que no se cumple, en vez de inventar un descuento sin que el negocio lo haya definido. Franja superior del `PromoBar` con efecto de cinta (marquee), estática si `prefers-reduced-motion`.
+
 ---
 
 ## ⏳ Pendientes de verificación en vivo (bloqueados desde este entorno, no fallados)
@@ -45,6 +75,10 @@ Auditoría completa del flujo de compra (código, tests, DB real en lectura, ser
 ### 10. Expiración real de sesión admin
 **Por qué está bloqueado**: sin `SESSION_SECRET` local no se puede firmar un JWT de prueba ya vencido para probarlo en vivo.
 **Qué falta**: confirmar en producción que, pasados los 7 días de `createSessionToken`, la sesión deja de funcionar y redirige a `/admin/login`. El mecanismo en sí (librería `jose`, valida `exp` automáticamente) está verificado por código/diseño, no por ejecución.
+
+### 21. CSP completo (script-src/connect-src)
+**Por qué no se hizo todavía**: un CSP mal armado puede romper el checkout en silencio (bloquear GA4 o el redirect de Mercado Pago) — no lo arme sin poder probarlo contra un navegador real primero.
+**Qué falta**: armar el allowlist real (`script-src` para `googletagmanager.com`, `connect-src` para `google-analytics.com`/`api.mercadopago.com`, etc.) y probarlo contra el checkout desplegado antes de confirmarlo.
 
 ---
 
