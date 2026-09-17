@@ -1,3 +1,6 @@
+"use client";
+
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { TRUST_BOX_ITEMS } from "@/lib/constants/commerce-copy";
 
 // Reutiliza las mismas frases que ya están verificadas en PromoBar/TrustBox
@@ -10,22 +13,50 @@ const items = [
   { icon: StoreIcon, text: TRUST_BOX_ITEMS[1] },
 ];
 
+const staggerContainer: Variants = {
+  hidden: {},
+  show: {
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
 export default function ValueProps() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <section className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <motion.div
+        variants={reduceMotion ? undefined : staggerContainer}
+        initial={reduceMotion ? undefined : "hidden"}
+        whileInView={reduceMotion ? undefined : "show"}
+        viewport={{ once: true, amount: 0.3 }}
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+      >
         {items.map(({ icon: Icon, text }) => (
-          <div
+          <motion.div
             key={text}
+            variants={reduceMotion ? undefined : fadeUp}
             className="rounded-2xl border border-black/10 bg-black/2 p-6 dark:border-white/10 dark:bg-white/2"
           >
             <Icon />
             <p className="mt-4 text-sm leading-relaxed text-black/80 dark:text-white/80">
               {text}
             </p>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 }
