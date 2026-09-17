@@ -2,6 +2,7 @@ import Link from "next/link";
 import HeroSection from "@/components/hero/HeroSection";
 import ProductGrid from "@/components/product/ProductGrid";
 import ValueProps from "@/components/home/ValueProps";
+import ProductRevealBanner from "@/components/home/ProductRevealBanner";
 import HowItWorks from "@/components/home/HowItWorks";
 import InstallmentsShowcase from "@/components/home/InstallmentsShowcase";
 import BrandManifesto from "@/components/home/BrandManifesto";
@@ -27,6 +28,13 @@ export default async function Home() {
     products.length > 0
       ? products.reduce((sum, product) => sum + product.price, 0) / products.length
       : 0;
+
+  // Fotos distintas a las de "Destacados" cuando el catalogo alcanza, para
+  // que el banner no repita exactamente el mismo set de imagenes que ya se
+  // vio arriba en la misma pantalla.
+  const featuredIds = new Set(featuredProducts.map((product) => product.id));
+  const nonFeatured = products.filter((product) => !featuredIds.has(product.id));
+  const bannerProducts = (nonFeatured.length >= 3 ? nonFeatured : products).slice(0, 3);
 
   return (
     <main className="min-h-screen bg-white dark:bg-black">
@@ -64,6 +72,7 @@ export default async function Home() {
         </div>
       </section>
 
+      <ProductRevealBanner products={bannerProducts} />
       <HowItWorks />
       <InstallmentsShowcase referenceAmount={referenceAmount} />
       <BrandManifesto />
