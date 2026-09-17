@@ -22,6 +22,14 @@ export default function ProductCard({ product }: ProductCardProps) {
   const defaultVariant =
     product.variants.find((v) => v.stock > 0) ?? product.variants[0] ?? null;
   const hoverImage = product.images[0] ?? null;
+  // Si hay mas de un talle, el boton de quick-add tiene que mostrar cual se
+  // va a agregar (el usuario no elige otro aca, pero al menos lo ve antes de
+  // confirmar en vez de descubrirlo recien en el CartDrawer).
+  const hasMultipleSizes = product.variants.length > 1;
+  const quickAddLabel =
+    hasMultipleSizes && defaultVariant?.size
+      ? `Agregar (Talle ${defaultVariant.size})`
+      : "Agregar al carrito";
   const isOnSale = Boolean(product.compareAtPrice && product.compareAtPrice > product.price);
   const discountPct = isOnSale
     ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
@@ -126,7 +134,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             disabled={!defaultVariant}
             className="w-full rounded-full bg-black px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-white/80"
           >
-            Agregar al carrito
+            {quickAddLabel}
           </button>
         </div>
       </div>
