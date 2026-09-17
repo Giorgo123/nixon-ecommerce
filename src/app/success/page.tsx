@@ -3,6 +3,7 @@ import type { Order } from "@/types/order";
 import { BANK_TRANSFER_INFO } from "@/lib/constants";
 import PurchaseTracker from "@/components/analytics/PurchaseTracker";
 import { parseJsonResponse } from "@/lib/utils";
+import { getWhatsappUrl } from "@/lib/constants/social";
 
 export const dynamic = "force-dynamic";
 
@@ -50,8 +51,19 @@ export default async function SuccessPage({
         <p className="text-sm text-black/70 dark:text-white/70">
           {order
             ? `Tu orden ${order.id} quedó registrada y está ${statusLabels[order.status] ?? order.status}.`
-            : "Tu pago fue procesado. Estamos recuperando el detalle de la orden."}
+            : "No pudimos encontrar el detalle de este pedido. Si acabás de pagar, escribinos por WhatsApp con tu comprobante y lo confirmamos."}
         </p>
+
+        {!order && (
+          <a
+            href={getWhatsappUrl("Hola! No puedo ver el detalle de mi pedido en la página de confirmación.")}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex rounded-full bg-black px-5 py-3 text-sm font-semibold text-white dark:bg-white dark:text-black"
+          >
+            Escribinos por WhatsApp
+          </a>
+        )}
 
         {order && (
           <>

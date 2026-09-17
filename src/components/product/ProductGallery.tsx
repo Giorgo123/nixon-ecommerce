@@ -54,7 +54,13 @@ export default function ProductGallery({ images, videoUrl, alt }: ProductGallery
                   <PlayIcon />
                 </div>
               ) : (
-                <Image src={item.src} alt="" fill sizes="80px" className="object-cover" />
+                <Image
+                  src={item.src}
+                  alt={`${alt} — foto ${index + 1}`}
+                  fill
+                  sizes="80px"
+                  className="object-cover"
+                />
               )}
             </button>
           ))}
