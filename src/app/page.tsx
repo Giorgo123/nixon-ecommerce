@@ -2,6 +2,7 @@ import Link from "next/link";
 import HeroSection from "@/components/hero/HeroSection";
 import ProductGrid from "@/components/product/ProductGrid";
 import ValueProps from "@/components/home/ValueProps";
+import HowItWorks from "@/components/home/HowItWorks";
 import InstallmentsShowcase from "@/components/home/InstallmentsShowcase";
 import BrandManifesto from "@/components/home/BrandManifesto";
 import Testimonials from "@/components/home/Testimonials";
@@ -63,6 +64,7 @@ export default async function Home() {
         </div>
       </section>
 
+      <HowItWorks />
       <InstallmentsShowcase referenceAmount={referenceAmount} />
       <BrandManifesto />
       <Testimonials />
