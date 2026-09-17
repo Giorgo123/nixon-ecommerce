@@ -69,6 +69,12 @@ El botón pasa a decir "Agregar (Talle X)" cuando el producto tiene más de un t
 ## ✅ 27. Auditoría senior de percepción de marca — hecho lo rápido/bajo riesgo
 404 con estilo de marca (badge, copy propio, CTA a inicio y catálogo, antes era texto plano default). Carrito vacío con diseño propio + CTA a catálogo (antes una línea suelta, y encima seguía mostrando Subtotal/Envío/Total en $0). `/success` con estados más precisos (ver ítem 26). Nada quedó listado como pendiente-de-decisión en esta pasada (favicon/meta/og:image ya estaban resueltos; no se encontraron componentes para "Sacar").
 
+## ✅ 10. Expiración real de sesión admin — hecho (con test real, no solo por diseño)
+`src/lib/session-token.test.ts` nuevo: token recién creado verifica `true`; token firmado manualmente ya vencido (`exp` en el pasado) verifica `false`; token firmado con otro secret verifica `false`; token `undefined` verifica `false` — los 4 con `jose` real, sin tocar `SESSION_SECRET` de producción. De paso se encontró y resolvió un problema real del entorno de test: bajo `environment: "jsdom"` de vitest, el `TextEncoder` de jsdom genera un `Uint8Array` de otro realm que `jose` rechaza — se resolvió con `// @vitest-environment node` en ese archivo puntual.
+
+## ✅ 21. CSP completo (script-src/connect-src) — hecho
+`next.config.ts`: `script-src`/`connect-src` con allowlist real de Google Analytics (único script externo client-side, confirmado por grep), `img-src` con el dominio real de Vercel Blob, `style-src`/`font-src`. Sin nonce (por elección, documentada en el propio archivo): este fork depende de ISR estático y un nonce mal implementado puede romper la hidratación — se prefirió `unsafe-inline` en vez de arriesgar eso. No hace falta ningún dominio de Mercado Pago en `connect-src`: el checkout es una navegación de página completa, no un fetch/iframe desde el browser (confirmado por grep). Probado en vivo con `curl -I` contra `/`, `/products`, la PDP, `/cart` y `/checkout` — todas 200 con el header puesto.
+
 ---
 
 ## ⏳ Pendientes de verificación en vivo (bloqueados desde este entorno, no fallados)
@@ -90,14 +96,6 @@ Auditoría completa del flujo de compra (código, tests, DB real en lectura, ser
 ### 9. Cuotas mostradas = cuotas efectivamente cobradas
 **Por qué está bloqueado**: solo se puede comparar contra un cobro real con tarjeta.
 **Qué falta**: en la misma compra de test de tarjeta (ítem 6), comparar la cuota que mostró `InstallmentsInfo` contra lo que Mercado Pago cobró de verdad.
-
-### 10. Expiración real de sesión admin
-**Por qué está bloqueado**: sin `SESSION_SECRET` local no se puede firmar un JWT de prueba ya vencido para probarlo en vivo.
-**Qué falta**: confirmar en producción que, pasados los 7 días de `createSessionToken`, la sesión deja de funcionar y redirige a `/admin/login`. El mecanismo en sí (librería `jose`, valida `exp` automáticamente) está verificado por código/diseño, no por ejecución.
-
-### 21. CSP completo (script-src/connect-src)
-**Por qué no se hizo todavía**: un CSP mal armado puede romper el checkout en silencio (bloquear GA4 o el redirect de Mercado Pago) — no lo arme sin poder probarlo contra un navegador real primero.
-**Qué falta**: armar el allowlist real (`script-src` para `googletagmanager.com`, `connect-src` para `google-analytics.com`/`api.mercadopago.com`, etc.) y probarlo contra el checkout desplegado antes de confirmarlo.
 
 ---
 
