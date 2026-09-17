@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import useCartStore from "@/store/cart.store";
 import CartSummary from "@/components/cart/CartSummary";
@@ -12,6 +12,8 @@ export default function CartDrawer() {
   const isOpen = useCartStore((state) => state.isDrawerOpen);
   const closeDrawer = useCartStore((state) => state.closeDrawer);
   const pathname = usePathname();
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   // Se cierra solo al navegar (ej: "Finalizar compra" o "Seguir comprando").
   useEffect(() => {
@@ -31,6 +33,20 @@ export default function CartDrawer() {
       document.body.style.overflow = "";
     };
   }, [isOpen, closeDrawer]);
+
+  // Focus management: al abrir, guardamos el elemento que disparo el drawer
+  // (ej. el boton del carrito en el navbar) y movemos el foco al boton de
+  // cerrar. Al cerrar, devolvemos el foco a ese elemento original para no
+  // dejar a un usuario de teclado/lector de pantalla perdido en la pagina.
+  useEffect(() => {
+    if (isOpen) {
+      previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+      closeButtonRef.current?.focus();
+    } else {
+      previouslyFocusedRef.current?.focus();
+      previouslyFocusedRef.current = null;
+    }
+  }, [isOpen]);
 
   return (
     <div
@@ -57,6 +73,7 @@ export default function CartDrawer() {
         ].join(" ")}
       >
         <button
+          ref={closeButtonRef}
           type="button"
           onClick={closeDrawer}
           className="mb-2 flex h-11 w-11 shrink-0 items-center justify-center self-end rounded-full border border-black/10 text-lg text-black dark:border-white/10 dark:text-white"
