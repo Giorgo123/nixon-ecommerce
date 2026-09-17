@@ -4,8 +4,16 @@
 
 import { normalizeCategory } from "@/lib/categories";
 
+// Copy genérico a propósito: no lleva un número de cuotas fijo porque el
+// máximo real de cuotas sin interés lo consulta en vivo InstallmentsInfo
+// contra la API de Mercado Pago y varía por tarjeta/momento — un "hasta N"
+// fijo acá podría contradecir lo que el widget real termina mostrando en el
+// producto/checkout. Tampoco promete un descuento por transferencia: hoy no
+// existe ningún descuento automático aplicado en createPendingOrder cuando
+// paymentMethod === "transfer" (ver src/lib/order.ts), así que prometerlo acá
+// sería una afirmación sin lógica detrás.
 export const PROMO_BAR_TOP =
-  "¡Hasta 6 cuotas sin interés con todos los bancos! • Descuento especial abonando por Transferencia";
+  "Cuotas sin interés con tarjetas participantes — mirá el detalle real en cada producto • Envío gratis a todo el país";
 
 export const PROMO_BAR_ROTATING = [
   "Exclusivo CBA: ¡Entrega express en 24 hs Hábiles!",
@@ -17,10 +25,10 @@ export const SHIPPING_RETURNS_COPY =
   "Exclusivo CBA y GBA: ¡Entrega express en 24 hs Hábiles! Entregas a todo el país. Consultá la fecha estimada de entrega al realizar la compra. Podés devolver tu pedido por cualquier motivo, sin cargo, dentro de un plazo de 10 días.";
 
 export const PAYMENT_METHODS_COPY =
-  "Aceptamos las siguientes opciones de pago: Tarjetas de Crédito, Tarjetas de Débito, Mercado Pago (dinero en cuenta y cuotas) y Transferencia Bancaria directa con descuento.";
+  "Aceptamos las siguientes opciones de pago: Tarjetas de Crédito, Tarjetas de Débito, Mercado Pago (dinero en cuenta y cuotas) y Transferencia Bancaria directa.";
 
 export const TRUST_BOX_ITEMS = [
-  "Hasta 6 cuotas sin interés con todos los bancos.",
+  "Cuotas sin interés con tarjetas participantes — mirá el detalle real en el producto.",
   "Retiro en tienda gratis (Punto de entrega Villa María).",
 ];
 
