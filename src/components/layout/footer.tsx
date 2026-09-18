@@ -14,15 +14,14 @@ export default function Footer() {
               Nixon Studio
             </p>
             <p className="mt-3 max-w-xs text-sm leading-6">
-              Streetwear, dark art y diseño oversize hecho en Villa María, Córdoba.
+              Streetwear, dark art y diseño oversize. Operamos desde Villa María, Córdoba.
             </p>
             <div className="mt-6 max-w-xs">
               <NewsletterForm />
             </div>
           </div>
 
-          <FooterColumn title="Hacete miembro">
-            <FooterLink href="/products">Buscar tienda</FooterLink>
+          <FooterColumn title="Tienda">
             <FooterLink href="/products">Ver catálogo</FooterLink>
           </FooterColumn>
 
@@ -34,7 +33,7 @@ export default function Footer() {
           </FooterColumn>
 
           <FooterColumn title="Acerca de Nixon Studio">
-            <FooterLink href="/contacto">Quiénes somos</FooterLink>
+            <FooterLink href="/contacto">Preguntas frecuentes</FooterLink>
             <FooterLink href="/terminos-y-condiciones">Términos y condiciones</FooterLink>
             <FooterLink href="/privacidad">Privacidad</FooterLink>
           </FooterColumn>
