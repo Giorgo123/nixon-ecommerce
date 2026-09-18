@@ -187,8 +187,8 @@ export default async function ProductDetailPage({
               </div>
             </div>
 
-            <div className="mt-4 border-t border-black/10 pt-4 dark:border-white/10">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-black/40 dark:text-white/40">
+            <div className="mt-4 border-t border-nixon-border pt-4">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-nixon-muted">
                 Financiación
               </p>
               <InstallmentsInfo amount={product.price} variant="detailed" />
