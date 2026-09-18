@@ -232,7 +232,7 @@ export default function ProductCatalog({ products, categories: baseCategories }:
         <div className="space-y-6">
           <p className="text-xs uppercase tracking-[0.15em] text-nixon-muted">
             {filteredProducts.length} producto
-            {filteredProducts.length === 1 ? "" : "s"} en esta vista
+            {filteredProducts.length === 1 ? "" : "s"}
           </p>
 
           {filteredProducts.length > 0 ? (
