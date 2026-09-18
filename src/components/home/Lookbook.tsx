@@ -136,11 +136,15 @@ export default function Lookbook({ products }: LookbookProps) {
                 fill
                 // El tile grande (col-span-2 row-span-2) ocupa el doble de
                 // ancho que uno chico en el grid de 4 columnas — necesita un
-                // `sizes` mayor para no quedar pixelado.
+                // `sizes` mayor para no quedar pixelado. Debajo de 640px el
+                // grid es de 2 columnas (no 4), así que el tile grande ocupa
+                // ~100% del ancho del contenedor y el chico ~50% (no 66/33vw,
+                // que correspondía al grid de 3 columnas previo al rediseño
+                // bento — con eso el tile grande se veía pixelado en mobile).
                 sizes={
                   isLarge
-                    ? "(min-width: 640px) 620px, 66vw"
-                    : "(min-width: 640px) 300px, 33vw"
+                    ? "(min-width: 640px) 620px, 100vw"
+                    : "(min-width: 640px) 300px, 50vw"
                 }
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
