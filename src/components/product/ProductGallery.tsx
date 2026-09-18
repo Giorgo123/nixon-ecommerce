@@ -43,14 +43,15 @@ export default function ProductGallery({ images, videoUrl, alt }: ProductGallery
               onClick={() => goTo(index)}
               className={[
                 "relative aspect-square w-16 shrink-0 overflow-hidden rounded-xl border-2 transition-colors sm:w-full",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nixon-crimson-bright focus-visible:ring-offset-2 focus-visible:ring-offset-nixon-bg",
                 index === activeIndex
-                  ? "border-red-500"
-                  : "border-transparent hover:border-black/20 dark:hover:border-white/20",
+                  ? "border-nixon-crimson-bright"
+                  : "border-transparent hover:border-nixon-border",
               ].join(" ")}
               aria-label={`Ver ${item.type === "video" ? "video" : `foto ${index + 1}`} de ${alt}`}
             >
               {item.type === "video" ? (
-                <div className="flex h-full w-full items-center justify-center bg-black/80 text-white">
+                <div className="flex h-full w-full items-center justify-center bg-nixon-bg-deep text-nixon-ink">
                   <PlayIcon />
                 </div>
               ) : (
@@ -67,7 +68,7 @@ export default function ProductGallery({ images, videoUrl, alt }: ProductGallery
         </div>
       )}
 
-      <div className="group relative order-1 aspect-[4/5] flex-1 overflow-hidden rounded-3xl bg-black/5 dark:bg-white/5 sm:order-2">
+      <div className="group relative order-1 aspect-[4/5] flex-1 overflow-hidden rounded-3xl bg-nixon-surface sm:order-2">
         {active.type === "video" ? (
           <video
             key={active.src}
@@ -104,7 +105,7 @@ export default function ProductGallery({ images, videoUrl, alt }: ProductGallery
               type="button"
               onClick={() => goTo(activeIndex - 1)}
               aria-label="Foto anterior"
-              className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100"
+              className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-nixon-bg-deep/70 text-nixon-ink opacity-0 transition-all duration-300 hover:bg-nixon-crimson group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nixon-crimson-bright"
             >
               <ArrowIcon direction="left" />
             </button>
@@ -112,7 +113,7 @@ export default function ProductGallery({ images, videoUrl, alt }: ProductGallery
               type="button"
               onClick={() => goTo(activeIndex + 1)}
               aria-label="Foto siguiente"
-              className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100"
+              className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-nixon-bg-deep/70 text-nixon-ink opacity-0 transition-all duration-300 hover:bg-nixon-crimson group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nixon-crimson-bright"
             >
               <ArrowIcon direction="right" />
             </button>

@@ -129,7 +129,7 @@ export default async function ProductDetailPage({
       <div className="mb-8">
         <Link
           href="/products"
-          className="text-sm font-medium text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white"
+          className="text-sm font-medium text-nixon-muted transition-colors hover:text-nixon-ink"
         >
           ← Volver al catálogo
         </Link>
@@ -144,44 +144,44 @@ export default async function ProductDetailPage({
 
         <div className="space-y-6">
           <div className="space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-red-500">
+            <p className="text-xs uppercase tracking-[0.3em] text-nixon-crimson-bright">
               {categoryLabel}
             </p>
-            <h1 className="text-3xl font-black tracking-tight text-black dark:text-white sm:text-4xl">
+            <h1 className="text-3xl font-black tracking-tight text-nixon-ink sm:text-4xl">
               {product.name}
             </h1>
-            <p className="whitespace-pre-line text-base leading-7 text-black/70 dark:text-white/70">
+            <p className="whitespace-pre-line text-base leading-7 text-nixon-ink-dim">
               {product.description}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-black/5 p-5 dark:border-white/10 dark:bg-white/5">
+          <div className="rounded-2xl border border-nixon-border bg-nixon-surface p-5">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <div className="flex items-baseline gap-3">
-                  <p className="text-3xl font-black text-black dark:text-white">
+                  <p className="text-3xl font-black text-nixon-ink">
                     ${price}
                   </p>
                   {isOnSale && (
                     <>
-                      <p className="text-lg text-black/40 line-through dark:text-white/40">
+                      <p className="text-lg text-nixon-muted line-through">
                         ${product.compareAtPrice!.toLocaleString("es-AR")}
                       </p>
-                      <span className="rounded bg-red-600 px-2 py-0.5 text-xs font-bold uppercase text-white">
+                      <span className="rounded bg-nixon-crimson px-2 py-0.5 text-xs font-bold uppercase text-white">
                         -{discountPct}%
                       </span>
                     </>
                   )}
                 </div>
-                <p className="mt-0.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                <p className="mt-0.5 text-sm font-medium text-emerald-400">
                   Precio especial por Transferencia
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-black/60 dark:text-white/60">
+                <p className="text-sm text-nixon-muted">
                   Disponibilidad
                 </p>
-                <p className="text-lg font-semibold text-black dark:text-white">
+                <p className="text-lg font-semibold text-nixon-ink">
                   {totalStock > 0 ? `${totalStock} disponibles` : "A pedido"}
                 </p>
               </div>
@@ -199,7 +199,7 @@ export default async function ProductDetailPage({
 
           <TrustBox />
 
-          <div>
+          <div className="border-t border-nixon-border">
             {(materialsCopy || careCopy) && (
               <Accordion title={isSized ? "Composición y cuidados" : "Materiales y terminación"}>
                 {materialsCopy && <p>{materialsCopy}</p>}
