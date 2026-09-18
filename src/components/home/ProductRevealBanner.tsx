@@ -113,11 +113,11 @@ function PhotoCard({ product }: { product: Product }) {
         alt={product.name}
         fill
         sizes="(min-width: 640px) 33vw, 100vw"
-        className="object-cover transition-transform duration-500 group-hover:scale-105"
+        className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105 motion-reduce:group-hover:scale-100"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-nixon-bg-deep/80 via-black/10 to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 p-4">
-        <p className="text-sm font-semibold text-white">{product.name}</p>
+        <p className="text-sm font-semibold text-nixon-ink drop-shadow-sm">{product.name}</p>
       </div>
     </Link>
   );
