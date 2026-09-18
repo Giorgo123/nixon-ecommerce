@@ -141,9 +141,9 @@ export default function CheckoutForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 rounded-3xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-black">
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.2em] text-black/50 dark:text-white/50">
+    <form onSubmit={handleSubmit} className="space-y-8 rounded-3xl border border-nixon-border bg-nixon-surface p-6 sm:p-8">
+      <div className="space-y-3">
+        <p className="text-xs uppercase tracking-[0.2em] text-nixon-muted">
           Entrega
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -151,14 +151,14 @@ export default function CheckoutForm() {
             type="button"
             onClick={() => setDeliveryMethod("shipping")}
             className={[
-              "rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors",
+              "rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nixon-crimson/50 focus-visible:ring-offset-2 focus-visible:ring-offset-nixon-surface",
               deliveryMethod === "shipping"
-                ? "border-red-500 bg-red-500/10 text-black dark:text-white"
-                : "border-black/10 text-black/70 dark:border-white/10 dark:text-white/70",
+                ? "border-nixon-crimson bg-nixon-crimson/10 text-nixon-ink"
+                : "border-nixon-border text-nixon-muted hover:border-nixon-ink-dim/30",
             ].join(" ")}
           >
             Envío a domicilio
-            <span className="block text-xs font-normal text-black/50 dark:text-white/50">
+            <span className="block text-xs font-normal text-nixon-muted">
               Gratis a todo el país
             </span>
           </button>
@@ -166,73 +166,81 @@ export default function CheckoutForm() {
             type="button"
             onClick={() => setDeliveryMethod("pickup")}
             className={[
-              "rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors",
+              "rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nixon-crimson/50 focus-visible:ring-offset-2 focus-visible:ring-offset-nixon-surface",
               deliveryMethod === "pickup"
-                ? "border-red-500 bg-red-500/10 text-black dark:text-white"
-                : "border-black/10 text-black/70 dark:border-white/10 dark:text-white/70",
+                ? "border-nixon-crimson bg-nixon-crimson/10 text-nixon-ink"
+                : "border-nixon-border text-nixon-muted hover:border-nixon-ink-dim/30",
             ].join(" ")}
           >
             Retiro en Villa María
-            <span className="block text-xs font-normal text-black/50 dark:text-white/50">
+            <span className="block text-xs font-normal text-nixon-muted">
               Coordinamos por WhatsApp
             </span>
           </button>
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <input
-          value={fullName}
-          onChange={(event) => setFullName(event.target.value)}
-          placeholder="Nombre y apellido"
-          required
-          minLength={2}
-          autoComplete="name"
-          className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
-        />
-        <input
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="Email"
-          type="email"
-          required
-          inputMode="email"
-          autoComplete="email"
-          className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
-        />
-        <input
-          value={phone}
-          onChange={(event) => setPhone(event.target.value)}
-          placeholder="Teléfono"
-          type="tel"
-          required
-          minLength={6}
-          inputMode="tel"
-          autoComplete="tel"
-          className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
-        />
-        {deliveryMethod === "shipping" && (
+      <div className="space-y-3">
+        <p className="text-xs uppercase tracking-[0.2em] text-nixon-muted">
+          Datos de contacto
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
           <input
-            value={zipCode}
-            onChange={(event) => setZipCode(event.target.value)}
-            placeholder="CP"
+            value={fullName}
+            onChange={(event) => setFullName(event.target.value)}
+            placeholder="Nombre y apellido"
             required
-            inputMode="numeric"
-            autoComplete="postal-code"
-            className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
+            minLength={2}
+            autoComplete="name"
+            className="rounded-xl border border-nixon-border bg-nixon-bg-deep px-4 py-3 text-sm text-nixon-ink placeholder:text-nixon-muted transition-colors focus:border-nixon-crimson focus:outline-none focus:ring-1 focus:ring-nixon-crimson/30"
           />
-        )}
+          <input
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="Email"
+            type="email"
+            required
+            inputMode="email"
+            autoComplete="email"
+            className="rounded-xl border border-nixon-border bg-nixon-bg-deep px-4 py-3 text-sm text-nixon-ink placeholder:text-nixon-muted transition-colors focus:border-nixon-crimson focus:outline-none focus:ring-1 focus:ring-nixon-crimson/30"
+          />
+          <input
+            value={phone}
+            onChange={(event) => setPhone(event.target.value)}
+            placeholder="Teléfono"
+            type="tel"
+            required
+            minLength={6}
+            inputMode="tel"
+            autoComplete="tel"
+            className="rounded-xl border border-nixon-border bg-nixon-bg-deep px-4 py-3 text-sm text-nixon-ink placeholder:text-nixon-muted transition-colors focus:border-nixon-crimson focus:outline-none focus:ring-1 focus:ring-nixon-crimson/30"
+          />
+          {deliveryMethod === "shipping" && (
+            <input
+              value={zipCode}
+              onChange={(event) => setZipCode(event.target.value)}
+              placeholder="CP"
+              required
+              inputMode="numeric"
+              autoComplete="postal-code"
+              className="rounded-xl border border-nixon-border bg-nixon-bg-deep px-4 py-3 text-sm text-nixon-ink placeholder:text-nixon-muted transition-colors focus:border-nixon-crimson focus:outline-none focus:ring-1 focus:ring-nixon-crimson/30"
+            />
+          )}
+        </div>
       </div>
 
       {deliveryMethod === "shipping" && (
-        <>
+        <div className="space-y-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-nixon-muted">
+            Dirección de envío
+          </p>
           <input
             value={address}
             onChange={(event) => setAddress(event.target.value)}
             placeholder="Dirección"
             required
             autoComplete="street-address"
-            className="w-full rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
+            className="w-full rounded-xl border border-nixon-border bg-nixon-bg-deep px-4 py-3 text-sm text-nixon-ink placeholder:text-nixon-muted transition-colors focus:border-nixon-crimson focus:outline-none focus:ring-1 focus:ring-nixon-crimson/30"
           />
           <div className="grid gap-4 sm:grid-cols-2">
             <input
@@ -241,7 +249,7 @@ export default function CheckoutForm() {
               placeholder="Ciudad"
               required
               autoComplete="address-level2"
-              className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
+              className="rounded-xl border border-nixon-border bg-nixon-bg-deep px-4 py-3 text-sm text-nixon-ink placeholder:text-nixon-muted transition-colors focus:border-nixon-crimson focus:outline-none focus:ring-1 focus:ring-nixon-crimson/30"
             />
             <input
               value={stateValue}
@@ -249,20 +257,20 @@ export default function CheckoutForm() {
               placeholder="Provincia"
               required
               autoComplete="address-level1"
-              className="rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
+              className="rounded-xl border border-nixon-border bg-nixon-bg-deep px-4 py-3 text-sm text-nixon-ink placeholder:text-nixon-muted transition-colors focus:border-nixon-crimson focus:outline-none focus:ring-1 focus:ring-nixon-crimson/30"
             />
           </div>
-        </>
+        </div>
       )}
 
       {deliveryMethod === "pickup" && (
-        <p className="rounded-xl border border-black/10 bg-black/5 px-4 py-3 text-sm text-black/70 dark:border-white/10 dark:bg-white/5 dark:text-white/70">
+        <p className="rounded-xl border border-nixon-border bg-nixon-surface-2 px-4 py-3 text-sm text-nixon-muted">
           Una vez confirmada la compra te contactamos por WhatsApp o email para coordinar el retiro en Villa María, Córdoba.
         </p>
       )}
 
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.2em] text-black/50 dark:text-white/50">
+      <div className="space-y-3 border-t border-nixon-border pt-8">
+        <p className="text-xs uppercase tracking-[0.2em] text-nixon-muted">
           Medio de pago
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -270,10 +278,10 @@ export default function CheckoutForm() {
             type="button"
             onClick={() => setPaymentMethod("mercadopago")}
             className={[
-              "rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors",
+              "rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nixon-crimson/50 focus-visible:ring-offset-2 focus-visible:ring-offset-nixon-surface",
               paymentMethod === "mercadopago"
-                ? "border-red-500 bg-red-500/10 text-black dark:text-white"
-                : "border-black/10 text-black/70 dark:border-white/10 dark:text-white/70",
+                ? "border-nixon-crimson bg-nixon-crimson/10 text-nixon-ink"
+                : "border-nixon-border text-nixon-muted hover:border-nixon-ink-dim/30",
             ].join(" ")}
           >
             Mercado Pago
@@ -282,33 +290,33 @@ export default function CheckoutForm() {
             type="button"
             onClick={() => setPaymentMethod("transfer")}
             className={[
-              "rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors",
+              "rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nixon-crimson/50 focus-visible:ring-offset-2 focus-visible:ring-offset-nixon-surface",
               paymentMethod === "transfer"
-                ? "border-red-500 bg-red-500/10 text-black dark:text-white"
-                : "border-black/10 text-black/70 dark:border-white/10 dark:text-white/70",
+                ? "border-nixon-crimson bg-nixon-crimson/10 text-nixon-ink"
+                : "border-nixon-border text-nixon-muted hover:border-nixon-ink-dim/30",
             ].join(" ")}
           >
             Transferencia bancaria
           </button>
         </div>
         {paymentMethod === "transfer" && (
-          <p className="rounded-xl border border-black/10 bg-black/5 px-4 py-3 text-sm text-black/70 dark:border-white/10 dark:bg-white/5 dark:text-white/70">
+          <p className="rounded-xl border border-nixon-border bg-nixon-surface-2 px-4 py-3 text-sm text-nixon-muted">
             Al confirmar, te vamos a mostrar los datos para transferir. Preparamos tu pedido apenas veamos el pago acreditado.
           </p>
         )}
       </div>
 
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.2em] text-black/50 dark:text-white/50">
+      <div className="space-y-2 border-t border-nixon-border pt-8">
+        <p className="text-xs uppercase tracking-[0.2em] text-nixon-muted">
           Cupón de descuento
         </p>
         {appliedCoupon ? (
           <div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm">
-            <span className="text-emerald-700 dark:text-emerald-300">
+            <span className="text-emerald-400">
               Cupón <strong>{appliedCoupon.code}</strong> aplicado: -$
               {appliedCoupon.discountAmount.toLocaleString("es-AR")}
             </span>
-            <button type="button" onClick={removeCoupon} className="text-xs font-medium text-red-500 hover:underline">
+            <button type="button" onClick={removeCoupon} className="text-xs font-medium text-nixon-crimson hover:text-nixon-crimson-bright hover:underline">
               Quitar
             </button>
           </div>
@@ -318,58 +326,60 @@ export default function CheckoutForm() {
               value={couponInput}
               onChange={(event) => setCouponInput(event.target.value)}
               placeholder="Código de cupón"
-              className="flex-1 rounded-xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
+              className="flex-1 rounded-xl border border-nixon-border bg-nixon-bg-deep px-4 py-3 text-sm text-nixon-ink placeholder:text-nixon-muted transition-colors focus:border-nixon-crimson focus:outline-none focus:ring-1 focus:ring-nixon-crimson/30"
             />
             <button
               type="button"
               onClick={handleApplyCoupon}
               disabled={couponLoading || !couponInput.trim()}
-              className="shrink-0 rounded-xl border border-black/10 px-4 py-3 text-sm font-medium text-black transition-colors hover:border-black/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-white dark:hover:border-white/30"
+              className="shrink-0 rounded-xl border border-nixon-border px-4 py-3 text-sm font-medium text-nixon-ink transition-colors hover:border-nixon-ink-dim/30 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {couponLoading ? "Verificando..." : "Aplicar"}
             </button>
           </div>
         )}
-        {couponError && <p className="text-xs text-red-500">{couponError}</p>}
+        {couponError && <p className="text-xs text-nixon-crimson-bright">{couponError}</p>}
       </div>
 
-      <div className="space-y-1 border-t border-black/10 pt-4 text-sm dark:border-white/10">
-        <div className="flex items-center justify-between text-black/60 dark:text-white/60">
-          <span>Subtotal</span>
-          <span>${subtotal.toLocaleString("es-AR")}</span>
-        </div>
-        {appliedCoupon && (
-          <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
-            <span>Descuento</span>
-            <span>-${appliedCoupon.discountAmount.toLocaleString("es-AR")}</span>
+      <div className="space-y-4 rounded-2xl border border-nixon-border bg-nixon-surface-2 p-5">
+        <div className="space-y-1 text-sm">
+          <div className="flex items-center justify-between text-nixon-muted">
+            <span>Subtotal</span>
+            <span>${subtotal.toLocaleString("es-AR")}</span>
           </div>
-        )}
-        <div className="flex items-center justify-between text-base font-semibold text-black dark:text-white">
-          <span>Total</span>
-          <span>${Math.max(0, subtotal - (appliedCoupon?.discountAmount ?? 0)).toLocaleString("es-AR")}</span>
+          {appliedCoupon && (
+            <div className="flex items-center justify-between text-emerald-400">
+              <span>Descuento</span>
+              <span>-${appliedCoupon.discountAmount.toLocaleString("es-AR")}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between border-t border-nixon-border pt-2 text-lg font-semibold text-nixon-ink">
+            <span>Total</span>
+            <span>${Math.max(0, subtotal - (appliedCoupon?.discountAmount ?? 0)).toLocaleString("es-AR")}</span>
+          </div>
         </div>
+
+        {paymentMethod === "mercadopago" && (
+          <InstallmentsInfo
+            amount={Math.max(0, subtotal - (appliedCoupon?.discountAmount ?? 0))}
+            variant="detailed"
+          />
+        )}
+
+        {error && <p className="text-sm text-nixon-crimson-bright">{error}</p>}
+
+        <button
+          type="submit"
+          disabled={loading || items.length === 0}
+          className="w-full rounded-full bg-nixon-crimson px-4 py-4 text-sm font-semibold text-nixon-ink transition-colors hover:bg-nixon-crimson-bright disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nixon-crimson/50 focus-visible:ring-offset-2 focus-visible:ring-offset-nixon-surface-2"
+        >
+          {loading
+            ? "Confirmando..."
+            : paymentMethod === "transfer"
+              ? "Confirmar pedido"
+              : "Pagar con Mercado Pago"}
+        </button>
       </div>
-
-      {paymentMethod === "mercadopago" && (
-        <InstallmentsInfo
-          amount={Math.max(0, subtotal - (appliedCoupon?.discountAmount ?? 0))}
-          variant="detailed"
-        />
-      )}
-
-      {error && <p className="text-sm text-red-500">{error}</p>}
-
-      <button
-        type="submit"
-        disabled={loading || items.length === 0}
-        className="w-full rounded-full bg-black px-4 py-3 text-sm font-semibold text-white dark:bg-white dark:text-black disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {loading
-          ? "Confirmando..."
-          : paymentMethod === "transfer"
-            ? "Confirmar pedido"
-            : "Pagar con Mercado Pago"}
-      </button>
     </form>
   );
 }
