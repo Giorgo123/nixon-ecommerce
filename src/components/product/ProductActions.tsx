@@ -61,7 +61,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
       {needsSizePicker && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-xs uppercase tracking-[0.2em] text-black/50 dark:text-white/50">
+            <p className="text-xs uppercase tracking-[0.2em] text-nixon-muted">
               Talle
             </p>
             <SizeGuideModal />
@@ -69,17 +69,22 @@ export default function ProductActions({ product }: ProductActionsProps) {
           <div className="flex flex-wrap gap-2">
             {sortBySize(product.variants).map((variant) => {
               const isSelected = variant.id === selectedVariantId;
+              const isOnRequest = variant.stock <= 0;
 
               return (
                 <button
                   key={variant.id}
                   type="button"
                   onClick={() => setSelectedVariantId(variant.id)}
+                  aria-pressed={isSelected}
                   className={[
                     "min-w-11 rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nixon-crimson-bright focus-visible:ring-offset-2 focus-visible:ring-offset-nixon-bg",
                     isSelected
-                      ? "border-red-500 bg-red-500 text-white"
-                      : "border-black/10 text-black hover:border-red-500/50 dark:border-white/10 dark:text-white",
+                      ? "border-nixon-crimson bg-nixon-crimson text-white"
+                      : isOnRequest
+                        ? "border-nixon-border text-nixon-muted hover:border-nixon-crimson-bright hover:text-nixon-ink"
+                        : "border-nixon-border text-nixon-ink hover:border-nixon-crimson-bright",
                   ].join(" ")}
                 >
                   {variant.size ?? "Único"}
@@ -88,7 +93,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
             })}
           </div>
           {selectedIsOnRequest && (
-            <p className="text-xs text-black/50 dark:text-white/50">
+            <p className="text-xs text-nixon-muted">
               Este talle es a pedido — lo coordinamos por email o WhatsApp después de la compra, puede demorar un poco más.
             </p>
           )}
@@ -99,7 +104,12 @@ export default function ProductActions({ product }: ProductActionsProps) {
         type="button"
         onClick={handleAdd}
         disabled={!canAdd}
-        className="inline-flex w-full items-center justify-center rounded-full border border-red-500/40 px-6 py-4 text-sm font-bold uppercase tracking-wide text-red-500 transition-colors hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+        className={[
+          "inline-flex w-full items-center justify-center rounded-full px-6 py-4 text-sm font-bold uppercase tracking-wide text-white transition-all duration-150 active:scale-[0.98]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nixon-crimson-bright focus-visible:ring-offset-2 focus-visible:ring-offset-nixon-bg",
+          "disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
+          added ? "bg-emerald-600" : "bg-nixon-crimson hover:bg-nixon-crimson-bright",
+        ].join(" ")}
       >
         {added ? "¡Agregado!" : "Agregar al carrito"}
       </button>
