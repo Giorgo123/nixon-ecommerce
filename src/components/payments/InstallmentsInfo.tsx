@@ -18,7 +18,7 @@ type FetchResult = {
 
 interface InstallmentsInfoProps {
   amount: number;
-  variant?: "compact" | "detailed";
+  variant?: "compact" | "detailed" | "card";
   className?: string;
 }
 
@@ -114,6 +114,18 @@ export default function InstallmentsInfo({
   const interestFreeMax = bestInterestFreeOption?.installments ?? 0;
 
   if (result.status === "error" || !data?.configured || !data.available || interestFreeMax === 0) {
+    // Variant "card" (ProductCard): sin plan activo hoy, pero el diseño
+    // tiene que sostenerse igual si en algún momento se desactivan las
+    // cuotas — texto corto que no rompe la tarjeta, sin ocultar que existe
+    // una opción de pago en cuotas, sin inventar un número.
+    if (variant === "card") {
+      return (
+        <p className={`text-xs text-nixon-muted ${className}`}>
+          Cuotas disponibles en el pago
+        </p>
+      );
+    }
+
     if (variant === "compact") {
       return (
         <p className={`text-xs text-black/50 dark:text-white/50 ${className}`}>
@@ -137,6 +149,19 @@ export default function InstallmentsInfo({
   // no mostramos un monto roto ("$0" / "$undefined") — caemos al texto sin
   // monto, que sigue siendo válido.
   const perInstallmentAmount = bestInterestFreeOption?.installmentAmount || 0;
+
+  // Variant "card" (ProductCard): cuando SÍ hay plan sin interés activo, la
+  // cuota es un dato de marca fuerte — texto propio con peso visual cerca
+  // del precio, no una nota al pie. Formato directo ("3x $X sin interés",
+  // sin "Hasta") porque acá se muestra la mejor opción real, no un techo
+  // teórico. Sigue siendo 100% el dato real de la API, nunca inventado.
+  if (variant === "card") {
+    return (
+      <p className={`text-sm font-bold text-nixon-crimson-bright ${className}`}>
+        {interestFreeMax}x{perInstallmentAmount > 0 ? ` $${perInstallmentAmount.toLocaleString("es-AR")}` : ""} sin interés
+      </p>
+    );
+  }
 
   if (variant === "compact") {
     return (

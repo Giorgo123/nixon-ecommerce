@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-// CSP sin nonce a propósito: este fork usa `src/middleware.ts` (no `proxy.ts`) y
+// CSP sin nonce a propósito: este fork usa `src/proxy.ts` (no `middleware.ts`) y
 // las páginas públicas dependen de rendering estático/ISR (revalidate = 300).
 // Un nonce requiere rendering dinámico en toda página que lo use, lo cual
 // rompería ese ISR; y una implementación mal hecha de nonce en Next 16 puede

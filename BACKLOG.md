@@ -132,6 +132,31 @@ Investigación (sin código, dropdown de Catálogo por hover ya estaba implement
 
 ---
 
+## ✅ 38. Revertir "Agregar (Talle X)" a "Agregar al carrito" en ProductCard — hecho
+El ítem 25 (quick-add mostrando el talle) se había implementado correctamente según lo pedido en su momento (tanda de 9 subagentes). Decisión revertida ahora por pedido explícito: el botón de quick-add en `ProductCard.tsx` vuelve a decir siempre "Agregar al carrito", sin el talle. Se sacó `hasMultipleSizes`/`quickAddLabel` del componente — confirmado por grep que no queda ninguna otra instancia de ese patrón en el resto del repo.
+
+## ✅ 39. Cuotas en ProductCard con jerarquía propia para ambos estados — hecho
+`InstallmentsInfo.tsx` gana un tercer variant, `"card"`, usado solo en `ProductCard.tsx` (no toca `"compact"`, que sigue usando `CartSummary.tsx` sin cambios):
+- **Con plan sin interés activo**: `{N}x ${monto} sin interés` en `text-sm font-bold text-nixon-crimson-bright`, agrupado justo debajo del precio — deja de ser una nota al pie gris.
+- **Sin plan activo (estado real hoy, sin `MERCADOPAGO_ACCESS_TOKEN` local)**: `"Cuotas disponibles en el pago"`, corto, no rompe la tarjeta, sin ocultar que existe la opción.
+Ambos casos siguen siendo 100% el dato real de `/api/mercadopago/installments` — ningún banco ni monto inventado. No se pudo verificar visualmente el estado "con plan" en este entorno (sin token de MP configurado localmente); queda para cuando el usuario active cuotas en el panel real.
+
+## Auditoría final de la sesión — qué se pidió y no se implementó de verdad
+Repaso de toda la sesión contra el código real (no contra lo que dice este archivo), a pedido explícito después de que el ítem 25 mostró un caso real de decisión-tomada-pero-luego-no-querida.
+
+**Encontrado y corregido en esta pasada:**
+- **Comentario incorrecto en `next.config.ts`** (línea 3, desde el commit de CSP completo): decía "este fork usa `src/middleware.ts` (no `proxy.ts`)" — es al revés. Confirmado con `ls`: existe `src/proxy.ts`, no existe `middleware.ts`. Bug de documentación real (nadie lo iba a notar funcionalmente porque no afecta comportamiento, pero es información falsa en el código) — corregido.
+- **Ítem 25 (talle en quick-add)**: no era un caso de "nunca se implementó" — se implementó correctamente según lo pedido en su momento. Es una decisión revertida ahora por un pedido nuevo, no un fallo de ejecución pasada. Ver ítem 38.
+
+**Verificado contra el código real y confirmado que SÍ está — sin hallazgos de "pedido y no hecho":**
+admin login sin fallback de credenciales hardcodeadas, catálogo sin fallback a JSON (`src/lib/catalog.ts`), rutas `/api/products*` y `/api/orders/[id]` protegidas con `isAdminSessionActive()`, webhook con validación de firma HMAC, patrón `params: Promise<...>` en rutas dinámicas, `proxy.ts` como único mecanismo de protección de `/admin`, `.env.example` completo con las 4 variables agregadas en la Fase B original, comillas escapadas en `Testimonials.tsx`, cupón validado server-side en `createPendingOrder`, badge real de medio de pago por pedido en `/admin/orders`, páginas legales con contenido real (no boilerplate vacío), ruta `/api/newsletter` funcional (no solo UI).
+
+**Deviación conocida, no un gap silencioso**: los labels "Catálogo"/"Contacto" del navbar se dejaron sin tocar en la tanda de copy del Hero, por una recomendación mía explícita en su momento (son navegación funcional, no marketing) — no una omisión, pero quedó sin tu confirmación explícita. Si preferís que se toquen igual, avisame.
+
+**No se re-auditó en esta pasada** (por alcance/tiempo, no por decisión de omitir): la cobertura completa de los 27 ítems de la `AUDITORIA_EXHAUSTIVA.md` ya se hizo con diffs reales en esa sesión — esta pasada se enfocó en detectar el tipo específico de problema que motivó el pedido (una decisión de UI tomada pero luego no querida/mal aplicada), no en repetir la auditoría de seguridad completa.
+
+---
+
 ## ⏳ Pendientes de verificación en vivo (bloqueados desde este entorno, no fallados)
 
 Auditoría completa del flujo de compra (código, tests, DB real en lectura, servidor local) sin encontrar fallas nuevas más allá de las corregidas arriba. Estos puntos específicos no se pudieron ejecutar porque requieren cosas que este entorno no tiene — no son "no funciona", son "no se pudo probar desde acá".
