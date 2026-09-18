@@ -84,7 +84,11 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
       {/* Overlay oscuro con gradiente */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black/80" />
 
-      {/* Efecto de luz adicional */}
+      {/* Viñeta radial: profundidad detrás del contenido + refuerzo de contraste
+          para el texto, sobre un video que la mitad del tiempo es puro rojo/negro
+          saturado (ver public/hero/itachi-poster.jpg). Antes esta capa usaba la
+          clase `bg-radial-gradient`, que no existe en Tailwind (ni v3 ni v4) — el
+          efecto nunca se pintaba, quedaba transparente siempre. */}
       <motion.div
         animate={
           reduceMotion
@@ -103,7 +107,7 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
                 ease: "easeInOut",
               }
         }
-        className="absolute inset-0 bg-radial-gradient to-transparent"
+        className="absolute inset-0 bg-[radial-gradient(ellipse_60%_55%_at_50%_45%,rgba(0,0,0,0.55),transparent_72%)]"
       />
 
       <motion.div
@@ -117,7 +121,7 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
             ? { duration: 0.2 }
             : { duration: 8, repeat: Infinity, ease: "easeInOut" }
         }
-        className="absolute left-1/2 top-1/4 h-72 w-72 -translate-x-1/2 rounded-full bg-red-500/20 blur-3xl"
+        className="absolute left-1/2 top-1/4 h-72 w-72 -translate-x-1/2 rounded-full bg-nixon-crimson/25 blur-3xl"
       />
 
       {!reduceMotion && (
@@ -125,7 +129,7 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
           {particles.map((particle, index) => (
             <motion.span
               key={index}
-              className="absolute rounded-full bg-black/70 shadow-[0_0_24px_rgba(0,0,0,0.45)]"
+              className="absolute rounded-full bg-nixon-crimson-bright/90 shadow-[0_0_16px_rgba(239,68,68,0.65)]"
               style={{
                 top: particle.top,
                 left: particle.left,
@@ -160,7 +164,7 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
         <motion.div className="flex w-full flex-col items-center justify-center">
         {/* Badge de colección */}
         <motion.div variants={fadeUp} className="mb-8 inline-block">
-          <div className="rounded-full border border-red-500/50 bg-red-950/30 px-4 py-2 text-xs sm:text-sm tracking-[0.25em] text-red-300 backdrop-blur-sm">
+          <div className="rounded-full border border-nixon-crimson-bright/50 bg-black/50 px-4 py-2 text-xs sm:text-sm tracking-[0.25em] text-nixon-crimson-bright backdrop-blur-sm">
             NUEVA COLECCIÓN 2026
           </div>
         </motion.div>
@@ -209,10 +213,10 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
         </motion.div>
 
         {/* Subtítulo */}
-        <motion.p variants={fadeUp} className="mt-6 text-center text-base sm:text-lg lg:text-xl text-zinc-200 font-light max-w-2xl">
+        <motion.p variants={fadeUp} className="mt-6 text-center text-base sm:text-lg lg:text-xl text-nixon-ink-dim font-light max-w-2xl drop-shadow-md">
           Streetwear oversize con identidad dark art
           <br />
-          <span className="text-sm sm:text-base text-zinc-400">
+          <span className="text-sm sm:text-base text-nixon-muted">
             Piezas que no vas a ver en cualquier lado
           </span>
         </motion.p>
@@ -221,21 +225,23 @@ export default function HeroSection({ starProducts = [] }: HeroSectionProps) {
         <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 mt-10 justify-center">
           <motion.a
             href="/products"
-            whileHover={reduceMotion ? undefined : { scale: 1.05, y: -2, boxShadow: "0 20px 40px rgba(239, 68, 68, 0.3)" }}
-            whileTap={reduceMotion ? undefined : { scale: 0.95 }}
-            className="px-8 py-4 bg-white text-black font-bold rounded-lg transition-all duration-300 hover:shadow-2xl flex items-center justify-center gap-2"
+            whileHover={reduceMotion ? undefined : { scale: 1.04, y: -2, boxShadow: "0 20px 45px -8px rgba(239, 68, 68, 0.45)" }}
+            whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="group flex items-center justify-center gap-2 rounded-lg bg-white px-8 py-4 font-bold text-black"
           >
             Ver Catálogo
-            <motion.span animate={reduceMotion ? undefined : { x: [0, 4, 0] }} transition={reduceMotion ? { duration: 0.2 } : { duration: 2, repeat: Infinity }}>
+            <span className="inline-block transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0">
               →
-            </motion.span>
+            </span>
           </motion.a>
 
           <motion.a
             href="#featured"
-            whileHover={reduceMotion ? undefined : { scale: 1.05, y: -2, borderColor: "rgb(239, 68, 68)", backgroundColor: "rgba(239, 68, 68, 0.1)" }}
-            whileTap={reduceMotion ? undefined : { scale: 0.95 }}
-            className="px-8 py-4 border-2 border-red-500/50 text-white font-bold rounded-lg backdrop-blur-sm transition-all duration-300"
+            whileHover={reduceMotion ? undefined : { scale: 1.04, y: -2, borderColor: "rgb(239, 68, 68)", backgroundColor: "rgba(239, 68, 68, 0.1)" }}
+            whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="rounded-lg border-2 border-nixon-crimson-bright/50 px-8 py-4 font-bold text-white backdrop-blur-sm"
           >
             Ver Destacados
           </motion.a>

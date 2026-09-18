@@ -77,19 +77,24 @@ export default function FeaturedProductSlider({ products }: FeaturedProductSlide
 function FeaturedProductCard({ product }: { product: Product }) {
   const images = [product.image, ...product.images];
   const [activeIndex, setActiveIndex] = useState(0);
+  const reduceMotion = useReducedMotion();
 
+  // El auto-avance de la galería es una animación ambiente (arranca sola, no
+  // la dispara el usuario) — con prefers-reduced-motion activo se queda
+  // quieta en la portada en vez de seguir rotando de fondo indefinidamente.
+  // Antes corría sin importar la preferencia del visitante.
   useEffect(() => {
-    if (images.length <= 1) return;
+    if (reduceMotion || images.length <= 1) return;
     const interval = setInterval(() => {
       setActiveIndex((current) => (current + 1) % images.length);
     }, 2600);
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, [images.length, reduceMotion]);
 
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group flex w-44 shrink-0 flex-col overflow-hidden rounded-xl border border-white/15 bg-black/40 backdrop-blur-md transition-colors hover:border-red-500/60 sm:w-64"
+      className="group flex w-44 shrink-0 flex-col overflow-hidden rounded-xl border border-nixon-border/70 bg-nixon-bg-deep/60 backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-nixon-crimson-bright/60 hover:shadow-xl hover:shadow-black/40 motion-reduce:hover:translate-y-0 sm:w-64"
     >
       <div className="relative h-44 w-full overflow-hidden sm:h-64">
         <div
@@ -113,8 +118,8 @@ function FeaturedProductCard({ product }: { product: Product }) {
         </div>
       </div>
       <div className="px-3 py-2.5">
-        <p className="truncate text-xs font-medium text-white sm:text-sm">{product.name}</p>
-        <p className="mt-0.5 text-xs font-semibold text-red-400 sm:text-sm">
+        <p className="truncate text-xs font-medium text-nixon-ink sm:text-sm">{product.name}</p>
+        <p className="mt-0.5 text-xs font-semibold text-nixon-crimson-bright sm:text-sm">
           ${product.price.toLocaleString("es-AR")}
         </p>
       </div>
