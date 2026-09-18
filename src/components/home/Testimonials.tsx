@@ -93,6 +93,12 @@ function TestimonialMarquee() {
   const trackRef = useRef<HTMLDivElement>(null);
   const [loopWidth, setLoopWidth] = useState(0);
   const x = useMotionValue(0);
+  // En touch no existe hover ni focus por tap: sin esto el marquee no se
+  // puede pausar nunca en mobile para leer una quote larga. Un toque pausa
+  // al instante (igual que mouseenter) y retoma solo despues de un respiro
+  // al levantar el dedo — pausar solo mientras el dedo sigue apoyado taparia
+  // justo la tarjeta que se esta intentando leer.
+  const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -105,6 +111,27 @@ function TestimonialMarquee() {
     observer.observe(track);
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+    };
+  }, []);
+
+  function handleTouchStart() {
+    if (resumeTimeoutRef.current) {
+      clearTimeout(resumeTimeoutRef.current);
+      resumeTimeoutRef.current = null;
+    }
+    setIsPaused(true);
+  }
+
+  function handleTouchEnd() {
+    resumeTimeoutRef.current = setTimeout(() => {
+      setIsPaused(false);
+      resumeTimeoutRef.current = null;
+    }, 4000);
+  }
 
   useAnimationFrame((_, delta) => {
     if (isPaused || loopWidth === 0) return;
@@ -124,6 +151,9 @@ function TestimonialMarquee() {
       onMouseLeave={() => setIsPaused(false)}
       onFocus={() => setIsPaused(true)}
       onBlur={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
     >
       <motion.div ref={trackRef} className="flex w-max gap-4 pb-4" style={{ x }}>
         {loopedTestimonials.map((testimonial, index) => (

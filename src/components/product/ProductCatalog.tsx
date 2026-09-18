@@ -207,7 +207,12 @@ export default function ProductCatalog({ products, categories: baseCategories }:
             value={sort}
             onChange={(event) => setSort(event.target.value as SortOption)}
             aria-label="Ordenar por"
-            className="rounded-xl border border-nixon-border bg-nixon-surface px-3 py-3 text-sm text-nixon-ink focus:border-nixon-crimson-bright focus:outline-none"
+            // min-w-0 + flex-1 + truncate: sin esto, en mobile el <select>
+            // crece con el ancho de la opción elegida (ej. "Precio: mayor a
+            // menor") y ese ancho + el botón "Filtros" de al lado no entran
+            // en 320px, provocando overflow horizontal — solo se nota al
+            // cambiar el orden, no con el valor por defecto.
+            className="min-w-0 flex-1 truncate rounded-xl border border-nixon-border bg-nixon-surface px-3 py-3 text-sm text-nixon-ink focus:border-nixon-crimson-bright focus:outline-none"
           >
             {(Object.entries(SORT_LABELS) as Array<[SortOption, string]>).map(([value, label]) => (
               <option key={value} value={value}>
@@ -218,7 +223,7 @@ export default function ProductCatalog({ products, categories: baseCategories }:
           <button
             type="button"
             onClick={() => setFiltersOpen((open) => !open)}
-            className="whitespace-nowrap rounded-xl border border-nixon-border px-4 py-3 text-sm font-semibold text-nixon-ink lg:hidden"
+            className="shrink-0 whitespace-nowrap rounded-xl border border-nixon-border px-4 py-3 text-sm font-semibold text-nixon-ink lg:hidden"
           >
             {filtersOpen ? "Ocultar filtros" : "Filtros"}
             {!filtersOpen && panelFilterCount > 0 ? ` (${panelFilterCount})` : ""}
