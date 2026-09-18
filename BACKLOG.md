@@ -104,7 +104,25 @@ Aparece después de 400px de scroll, sube al tope con scroll suave. Apilado arri
 ## ✅ 36. Flechas de navegación en CrossSell (PDP) — hecho
 "También te puede gustar" pasó de solo-swipe a tener flechas izquierda/derecha que scrollean una página visible con `scrollBy` suave. Visibilidad calculada en vivo con `scrollLeft`/`scrollWidth`/`clientWidth` (nunca una flecha "fantasma" sin contenido hacia donde ir). Ocultas en mobile a propósito (el swipe táctil ya es el patrón esperado ahí).
 
+## ✅ 37. Rediseño senior integral (Tanda 2, 8 subagentes A-H) — hecho
+Auditoría de pulido sobre toda la tienda, sin reimplementar nada de lo ya cerrado arriba:
+- **Hero + banners de reveal**: fix de un efecto muerto real (`bg-radial-gradient` no es una clase de Tailwind — animaba sobre fondo transparente hacía tiempo), partículas invisibles sobre video oscuro migradas a `nixon-crimson-bright`, badge con 3 rojos sueltos consolidado a un acento, bug de doble-transición CSS+Framer en los CTAs (hover con lag), auto-avance del slider ahora respeta `useReducedMotion` (no lo respetaba).
+- **Catálogo**: sidebar de filtros bajado de peso visual (de bloques sólidos a lista con punto indicador + `aria-current`), sticky en desktop, contador de filtros activos, migrado a tokens `nixon-*`. `ProductCard` confirmado sin cambios — el badge "A pedido" ya comunicaba bien.
+- **PDP**: causa raíz encontrada — la página tenía pares `black/dark:white` muertos (la tienda pública fuerza `.dark` siempre, la mitad clara nunca se pintaba), migrada a `nixon-*`. CTA de agregar al carrito pasa de outline a pill sólido `bg-nixon-crimson` a ancho completo. `focus-visible` agregado en flechas de galería, talles y acordeones (antes solo por mouse).
+- **Checkout**: migrado a tokens `nixon-*`, eyebrows de sección agregados, resumen+CTA final elevados a bloque con más prominencia. Verificado línea por línea que es 100% cambio visual, sin tocar validación ni cálculo de precio/cupón.
+- **Footer**: sacada "Hacete miembro" (implicaba cuentas de cliente, fuera de alcance según `product.md`), corregido "hecho en Villa María" (sin respaldo) por el texto real de `BrandManifesto.tsx`, "Quiénes somos" renombrado a "Preguntas frecuentes" para coincidir con el contenido real de `/contacto`.
+- **Lookbook**: confirmado contra BACKLOG ítem 30, fix real de `sizes` de `next/image` que subestimaba el ancho del tile grande en mobile (quedaba pixelado).
+- **Copy transversal**: pasada sobre catálogo/PDP/checkout, un solo cambio genuino ("N productos en esta vista" → "N productos"). El resto ya estaba respaldado por código o por `product.md` (ej. "Precio especial por Transferencia" se investigó a fondo y es una decisión de negocio ya documentada, no una inconsistencia).
+- **Mobile/tablet**: el marquee de testimonios solo pausaba con mouse/focus — en touch era imposible frenarlo para leer una quote, corregido con `onTouchStart/onTouchEnd`. Fila de orden+filtros en el catálogo podía desbordar en 320px según el estado (texto de orden largo + contador de filtros) — corregido con `flex-1`/`truncate`+`shrink-0`.
+
+Los 8 subagentes corrieron en paralelo (A-F) y en secuencia (G copy, H mobile, después de que A-F mergearan). Merges sin conflictos salvo el `SiteShell.tsx` de la Tanda 1 (ya resuelto en su momento). Verificado con los 4 checks completos + grep de marcadores de merge + recorrido real con `npm run dev`.
+
 ---
+
+### Propuesta pendiente de aprobación — 2 secciones nuevas para el home
+Del Subagente F (Tanda 2), basadas 100% en datos ya reales del catálogo (Postgres vía `getCatalogProducts()`), sin ninguna métrica inventada:
+1. **"Explorá por categoría"**: 4 tiles (remera/buzo/taza/poster) con foto real representativa + labels ya escritos en `categories.ts`, linkeando a `/products?category=X` (deep-link ya existente y funcional). Iría después de `ValueProps`, antes de "Destacados" — hoy el home no comunica que hay 4 tipos de producto distintos, solo se descubre por el dropdown del navbar.
+2. **"Ofertas activas"**: productos con `compareAtPrice > price` (mismo cálculo que ya usa `ProductCard`), condicional — si no hay ninguno en oferta, no se renderiza. Iría entre "Destacados" y el banner de 3 fotos. Hoy ningún descuento real se ve agrupado, solo dentro de cada card individual.
 
 ### Propuesta pendiente de aprobación — páginas nuevas para el navbar
 Investigación (sin código, dropdown de Catálogo por hover ya estaba implementado desde el ítem 23 — no se reimplementó):
