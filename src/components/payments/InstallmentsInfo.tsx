@@ -171,7 +171,13 @@ export default function InstallmentsInfo({
     );
   }
 
-  const issuers = data.interestFreeIssuers ?? [];
+  const allIssuers = data.interestFreeIssuers ?? [];
+  // Tope de emisores a listar: con muchos bancos habilitados la lista real
+  // puede seguir siendo larga y desbordar la tarjeta — se corta con un
+  // conteo en vez de volcar todo en una sola línea de texto.
+  const MAX_ISSUERS_SHOWN = 6;
+  const issuers = allIssuers.slice(0, MAX_ISSUERS_SHOWN);
+  const remainingIssuers = allIssuers.length - issuers.length;
 
   return (
     <div
@@ -184,6 +190,7 @@ export default function InstallmentsInfo({
       {issuers.length > 0 && (
         <p className="mt-1 text-xs text-black/60 dark:text-white/60">
           Con tarjetas de: {issuers.join(" · ")}
+          {remainingIssuers > 0 ? ` y ${remainingIssuers} más` : ""}
         </p>
       )}
       <p className="mt-2 text-[11px] text-black/45 dark:text-white/45">

@@ -56,6 +56,16 @@ function normalize(entries: MpInstallmentsResponse[]): InstallmentOption[] {
 
   for (const entry of entries) {
     for (const plan of entry.payer_costs ?? []) {
+      // 1 cuota (pago único) siempre tiene installment_rate 0 en la API de
+      // MP — es matemáticamente cierto pero no es un plan de financiación
+      // real, así que casi cualquier tarjeta/emisor "califica". Mostrarlo
+      // como "cuotas sin interés" infla el máximo mostrado a "Hasta 1x" y
+      // llena la lista de bancos con decenas de emisores que no ofrecen
+      // ningún plan de cuotas de verdad. Se descarta acá, en el único lugar
+      // que arma esta data, para que ningún consumidor tenga que repetir
+      // este filtro.
+      if (plan.installments <= 1) continue;
+
       options.push({
         issuer: entry.issuer?.name ?? "Mercado Pago",
         paymentMethodId: entry.payment_method_id,
