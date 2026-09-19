@@ -171,32 +171,79 @@ export default function InstallmentsInfo({
     );
   }
 
-  const allIssuers = data.interestFreeIssuers ?? [];
-  // Tope de emisores a listar: con muchos bancos habilitados la lista real
-  // puede seguir siendo larga y desbordar la tarjeta — se corta con un
-  // conteo en vez de volcar todo en una sola línea de texto.
-  const MAX_ISSUERS_SHOWN = 6;
-  const issuers = allIssuers.slice(0, MAX_ISSUERS_SHOWN);
-  const remainingIssuers = allIssuers.length - issuers.length;
+  const cuotaWord = interestFreeMax === 1 ? "cuota" : "cuotas";
+
+  // Marcas de tarjeta reconocibles en vez de la lista cruda de bancos/
+  // billeteras/crypto que devuelve la API: paymentMethodId de cada opción
+  // con cuotas sin interés ES una de las 3 marcas que la ruta consulta por
+  // defecto (visa/master/amex, ver DEFAULT_PAYMENT_METHOD_IDS en
+  // route.ts) — no se inventa ninguna marca nueva, solo se traduce el id
+  // técnico a un chip prolijo. Como máximo 3 chips posibles con la
+  // consulta actual, bien debajo del tope de "4-5" pedido.
+  const BRAND_LABELS: Record<string, string> = {
+    visa: "Visa",
+    master: "Mastercard",
+    amex: "American Express",
+  };
+  const brandChips = Array.from(
+    new Set(
+      (data.options ?? [])
+        .filter((option) => option.interestFree)
+        .map((option) => BRAND_LABELS[option.paymentMethodId])
+        .filter((label): label is string => Boolean(label))
+    )
+  );
+
+  // El conteo de emisores reemplaza el volcado de nombres (bancos +
+  // billeteras + crypto + delivery todos mezclados en una sola línea) por
+  // un dato de confianza compacto, sin listar nada — mismo dato real
+  // (data.interestFreeIssuers.length), presentado como una tienda grande
+  // lo mostraría, no como una respuesta cruda de API.
+  const issuerCount = (data.interestFreeIssuers ?? []).length;
+  const issuerCountLabel =
+    issuerCount === 0
+      ? null
+      : issuerCount === 1
+        ? "Disponible en 1 medio de pago"
+        : `Disponible en +${issuerCount} medios de pago`;
 
   return (
     <div
       className={`rounded-2xl border border-red-500/20 bg-red-500/5 p-5 ${className}`}
     >
       <p className="text-sm font-semibold text-black dark:text-white">
-        Hasta {interestFreeMax} cuotas sin interés
+        Hasta {interestFreeMax} {cuotaWord} sin interés
         {perInstallmentAmount > 0 ? ` de $${perInstallmentAmount.toLocaleString("es-AR")}` : ""}
       </p>
-      {issuers.length > 0 && (
-        <p className="mt-1 text-xs text-black/60 dark:text-white/60">
-          Con tarjetas de: {issuers.join(" · ")}
-          {remainingIssuers > 0 ? ` y ${remainingIssuers} más` : ""}
-        </p>
+      {brandChips.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {brandChips.map((brand) => (
+            <span
+              key={brand}
+              className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-black/70 dark:border-white/10 dark:bg-black dark:text-white/70"
+            >
+              <CardIcon />
+              {brand}
+            </span>
+          ))}
+        </div>
+      )}
+      {issuerCountLabel && (
+        <p className="mt-2 text-xs text-black/60 dark:text-white/60">{issuerCountLabel}</p>
       )}
       <p className="mt-2 text-[11px] text-black/45 dark:text-white/45">
         Promoción sujeta a la oferta vigente de Mercado Pago. El detalle final se
         confirma con tu tarjeta en el paso de pago.
       </p>
     </div>
+  );
+}
+
+function CardIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <path d="M2 10h20" />
+    </svg>
   );
 }
