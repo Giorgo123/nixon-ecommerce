@@ -168,18 +168,39 @@ export default function Navbar() {
           </nav>
 
           <div className="flex items-center gap-1 sm:gap-2">
-            <div className="relative flex items-center">
+            {/* Desktop: barra de búsqueda siempre visible, ícono de lupa
+                DENTRO del campo a la izquierda (no un botón que abre otra
+                cosa). Fondo gris claro a propósito, distinto del resto de
+                la navbar oscura — es un control funcional, no una pieza de
+                identidad de marca. */}
+            <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
+              <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+              <input
+                type="search"
+                value={searchValue}
+                onChange={(event) => setSearchValue(event.target.value)}
+                placeholder="Buscar"
+                aria-label="Buscar productos"
+                className="h-10 w-40 rounded-full border-0 bg-gray-100 pl-9 pr-4 text-sm text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-nixon-crimson-bright lg:w-56"
+              />
+            </form>
+
+            {/* Mobile: no entra una barra fija junto al logo/carrito — se
+                mantiene el ícono que despliega el mismo campo, con el
+                mismo estilo visual que la versión de desktop. */}
+            <div className="relative flex items-center sm:hidden">
               {searchOpen && (
                 <form onSubmit={handleSearchSubmit} className="absolute right-0 top-1/2 -translate-y-1/2">
+                  <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                   <input
                     type="search"
                     autoFocus
                     value={searchValue}
                     onChange={(event) => setSearchValue(event.target.value)}
                     onBlur={() => !searchValue && setSearchOpen(false)}
-                    placeholder="Buscar productos..."
+                    placeholder="Buscar"
                     aria-label="Buscar productos"
-                    className="h-11 w-48 rounded-full border border-nixon-border bg-nixon-surface px-4 text-sm text-nixon-ink placeholder:text-nixon-muted focus:border-nixon-crimson focus:outline-none sm:w-64"
+                    className="h-10 w-48 rounded-full border-0 bg-gray-100 pl-9 pr-4 text-sm text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-nixon-crimson-bright"
                   />
                 </form>
               )}
@@ -287,9 +308,18 @@ function ChevronIcon({ open }: { open: boolean }) {
   );
 }
 
-function SearchIcon() {
+function SearchIcon({ className }: { className?: string }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+      className={className}
+    >
       <circle cx="11" cy="11" r="7" />
       <path d="m21 21-4.35-4.35" strokeLinecap="round" />
     </svg>

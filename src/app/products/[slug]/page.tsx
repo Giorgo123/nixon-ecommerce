@@ -136,11 +136,19 @@ export default async function ProductDetailPage({
       </div>
 
       <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-        <ProductGallery
-          images={[product.image, ...product.images]}
-          videoUrl={product.videoUrl}
-          alt={product.name}
-        />
+        {/* Sticky solo en desktop (lg:): la galería sigue visible mientras
+            se scrollea la columna de info, y se despega sola al llegar al
+            final de esa columna porque la fila del grid (con lg:items-start)
+            queda tan alta como el contenido más largo. En mobile es una sola
+            columna apilada — ahí sticky superpondría la foto sobre el resto
+            del contenido, así que no se aplica. */}
+        <div className="lg:sticky lg:top-24">
+          <ProductGallery
+            images={[product.image, ...product.images]}
+            videoUrl={product.videoUrl}
+            alt={product.name}
+          />
+        </div>
 
         <div className="space-y-6">
           <div className="space-y-3">
@@ -214,7 +222,11 @@ export default async function ProductDetailPage({
             </Accordion>
           </div>
 
-          <ShareButtons url={`${siteUrl}/products/${product.slug}`} title={product.name} />
+          <ShareButtons
+            url={`${siteUrl}/products/${product.slug}`}
+            title={product.name}
+            image={absoluteImageUrl(product.image)}
+          />
         </div>
       </div>
 

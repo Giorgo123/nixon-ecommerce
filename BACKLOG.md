@@ -191,4 +191,18 @@ Auditoría completa del flujo de compra (código, tests, DB real en lectura, ser
 
 ---
 
+## ✅ 40. Buscador del navbar como input visible (no ícono que abre otra cosa) — hecho
+Desktop: campo de búsqueda siempre visible en la navbar, lupa dentro del campo a la izquierda, fondo gris claro, sin caja oscura alrededor (contraste intencional con el resto de la navbar, que sigue el tema oscuro forzado — es un control funcional, no una pieza de identidad de marca). Mobile: se mantiene el ícono que despliega el mismo campo (no entra una barra fija junto a logo/carrito en pantallas chicas), con el mismo estilo visual. La funcionalidad de búsqueda (`?search=`) no cambió, solo la presentación.
+
+## ✅ 41. Íconos reales de compartir en la PDP (WhatsApp, Facebook, Pinterest, X) — hecho
+`ShareButtons.tsx` reescrito: en vez de un único botón que abre el selector nativo del sistema, ahora son 4 links reales, cada uno al endpoint de compartir estándar y público de cada red (`wa.me`, `facebook.com/sharer/sharer.php`, `pinterest.com/pin/create`, `twitter.com/intent/tweet`) con la URL real del producto — nada inventado, no requieren API key. Pinterest recibe además la imagen real del producto (`absoluteImageUrl(product.image)`, ya usado en el JSON-LD de la misma página) para la preview del pin.
+
+## ✅ 42. Galería sticky en la PDP (solo desktop) — hecho
+La imagen principal de `ProductGallery` queda pegada (`lg:sticky lg:top-24`) mientras se scrollea la columna de info al lado (talles, cuotas, envío, acordeones), y se despega sola al llegar al final de esa columna — el grid ya tenía `lg:items-start`, que hace que la fila mida tanto como el contenido más largo sin estirar la imagen. Gateado a `lg:` a propósito: en mobile es una columna única apilada, donde sticky superpondría la foto sobre el resto del contenido en vez de ayudar.
+
+## 📋 Diagnóstico + propuesta — jerarquía y copy de la PDP completa
+Pedido explícitamente como diagnóstico, sin implementar. Ver mensaje aparte con la propuesta detallada (tamaño de fuente, ubicación y sensación de cada bloque: título, descripción, bullets, precio, cuotas, CTA) comparado contra el estándar de una tienda de indumentaria de referencia — pendiente de aprobación antes de tocar código.
+
+---
+
 Nuevos ítems se agregan acá solo si de verdad refuerzan la tienda, con el mismo formato: motivo + qué se hizo/qué falta.
