@@ -179,4 +179,16 @@ Auditoría completa del flujo de compra (código, tests, DB real en lectura, ser
 
 ---
 
+## ⏳ Pendiente de decisión del dueño (no técnico, no bloqueado por código)
+
+- **Merge a `master`**: frenado a propósito, esperando confirmación explícita ("mergeamos cuando hayamos terminado todo").
+- **2 secciones nuevas del home sin aprobar** (propuesta del Subagente F, Tanda 2): "Explorá por categoría" (4 tiles por categoría, deep-link a `/products?category=X` ya funcional) y "Ofertas activas" (productos con `compareAtPrice > price`, condicional). Ambas 100% con datos reales del catálogo, sin código todavía.
+- **3 páginas nuevas del navbar sin aprobar** (propuesta del Subagente 4, Tanda 1): `/nosotros` (necesita texto/fotos reales del dueño), `/guia-de-talles` (menor esfuerzo, cero contenido nuevo), `/drops` (esfuerzo alto, solo si se van a operar lanzamientos por tandas reales — si no, más honesto sacar la frase "drops exclusivos" del newsletter).
+- **Labels "Catálogo"/"Contacto" del navbar**: se dejaron intactos por recomendación mía (son navegación funcional, no marketing) — nunca hubo confirmación explícita de que el dueño esté de acuerdo.
+
+## Detalles menores sin migrar a tokens nixon-* (no bloquean nada, identificados por los propios subagentes fuera de su alcance)
+`CartSummary.tsx`, `TrustBox.tsx`, `ShareButtons.tsx` y `SizeGuideModal.tsx` siguen con clases planas `black/white` en vez de los tokens de marca — visualmente no se nota porque la tienda pública fuerza `.dark`, pero quedan como candidatos para una futura pasada de consistencia total del sistema de diseño.
+
+---
+
 Nuevos ítems se agregan acá solo si de verdad refuerzan la tienda, con el mismo formato: motivo + qué se hizo/qué falta.
