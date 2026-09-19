@@ -217,6 +217,9 @@ Heading cambiado de "Quienes ya andan con esto puesto" a "Lo que dicen los que y
 ## Merge a producción — 2026-09-19
 `master` local (desactualizado, sin nada propio que perder) se hizo fast-forward hasta `redesign-nixon-studio` y se pusheó a `origin/master` — sin conflictos, confirmado con `git merge-base` antes de tocar nada. `redesign-nixon-studio` también se sincronizó con `origin`. Nota: no se pudo verificar desde este entorno si Vercel disparó el redeploy (sin CLI/token de Vercel acá) — confirmar en el dashboard.
 
+## ✅ 45. Fix: cuotas de 1 pago inflaban "Hasta 1x sin interés" y la lista de bancos — hecho
+Bug real detectado en producción (reportado con captura del sitio desplegado): la sección "Cuotas y financiación" del home mostraba "Hasta 1 cuotas sin interés" y una lista de decenas de bancos desbordando la tarjeta. Causa raíz: Mercado Pago devuelve `installment_rate=0` para el plan de 1 cuota (pago único) en casi cualquier tarjeta — matemáticamente correcto (no hay financiación en 1 pago) pero no es un plan de cuotas real, y el código lo trataba igual que un 3x/6x sin interés genuino. Fix en `route.ts` (`normalize()`): los planes con `installments <= 1` se descartan antes de llegar a cualquier consumidor — ni `InstallmentsInfo.tsx` ni ningún otro componente tuvo que cambiar su lógica de selección. Además, la lista de emisores en el variant `detailed` ahora tiene un tope de 6 con "y N más" en vez de volcar todos en una línea, para que no vuelva a desbordar aunque en algún momento haya muchos bancos con un plan real. No se pudo verificar visualmente contra la API real de MP desde este entorno (sin token local) — confirmar en el sitio desplegado.
+
 ---
 
 Nuevos ítems se agregan acá solo si de verdad refuerzan la tienda, con el mismo formato: motivo + qué se hizo/qué falta.
