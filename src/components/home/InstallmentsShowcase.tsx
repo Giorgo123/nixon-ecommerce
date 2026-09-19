@@ -36,13 +36,10 @@ export default function InstallmentsShowcase({ referenceAmount }: InstallmentsSh
               Cuotas y financiación
             </p>
             <h2 className="mt-3 text-2xl font-black tracking-tight text-black dark:text-white sm:text-3xl">
-              Cuotas reales, verificadas en cada compra
+              Financiación clara y transparente.
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-black/60 dark:text-white/60">
-              Consultamos esta información en vivo contra Mercado Pago antes de
-              mostrártela. Ejemplo sobre una compra de $
-              {Math.round(referenceAmount).toLocaleString("es-AR")} — el detalle
-              exacto de tu tarjeta se confirma en el pago.
+              Ofrecemos cuotas y transferencia bancaria con descuentos aplicados. El detalle final de cuotas, plazos y promociones se confirma con tu medio de pago en el momento
             </p>
           </div>
 

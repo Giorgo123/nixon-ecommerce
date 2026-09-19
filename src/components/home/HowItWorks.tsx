@@ -60,7 +60,7 @@ export default function HowItWorks() {
           Cómo comprar
         </p>
         <h2 className="mt-3 text-2xl font-black tracking-tight text-black dark:text-white sm:text-3xl">
-          Del catálogo a tu casa, sin vueltas
+          Del catálogo a tu casa
         </h2>
       </motion.div>
 

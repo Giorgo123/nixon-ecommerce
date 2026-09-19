@@ -139,8 +139,7 @@ export default function InstallmentsInfo({
       <div
         className={`rounded-2xl border border-black/10 bg-black/5 p-4 text-sm text-black/60 dark:border-white/10 dark:bg-white/5 dark:text-white/60 ${className}`}
       >
-        El detalle de cuotas se confirma con tu tarjeta en el paso de pago — Mercado Pago
-        aplica las promociones vigentes al momento de la compra.
+        Se aplican las promociones vigentes segun medio de pago elegido.
       </div>
     );
   }
