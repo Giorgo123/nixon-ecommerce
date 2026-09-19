@@ -175,7 +175,7 @@ export default function Testimonials() {
             En la calle
           </p>
           <h2 className="mt-3 text-2xl font-black tracking-tight text-black dark:text-white sm:text-3xl">
-            Quienes ya andan con esto puesto
+            Lo que dicen los que ya tienen su droop
           </h2>
         </div>
       </div>

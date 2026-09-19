@@ -151,28 +151,28 @@ export default async function ProductDetailPage({
         </div>
 
         <div className="space-y-6">
-          <div className="space-y-3">
+          <div>
             <p className="text-xs uppercase tracking-[0.3em] text-nixon-crimson-bright">
               {categoryLabel}
             </p>
-            <h1 className="text-3xl font-black tracking-tight text-nixon-ink sm:text-4xl">
+            <h1 className="mt-1 text-4xl font-black tracking-tight text-nixon-ink sm:text-5xl">
               {product.name}
             </h1>
-            <p className="whitespace-pre-line text-base leading-7 text-nixon-ink-dim">
+            <p className="mt-3 whitespace-pre-line text-sm leading-6 text-nixon-muted">
               {product.description}
             </p>
           </div>
 
           <div className="rounded-2xl border border-nixon-border bg-nixon-surface p-5">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="flex items-baseline gap-3">
-                  <p className="text-3xl font-black text-nixon-ink">
+                  <p className="text-2xl font-black text-nixon-ink">
                     ${price}
                   </p>
                   {isOnSale && (
                     <>
-                      <p className="text-lg text-nixon-muted line-through">
+                      <p className="text-base text-nixon-muted line-through">
                         ${product.compareAtPrice!.toLocaleString("es-AR")}
                       </p>
                       <span className="rounded bg-nixon-crimson px-2 py-0.5 text-xs font-bold uppercase text-white">
@@ -181,18 +181,13 @@ export default async function ProductDetailPage({
                     </>
                   )}
                 </div>
-                <p className="mt-0.5 text-sm font-medium text-emerald-400">
+                <p className="mt-0.5 text-xs font-medium text-emerald-400/80">
                   Precio especial por Transferencia
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-nixon-muted">
-                  Disponibilidad
-                </p>
-                <p className="text-lg font-semibold text-nixon-ink">
-                  {totalStock > 0 ? `${totalStock} disponibles` : "A pedido"}
-                </p>
-              </div>
+              <p className="text-xs text-nixon-muted">
+                {totalStock > 0 ? `${totalStock} disponibles` : "A pedido"}
+              </p>
             </div>
 
             <div className="mt-4 border-t border-nixon-border pt-4">
@@ -203,13 +198,21 @@ export default async function ProductDetailPage({
             </div>
           </div>
 
-          <ProductActions product={product} />
+          <div className="space-y-2">
+            <ProductActions product={product} />
+            <p className="text-center text-xs text-nixon-muted">
+              Envío gratis a todo el país
+            </p>
+          </div>
 
           <TrustBox />
 
           <div className="border-t border-nixon-border">
             {(materialsCopy || careCopy) && (
-              <Accordion title={isSized ? "Composición y cuidados" : "Materiales y terminación"}>
+              <Accordion
+                title={isSized ? "Composición y cuidados" : "Materiales y terminación"}
+                defaultOpen
+              >
                 {materialsCopy && <p>{materialsCopy}</p>}
                 {careCopy && <p className="mt-2">{careCopy}</p>}
               </Accordion>

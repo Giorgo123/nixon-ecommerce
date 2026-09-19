@@ -200,8 +200,22 @@ Desktop: campo de búsqueda siempre visible en la navbar, lupa dentro del campo 
 ## ✅ 42. Galería sticky en la PDP (solo desktop) — hecho
 La imagen principal de `ProductGallery` queda pegada (`lg:sticky lg:top-24`) mientras se scrollea la columna de info al lado (talles, cuotas, envío, acordeones), y se despega sola al llegar al final de esa columna — el grid ya tenía `lg:items-start`, que hace que la fila mida tanto como el contenido más largo sin estirar la imagen. Gateado a `lg:` a propósito: en mobile es una columna única apilada, donde sticky superpondría la foto sobre el resto del contenido en vez de ayudar.
 
-## 📋 Diagnóstico + propuesta — jerarquía y copy de la PDP completa
-Pedido explícitamente como diagnóstico, sin implementar. Ver mensaje aparte con la propuesta detallada (tamaño de fuente, ubicación y sensación de cada bloque: título, descripción, bullets, precio, cuotas, CTA) comparado contra el estándar de una tienda de indumentaria de referencia — pendiente de aprobación antes de tocar código.
+## ✅ 43. Rediseño de jerarquía y copy de la PDP — hecho (aprobado y aplicado)
+Diagnóstico previo (ítem sin número, mensaje aparte) aprobado sin cambios y llevado a código en `products/[slug]/page.tsx` y `TrustBox.tsx`:
+- Título (`h1`) sube de `text-3xl`/`sm:text-4xl` a `text-4xl`/`sm:text-5xl` — vuelve a ser el elemento dominante de la página.
+- Precio de la card baja de `text-3xl` a `text-2xl` — deja de competir en igualdad con el título.
+- Descripción baja a `text-sm text-nixon-muted` con más margen, separada visualmente del título (antes compartían el mismo `space-y-3`).
+- "Disponibilidad" pasa de columna propia con `text-lg font-semibold` a una sola línea `text-xs` alineada a la derecha — dato secundario, no protagonista.
+- "Precio especial por Transferencia" baja a `text-xs` y `emerald-400/80` — sigue siendo verde/diferenciado pero ya no pelea con el precio.
+- `TrustBox.tsx`: sin el fondo plano genérico (`bg-black/5`/`border`), más aire entre ítems (`gap-3`) e íconos más grandes (16px → 20px) — se lee como 3 afirmaciones, no como una lista de compras.
+- El acordeón de Composición/Materiales queda abierto por default (`defaultOpen` en `Accordion.tsx`, ya soportado, no se tocó el componente) — es la pregunta más frecuente según las FAQ de `/contacto`. Devoluciones/envíos y Métodos de pago siguen colapsados.
+- Microcopy "Envío gratis a todo el país" agregado debajo del botón de compra (dato ya real, se repite en el momento exacto de decisión).
+
+## ✅ 44. Título de Testimonios ajustado a la voz de marca — hecho
+Heading cambiado de "Quienes ya andan con esto puesto" a "Lo que dicen los que ya tienen su droop" (edición directa del dueño, sumada al commit del día) — usa el vocabulario real del catálogo ("Droop #N" en varios nombres de producto), sin insinuar reseña verificada.
+
+## Merge a producción — 2026-09-19
+`master` local (desactualizado, sin nada propio que perder) se hizo fast-forward hasta `redesign-nixon-studio` y se pusheó a `origin/master` — sin conflictos, confirmado con `git merge-base` antes de tocar nada. `redesign-nixon-studio` también se sincronizó con `origin`. Nota: no se pudo verificar desde este entorno si Vercel disparó el redeploy (sin CLI/token de Vercel acá) — confirmar en el dashboard.
 
 ---
 
