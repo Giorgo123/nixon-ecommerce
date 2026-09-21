@@ -155,7 +155,7 @@ export default async function ProductDetailPage({
             <p className="text-xs uppercase tracking-[0.3em] text-nixon-crimson-bright">
               {categoryLabel}
             </p>
-            <h1 className="mt-1 text-4xl font-black tracking-tight text-nixon-ink sm:text-5xl">
+            <h1 className="mt-1 text-2xl font-black tracking-tight text-nixon-ink sm:text-5xl">
               {product.name}
             </h1>
             <p className="mt-3 whitespace-pre-line text-sm leading-6 text-nixon-muted">
@@ -167,12 +167,12 @@ export default async function ProductDetailPage({
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="flex items-baseline gap-3">
-                  <p className="text-2xl font-black text-nixon-ink">
+                  <p className="text-xl font-black text-nixon-ink sm:text-2xl">
                     ${price}
                   </p>
                   {isOnSale && (
                     <>
-                      <p className="text-base text-nixon-muted line-through">
+                      <p className="text-sm text-nixon-muted line-through sm:text-base">
                         ${product.compareAtPrice!.toLocaleString("es-AR")}
                       </p>
                       <span className="rounded bg-nixon-crimson px-2 py-0.5 text-xs font-bold uppercase text-white">

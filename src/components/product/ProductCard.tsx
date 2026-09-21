@@ -111,7 +111,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="mt-4 space-y-2">
           <div>
             <span className="flex items-baseline gap-2">
-              <span className="text-lg font-bold text-black dark:text-white">
+              <span className="text-base font-bold text-black dark:text-white sm:text-lg">
                 ${product.price.toLocaleString("es-AR")}
               </span>
               {isOnSale && (
