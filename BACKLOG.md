@@ -248,8 +248,8 @@ No bloqueante — el modelo de datos ya soporta las 4 categorías (`remera`, `bu
 ## ⏳ 50. Cargar STORE_FROM_EMAIL en Vercel
 No bloqueante — sin esta variable, los emails transaccionales (pedido recibido / pago confirmado) salen desde el remitente genérico de Resend (`onboarding@resend.dev`) en vez de uno propio (`pedidos@nixonstudio.com.ar`, ya definido como valor sugerido en `.env.example`), con más riesgo de caer en spam. Cargarla en Vercel (Production) cuando el usuario quiera, sin cambio de código.
 
-## ⏳ Verificación manual pendiente del usuario (no delegable a ningún agente)
-La auditoría de configuración confirmó que `ADMIN_EMAIL`/`ADMIN_PASSWORD` están cargadas en Vercel, pero eso NO confirma qué contraseña tiene hoy el admin real en la base de datos — esas variables solo se aplican si se corre el seed (`npx prisma db seed`). El admin real en la DB (`admin@nixonstudio.com`, creado 23/06) sigue con el mismo email que el placeholder de `.env.example`; falta confirmar manualmente (entrando al login) que la contraseña ya no sea la de ejemplo (`admin123`). Sigue abierto de la auditoría anterior.
+## ✅ 51. Contraseña del admin confirmada como cambiada — hecho
+Verificación manual pendiente de la auditoría anterior, confirmada por el usuario directamente (no delegable a ningún agente, requería probar el login real): la contraseña del admin real en la DB (`admin@nixonstudio.com`) ya no es la de ejemplo (`admin123`) de `.env.example`. Cierra el último punto abierto de la auditoría de configuración de producción del 2026-09-22.
 
 ---
 
