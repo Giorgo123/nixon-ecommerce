@@ -230,6 +230,12 @@ Regla dura del pedido respetada: solo se tocó presentación, ni `route.ts` ni e
 ## ✅ 47. Límite de subida de imágenes de producto: 8MB → 20MB — hecho
 Pedido explícito del cliente. `src/app/api/admin/upload/route.ts`: `MAX_IMAGE_SIZE` sube de 8MB a 20MB. La subida ya viaja directo del navegador a Vercel Blob (no pasa por la función serverless, por el techo de ~4.5MB de Vercel documentado en el comentario del propio archivo) — el límite de 8MB era una decisión de la app, no una restricción técnica real, así que subirlo es seguro. `MAX_VIDEO_SIZE` (50MB) no se tocó, no fue parte del pedido.
 
+## ✅ 48. Jerarquía tipográfica mobile en PDP y precio de ProductCard — hecho
+Pedido con referencia explícita a la proporción de Nike mobile (título con peso pero no dominante, precio presente pero secundario). Solo mobile — todas las clases `sm:`/`lg:` (desktop/tablet) quedan exactamente igual que antes del cambio.
+- **PDP** (`products/[slug]/page.tsx`): `h1` baja de `text-4xl` a `text-2xl` en mobile (36px → 24px). Precio de la card baja de `text-2xl` a `text-xl` (24px → 20px), para que quede claramente por debajo del título en vez de a la par. Precio tachado (oferta) ajustado en la misma proporción.
+- **ProductCard** (`ProductCard.tsx`, única fuente de verdad usada en home/catálogo/`CrossSell`): precio de `text-lg` a `text-base` en mobile (18px → 16px) para que no domine sobre el nombre del producto (14px) — antes el precio era más grande que el título, al revés del estándar de referencia.
+Revisado sin cambios (ya proporcionados, no se tocó nada que ya estuviera bien): `ProductActions.tsx`, `TrustBox.tsx`, `Accordion.tsx` — ya en una escala `text-sm`/`text-xs` consistente. No se pudo hacer una verificación visual con screenshot en este entorno (sin herramienta de browser) — confirmar en un dispositivo real.
+
 ---
 
 Nuevos ítems se agregan acá solo si de verdad refuerzan la tienda, con el mismo formato: motivo + qué se hizo/qué falta.
