@@ -227,6 +227,9 @@ Segunda vuelta sobre el ítem 45: el tope de "6 bancos + y N más" seguía siend
 - **Pluralización corregida**: "1 cuota sin interés" (singular) vs "N cuotas sin interés" (plural) — antes decía "cuotas" fijo sin importar el número.
 Regla dura del pedido respetada: solo se tocó presentación, ni `route.ts` ni el fetch ni el shape de datos cambiaron. No se pudo verificar visualmente contra la API real de Mercado Pago desde este entorno (sin token local) — confirmar en el sitio desplegado.
 
+## ✅ 47. Límite de subida de imágenes de producto: 8MB → 20MB — hecho
+Pedido explícito del cliente. `src/app/api/admin/upload/route.ts`: `MAX_IMAGE_SIZE` sube de 8MB a 20MB. La subida ya viaja directo del navegador a Vercel Blob (no pasa por la función serverless, por el techo de ~4.5MB de Vercel documentado en el comentario del propio archivo) — el límite de 8MB era una decisión de la app, no una restricción técnica real, así que subirlo es seguro. `MAX_VIDEO_SIZE` (50MB) no se tocó, no fue parte del pedido.
+
 ---
 
 Nuevos ítems se agregan acá solo si de verdad refuerzan la tienda, con el mismo formato: motivo + qué se hizo/qué falta.
