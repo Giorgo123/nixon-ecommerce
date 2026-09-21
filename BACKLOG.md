@@ -238,4 +238,19 @@ Revisado sin cambios (ya proporcionados, no se tocó nada que ya estuviera bien)
 
 ---
 
+## Auditoría de configuración de producción — 2026-09-22
+
+Auditoría completa contra Vercel (env vars, confirmadas por el usuario) y la base de datos real de Railway (productos, cupones, pedidos, admin). Resultado: los 12 secrets/config críticos están cargados en Production (`MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET`, `NEXT_PUBLIC_SITE_URL`, `SESSION_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `RESEND_API_KEY`, `STORE_NOTIFICATION_EMAIL`, `BLOB_READ_WRITE_TOKEN`, `DATABASE_URL`, más `BLOB_WEBHOOK_PUBLIC_KEY`/`BLOB_STORE_ID` que agrega la integración de Vercel Blob sola). Legales, sitemap, robots y JSON-LD verificados completos y sin placeholders sin llenar.
+
+## ⏳ 49. Cargar productos de las categorías buzo/taza/poster
+No bloqueante — el modelo de datos ya soporta las 4 categorías (`remera`, `buzo`, `taza`, `poster`), el catálogo hoy solo tiene remeras cargadas (26 productos, confirmado contra la DB real) porque todavía no se cargaron productos de las otras 3 desde `/admin/products`. Se puede hacer en cualquier momento, sin cambio de código.
+
+## ⏳ 50. Cargar STORE_FROM_EMAIL en Vercel
+No bloqueante — sin esta variable, los emails transaccionales (pedido recibido / pago confirmado) salen desde el remitente genérico de Resend (`onboarding@resend.dev`) en vez de uno propio (`pedidos@nixonstudio.com.ar`, ya definido como valor sugerido en `.env.example`), con más riesgo de caer en spam. Cargarla en Vercel (Production) cuando el usuario quiera, sin cambio de código.
+
+## ⏳ Verificación manual pendiente del usuario (no delegable a ningún agente)
+La auditoría de configuración confirmó que `ADMIN_EMAIL`/`ADMIN_PASSWORD` están cargadas en Vercel, pero eso NO confirma qué contraseña tiene hoy el admin real en la base de datos — esas variables solo se aplican si se corre el seed (`npx prisma db seed`). El admin real en la DB (`admin@nixonstudio.com`, creado 23/06) sigue con el mismo email que el placeholder de `.env.example`; falta confirmar manualmente (entrando al login) que la contraseña ya no sea la de ejemplo (`admin123`). Sigue abierto de la auditoría anterior.
+
+---
+
 Nuevos ítems se agregan acá solo si de verdad refuerzan la tienda, con el mismo formato: motivo + qué se hizo/qué falta.
