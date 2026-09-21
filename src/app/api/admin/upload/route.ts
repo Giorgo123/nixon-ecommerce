@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { isAdminSessionActive } from "@/lib/admin-session";
 
-const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
+// Subida directa del navegador a Vercel Blob (ver comentario más abajo):
+// este límite no choca contra el techo de ~4.5MB de las funciones
+// serverless de Vercel, solo es el tope propio de la app. 20MB cubre fotos
+// de cámara/DSLR sin comprimir, que 8MB rechazaba de más.
+const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
 
 const imageContentTypes = ["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"];
