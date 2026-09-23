@@ -14,8 +14,7 @@ import type { NextConfig } from "next";
 const cspHeader = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' https://www.googletagmanager.com;
-  connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com;
-  img-src 'self' data: https://*.public.blob.vercel-storage.com;
+  connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://vercel.com https://*.public.blob.vercel-storage.com;  img-src 'self' data: blob: https://*.public.blob.vercel-storage.com;
   style-src 'self' 'unsafe-inline';
   font-src 'self' data:;
   frame-ancestors 'none';

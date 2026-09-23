@@ -58,21 +58,52 @@ const extensionByMimeType: Record<string, string> = {
 // CUALQUIER video con un 413 en texto plano (de ahi el "Unexpected token
 // 'R'... is not valid JSON" que se veia en el admin). /api/admin/upload
 // ahora solo emite un token firmado de corta duracion.
-async function uploadFile(file: File, kind: "image" | "video" = "image"): Promise<string> {
+async function uploadFile(
+  file: File,
+  kind: "image" | "video" = "image",
+  onStatusChange?: (status: string | null) => void
+): Promise<string> {
   const extension = extensionByMimeType[file.type] ?? file.name.split(".").pop() ?? "bin";
 
+  let rawUrl: string;
   try {
     const blob = await upload(`products/${crypto.randomUUID()}.${extension}`, file, {
       access: "public",
       handleUploadUrl: "/api/admin/upload",
       clientPayload: kind,
     });
-    return blob.url;
+    rawUrl = blob.url;
   } catch (error) {
     throw new Error(
       error instanceof Error && error.message
         ? error.message
         : "No se pudo subir el archivo. Probá con uno más liviano."
+    );
+  }
+
+  // El video no se optimiza (no es parte de este pedido, y el pipeline de
+  // optimizacion de Vercel es especificamente de imagenes) - se sube tal
+  // cual, mismo comportamiento que antes.
+  if (kind !== "image") return rawUrl;
+
+  onStatusChange?.("Procesando imagen...");
+  try {
+    const response = await fetch("/api/admin/optimize-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: rawUrl, contentType: file.type }),
+    });
+    const payload = await parseJsonResponse<{ url: string; error?: string }>(response);
+    if (!response.ok) {
+      throw new Error(payload.error ?? "No se pudo optimizar la imagen.");
+    }
+    onStatusChange?.("Imagen optimizada correctamente");
+    return payload.url;
+  } catch (error) {
+    throw new Error(
+      error instanceof Error && error.message
+        ? error.message
+        : "No se pudo optimizar la imagen. Probá con otro archivo."
     );
   }
 }
@@ -99,6 +130,7 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageStatus, setImageStatus] = useState<string | null>(null);
 
   const hasSizes = isSizedCategory(category);
 
@@ -155,7 +187,7 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
       let imageUrl = product?.image ?? "";
 
       if (imageFile) {
-        imageUrl = await uploadFile(imageFile, "image");
+        imageUrl = await uploadFile(imageFile, "image", setImageStatus);
       }
 
       let finalVideoUrl = videoUrl;
@@ -165,7 +197,9 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
 
       const galleryUrls: string[] = [];
       for (const item of gallery) {
-        galleryUrls.push(item.url ?? (await uploadFile(item.file as File, "image")));
+        galleryUrls.push(
+          item.url ?? (await uploadFile(item.file as File, "image", setImageStatus))
+        );
       }
 
       const variants = hasSizes
@@ -208,6 +242,7 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
       setError(submitError instanceof Error ? submitError.message : "Error desconocido");
     } finally {
       setLoading(false);
+      setImageStatus(null);
     }
   }
 
@@ -483,6 +518,9 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
         </div>
       </div>
 
+      {imageStatus && !error && (
+        <p className="text-sm text-black/60 dark:text-white/60">{imageStatus}</p>
+      )}
       {error && <p className="text-sm text-red-500">{error}</p>}
 
       <div className="flex gap-3">
