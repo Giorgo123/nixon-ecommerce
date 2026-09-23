@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { upload } from "@vercel/blob/client";
+import { compressVideo } from "@/lib/video-compression";
 import type { Product } from "@/features/products/types";
 import { catalogCategoryLabels, productCategories } from "@/lib/categories";
 import { isSizedCategory } from "@/lib/constants/commerce-copy";
@@ -130,7 +131,7 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [imageStatus, setImageStatus] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
 
   const hasSizes = isSizedCategory(category);
 
@@ -187,18 +188,32 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
       let imageUrl = product?.image ?? "";
 
       if (imageFile) {
-        imageUrl = await uploadFile(imageFile, "image", setImageStatus);
+        imageUrl = await uploadFile(imageFile, "image", setUploadStatus);
       }
 
       let finalVideoUrl = videoUrl;
       if (videoFile) {
-        finalVideoUrl = await uploadFile(videoFile, "video");
+        let videoToUpload = videoFile;
+        try {
+          videoToUpload = await compressVideo(videoFile, (ratio) => {
+            setUploadStatus(`Comprimiendo video... ${Math.round(ratio * 100)}%`);
+          });
+        } catch (compressionError) {
+          // Si la compresión falla (navegador sin soporte de WASM/Workers,
+          // fallo de red bajando el compresor, etc.) no se bloquea la
+          // subida: se sube el video original sin comprimir en vez de
+          // dejar al admin sin poder cargar nada.
+          console.error("No se pudo comprimir el video, se sube sin comprimir:", compressionError);
+        }
+        setUploadStatus("Subiendo video...");
+        finalVideoUrl = await uploadFile(videoToUpload, "video");
+        setUploadStatus(null);
       }
 
       const galleryUrls: string[] = [];
       for (const item of gallery) {
         galleryUrls.push(
-          item.url ?? (await uploadFile(item.file as File, "image", setImageStatus))
+          item.url ?? (await uploadFile(item.file as File, "image", setUploadStatus))
         );
       }
 
@@ -242,7 +257,7 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
       setError(submitError instanceof Error ? submitError.message : "Error desconocido");
     } finally {
       setLoading(false);
-      setImageStatus(null);
+      setUploadStatus(null);
     }
   }
 
@@ -518,8 +533,8 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
         </div>
       </div>
 
-      {imageStatus && !error && (
-        <p className="text-sm text-black/60 dark:text-white/60">{imageStatus}</p>
+      {uploadStatus && !error && (
+        <p className="text-sm text-black/60 dark:text-white/60">{uploadStatus}</p>
       )}
       {error && <p className="text-sm text-red-500">{error}</p>}
 

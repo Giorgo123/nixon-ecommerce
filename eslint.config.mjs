@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // ffmpeg-core.js: build artifact de @ffmpeg/core copiado tal cual a
+    // public/ para self-host (ver src/lib/video-compression.ts) — no es
+    // código propio, no tiene sentido lintearlo.
+    "public/ffmpeg/**",
   ]),
 ]);
 
