@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 
 type MediaItem = { type: "image"; src: string } | { type: "video"; src: string };
@@ -196,7 +197,16 @@ function ImageLightbox({ open, onClose, src, alt, hasMultiple, onPrev, onNext }:
     setZoomStyle({ transformOrigin: `${x}% ${y}%` });
   }
 
-  return (
+  // Portal directo a document.body: renderizado dentro del arbol de la PDP
+  // (adentro del wrapper `lg:sticky` de la galeria), el z-[70] quedaba
+  // atrapado dentro del stacking context de ese ancestro y no lograba
+  // taparse por encima del navbar (z-40) a pesar de tener un z-index mayor
+  // en numero — bug real visto en produccion (el navbar quedaba nitido
+  // arriba del overlay difuminado). El portal escapa de cualquier
+  // ancestro y deja al lightbox comparando z-index directo contra el
+  // resto de la pagina, igual que CartDrawer/WhatsappButton, montados
+  // directo en SiteShell en vez de adentro de una pagina especifica.
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -259,7 +269,8 @@ function ImageLightbox({ open, onClose, src, alt, hasMultiple, onPrev, onNext }:
           ].join(" ")}
         />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
