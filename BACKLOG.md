@@ -268,6 +268,14 @@ Extensión del ítem 52: a diferencia de imágenes, no existe ningún equivalent
 - Tests nuevos: `src/lib/video-compression.test.ts` (7 casos), mockeando `@ffmpeg/ffmpeg`/`@ffmpeg/util` — **la transcodificación real no es testeable en este entorno** (necesita WebAssembly + Web Workers de un navegador real, igual que hubiera pasado con Canvas API para imágenes), se testea la lógica propia (comando armado, criterio de "nunca empeorar", manejo de errores, cleanup), no la compresión en sí.
 - Verificado: lint, tsc, 126/126 tests, build — todos limpios. Confirmado en vivo que `ffmpeg-core.wasm`/`.js` se sirven correctamente desde `/ffmpeg/` con el content-type correcto (`application/wasm`). **No se pudo probar la transcodificación real en un navegador** (sin herramienta de browser en este entorno) — probar subiendo un video real en el admin.
 
+## ✅ 54. Lightbox de imagen en la PDP (click para ampliar, fondo difuminado) — hecho
+Al hacer click en la foto principal de `ProductGallery.tsx` se abre un visor a pantalla completa con la imagen centrada y el fondo oscurecido/difuminado (`bg-black/85 backdrop-blur-md`), mismo estilo que usan tiendas grandes tipo MercadoLibre. Investigado primero (mismo criterio que imágenes/video): se reusaron 2 patrones ya existentes en el proyecto en vez de inventar uno nuevo —
+- El modal en sí sigue exactamente la estructura de `SizeGuideModal.tsx` (`role="dialog"`, `aria-modal`, overlay con `backdrop-blur`, Escape cierra).
+- El manejo de foco/scroll sigue el de `CartDrawer.tsx` (guarda y devuelve el foco al elemento que abrió el visor, bloquea el scroll del `body` mientras está abierto).
+- El efecto de zoom al hover ("lupa") que ya existía en la vista inline se conservó sin tocar, y además ahora también funciona dentro del visor ampliado sobre la imagen grande.
+Extra no pedido explícitamente pero consistente con un visor de imagen estándar: flechas prev/siguiente dentro del modal (reusa la misma navegación de `goTo()` de la galería) y las teclas ←/→ para cambiar de foto sin cerrar el visor.
+Verificado: lint, tsc, 126/126 tests (sin tests nuevos — es interacción de UI pura, mismo criterio que el resto del admin/PDP, este repo no tiene infraestructura de testing de componentes), build — todos limpios. Confirmado en vivo que el botón "Ampliar foto" aparece en el HTML real con el `aria-label` correcto. **No se pudo verificar la apertura/cierre del modal en un navegador real** (sin herramienta de browser en este entorno) — abrir una PDP y clickear la foto para confirmar visualmente.
+
 ---
 
 Nuevos ítems se agregan acá solo si de verdad refuerzan la tienda, con el mismo formato: motivo + qué se hizo/qué falta.

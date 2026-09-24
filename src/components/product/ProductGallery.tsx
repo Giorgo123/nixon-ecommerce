@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import Image from "next/image";
 
 type MediaItem = { type: "image"; src: string } | { type: "video"; src: string };
@@ -19,13 +19,14 @@ export default function ProductGallery({ images, videoUrl, alt }: ProductGallery
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [zoomStyle, setZoomStyle] = useState<{ transformOrigin: string } | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const active = media[activeIndex] ?? media[0];
 
   function goTo(index: number) {
     setActiveIndex((index + media.length) % media.length);
   }
 
-  function handleMouseMove(event: MouseEvent<HTMLDivElement>) {
+  function handleMouseMove(event: MouseEvent<HTMLButtonElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width) * 100;
     const y = ((event.clientY - rect.top) / rect.height) * 100;
@@ -78,8 +79,11 @@ export default function ProductGallery({ images, videoUrl, alt }: ProductGallery
             className="h-full w-full object-contain bg-black"
           />
         ) : (
-          <div
-            className="h-full w-full cursor-zoom-in overflow-hidden"
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(true)}
+            aria-label={`Ampliar foto de ${alt}`}
+            className="block h-full w-full cursor-zoom-in overflow-hidden"
             onMouseMove={handleMouseMove}
             onMouseLeave={() => setZoomStyle(null)}
           >
@@ -96,7 +100,7 @@ export default function ProductGallery({ images, videoUrl, alt }: ProductGallery
                 zoomStyle ? "scale-[1.8]" : "scale-100",
               ].join(" ")}
             />
-          </div>
+          </button>
         )}
 
         {media.length > 1 && (
@@ -120,6 +124,141 @@ export default function ProductGallery({ images, videoUrl, alt }: ProductGallery
           </>
         )}
       </div>
+
+      {active.type === "image" && (
+        <ImageLightbox
+          open={lightboxOpen}
+          onClose={() => setLightboxOpen(false)}
+          src={active.src}
+          alt={alt}
+          hasMultiple={media.length > 1}
+          onPrev={() => goTo(activeIndex - 1)}
+          onNext={() => goTo(activeIndex + 1)}
+        />
+      )}
+    </div>
+  );
+}
+
+interface ImageLightboxProps {
+  open: boolean;
+  onClose: () => void;
+  src: string;
+  alt: string;
+  hasMultiple: boolean;
+  onPrev: () => void;
+  onNext: () => void;
+}
+
+// Visor a pantalla completa al hacer click en la imagen principal — mismo
+// patrón de modal que SizeGuideModal.tsx (backdrop-blur + role="dialog")
+// y el manejo de foco/teclado de CartDrawer.tsx (guarda y devuelve el foco,
+// bloquea el scroll del body mientras está abierto, Escape cierra). La
+// imagen conserva el mismo efecto de zoom al hover ("lupa") que ya tiene
+// la vista inline, ahora sobre la versión ampliada.
+function ImageLightbox({ open, onClose, src, alt, hasMultiple, onPrev, onNext }: ImageLightboxProps) {
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+  const [zoomStyle, setZoomStyle] = useState<{ transformOrigin: string } | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+      if (hasMultiple && event.key === "ArrowLeft") onPrev();
+      if (hasMultiple && event.key === "ArrowRight") onNext();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [open, onClose, onPrev, onNext, hasMultiple]);
+
+  useEffect(() => {
+    if (open) {
+      previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+      closeButtonRef.current?.focus();
+    } else {
+      previouslyFocusedRef.current?.focus();
+      previouslyFocusedRef.current = null;
+    }
+  }, [open]);
+
+  if (!open) return null;
+
+  function handleMouseMove(event: MouseEvent<HTMLDivElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    setZoomStyle({ transformOrigin: `${x}% ${y}%` });
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Foto ampliada de ${alt}`}
+      className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-8"
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Cerrar imagen ampliada"
+        className="absolute inset-0 bg-black/85 backdrop-blur-md"
+      />
+
+      <button
+        ref={closeButtonRef}
+        type="button"
+        onClick={onClose}
+        aria-label="Cerrar"
+        className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-nixon-bg-deep/80 text-nixon-ink transition-colors hover:bg-nixon-crimson focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nixon-crimson-bright sm:right-6 sm:top-6"
+      >
+        <CloseIcon />
+      </button>
+
+      {hasMultiple && (
+        <>
+          <button
+            type="button"
+            onClick={onPrev}
+            aria-label="Foto anterior"
+            className="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-nixon-bg-deep/80 text-nixon-ink transition-colors hover:bg-nixon-crimson focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nixon-crimson-bright sm:left-6"
+          >
+            <ArrowIcon direction="left" />
+          </button>
+          <button
+            type="button"
+            onClick={onNext}
+            aria-label="Foto siguiente"
+            className="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-nixon-bg-deep/80 text-nixon-ink transition-colors hover:bg-nixon-crimson focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nixon-crimson-bright sm:right-6"
+          >
+            <ArrowIcon direction="right" />
+          </button>
+        </>
+      )}
+
+      <div
+        className="relative aspect-[4/5] h-full max-h-[85vh] w-auto max-w-[90vw] cursor-zoom-in overflow-hidden rounded-2xl shadow-2xl"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setZoomStyle(null)}
+      >
+        <Image
+          key={src}
+          src={src}
+          alt={alt}
+          fill
+          sizes="90vw"
+          style={zoomStyle ?? undefined}
+          className={[
+            "object-contain transition-transform duration-200 ease-out",
+            zoomStyle ? "scale-[1.8]" : "scale-100",
+          ].join(" ")}
+        />
+      </div>
     </div>
   );
 }
@@ -136,6 +275,14 @@ function PlayIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M8 5v14l11-7Z" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+      <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
     </svg>
   );
 }
