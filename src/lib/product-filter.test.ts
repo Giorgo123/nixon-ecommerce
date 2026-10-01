@@ -50,6 +50,15 @@ describe("filterProducts", () => {
     expect(result.map((p) => p.id)).toEqual(["3"]);
   });
 
+  it("matches accented text typed without accents (and vice versa)", () => {
+    // La descripción por defecto dice "100% algodón": se busca "algodon".
+    expect(filterProducts(products, { search: "algodon" }).map((p) => p.id).sort()).toEqual(["1", "2"]);
+    // "Edicion" sin tilde en el nombre del producto 9, "edición" con tilde en
+    // la búsqueda: el resultado tiene que ser el mismo.
+    const accented = [makeProduct({ id: "9", name: "Remera Oversize Edicion 2" })];
+    expect(filterProducts(accented, { search: "edición" })).toHaveLength(1);
+  });
+
   it("returns nothing when the search matches no product", () => {
     expect(filterProducts(products, { search: "no-existe" })).toHaveLength(0);
   });

@@ -35,9 +35,21 @@ export default function ProductGallery({ images, videoUrl, alt }: ProductGallery
   }
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row">
+    // sm:items-start: la foto principal conserva su aspect-[4/5] en vez de
+    // estirarse a la altura que imponga la tira de thumbnails.
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
       {media.length > 1 && (
-        <div className="order-2 flex gap-2 overflow-x-auto sm:order-1 sm:w-20 sm:flex-col sm:overflow-y-auto">
+        // w-full + min-w-0: la tira de thumbnails scrollea, pero su ancho lo
+        // manda el contenedor y no su contenido. Sin esto el min-content de la
+        // tira (64px x N + gaps) sube por el flex/grid del PDP y ensancha la
+        // pagina entera en mobile (overflow horizontal de hasta 880px).
+        // sm:max-h-[calc(100vh-8rem)] + sm:overflow-y-auto: en sm+ la tira es
+        // una columna vertical, y con productos de muchas fotos (17 medios x
+        // 80px + gaps = 1488px) llegaba a medir mas que la pantalla — el
+        // sm:overflow-y-auto que ya estaba en el codigo nunca llegaba a
+        // activarse y la galeria perdia el sticky de lg: por no tener alto
+        // libre en la fila del grid.
+        <div className="order-2 flex w-full min-w-0 gap-2 overflow-x-auto sm:order-1 sm:w-20 sm:max-h-[calc(100vh-8rem)] sm:flex-col sm:overflow-y-auto">
           {media.map((item, index) => (
             <button
               key={item.src + index}

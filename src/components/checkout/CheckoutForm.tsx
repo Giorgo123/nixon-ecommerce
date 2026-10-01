@@ -326,7 +326,7 @@ export default function CheckoutForm() {
               value={couponInput}
               onChange={(event) => setCouponInput(event.target.value)}
               placeholder="Código de cupón"
-              className="flex-1 rounded-xl border border-nixon-border bg-nixon-bg-deep px-4 py-3 text-sm text-nixon-ink placeholder:text-nixon-muted transition-colors focus:border-nixon-crimson focus:outline-none focus:ring-1 focus:ring-nixon-crimson/30"
+              className="min-w-0 flex-1 rounded-xl border border-nixon-border bg-nixon-bg-deep px-4 py-3 text-sm text-nixon-ink placeholder:text-nixon-muted transition-colors focus:border-nixon-crimson focus:outline-none focus:ring-1 focus:ring-nixon-crimson/30"
             />
             <button
               type="button"

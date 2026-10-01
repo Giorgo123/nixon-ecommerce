@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSyncExternalStore } from "react";
 import { motion, useMotionValueEvent, useReducedMotion, useScroll } from "framer-motion";
 import useCartStore from "@/store/cart.store";
 import PromoBar from "@/components/layout/PromoBar";
+import SearchBox from "@/components/layout/SearchBox";
 import { productCategories, catalogFilterLabels } from "@/lib/categories";
 
 const subscribeNoop = () => () => {};
@@ -24,15 +24,12 @@ const catalogLinks = [
 ];
 
 export default function Navbar() {
-  const router = useRouter();
   const itemsCount = useCartStore((state) => state.getItemsCount());
   const openDrawer = useCartStore((state) => state.openDrawer);
   // The cart is persisted to localStorage, so its real value is only known
   // after hydration; render the server/first-paint snapshot (false) until then.
   const hasMounted = useSyncExternalStore(subscribeNoop, () => true, () => false);
 
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [mobileCatalogOpen, setMobileCatalogOpen] = useState(false);
@@ -61,6 +58,22 @@ export default function Navbar() {
     };
   }, [catalogOpen]);
 
+  // Cierra los menus cuando el usuario navega con el boton atras/adelante.
+  // El resto de las navegaciones ya los cierra explicitamente: cada link del
+  // panel y del menu movil tiene su onClick, y el click fuera esta cubierto
+  // por el listener de arriba. Es un listener y no un efecto con setState
+  // porque el estado se actualiza desde un evento, no en cascada al renderizar.
+  useEffect(() => {
+    function handlePopState() {
+      setCatalogOpen(false);
+      setMobileCatalogOpen(false);
+      setMenuOpen(false);
+    }
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   const reduceMotion = useReducedMotion();
   const headerRef = useRef<HTMLElement>(null);
   const lastScrollY = useRef(0);
@@ -88,13 +101,6 @@ export default function Navbar() {
 
     lastScrollY.current = latest;
   });
-
-  function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const query = searchValue.trim();
-    setSearchOpen(false);
-    router.push(query ? `/products?search=${encodeURIComponent(query)}` : "/products");
-  }
 
   return (
     <div className="sticky top-0 z-40">
@@ -131,34 +137,54 @@ export default function Navbar() {
               className="relative"
               onMouseEnter={() => setCatalogOpen(true)}
               onMouseLeave={() => setCatalogOpen(false)}
+              onFocus={() => setCatalogOpen(true)}
+              onBlur={(event) => {
+                // Mantiene el dropdown abierto mientras el foco siga dentro
+                // (trigger -> links del panel) y lo cierra al salir.
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                  setCatalogOpen(false);
+                }
+              }}
             >
-              <button
-                type="button"
-                onClick={() => setCatalogOpen((open) => !open)}
+              {/* El trigger es un link al catálogo general: hover abre el
+                  dropdown y click navega a /products. Antes era un <button> que
+                  sólo alternaba el panel, así que "Catálogo" no llevaba a
+                  ningún lado. */}
+              <Link
+                href="/products"
+                onClick={() => setCatalogOpen(false)}
                 aria-expanded={catalogOpen}
                 aria-haspopup="true"
-                className="flex items-center gap-1 transition-colors hover:text-nixon-crimson-bright"
+                aria-controls="navbar-catalog-menu"
+                className="flex items-center gap-1 py-2 transition-colors hover:text-nixon-crimson-bright"
               >
                 Catálogo
                 <ChevronIcon open={catalogOpen} />
-              </button>
+              </Link>
 
               {catalogOpen && (
                 <div
                   role="menu"
-                  className="absolute left-0 top-full z-50 mt-2 w-56 rounded-xl border border-nixon-border bg-nixon-surface py-2 shadow-lg shadow-black/40"
+                  id="navbar-catalog-menu"
+                  // El `pt-2` (en vez de `mt-2`) vive DENTRO del panel: es un
+                  // puente de hover real. Con `mt-2` quedaban 8px de hueco
+                  // entre trigger y panel, y al cruzarlos `onMouseLeave`
+                  // cerraba el dropdown antes de poder entrar al panel.
+                  className="absolute left-0 top-full z-50 w-56 pt-2"
                 >
-                  {catalogLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      role="menuitem"
-                      onClick={() => setCatalogOpen(false)}
-                      className="block px-4 py-2.5 text-sm text-nixon-ink-dim transition-colors hover:bg-nixon-bg hover:text-nixon-crimson-bright"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
+                  <div className="rounded-xl border border-nixon-border bg-nixon-surface py-2 shadow-lg shadow-black/40">
+                    {catalogLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        role="menuitem"
+                        onClick={() => setCatalogOpen(false)}
+                        className="block px-4 py-2.5 text-sm text-nixon-ink-dim transition-colors hover:bg-nixon-bg hover:text-nixon-crimson-bright"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -170,53 +196,29 @@ export default function Navbar() {
           <div className="flex items-center gap-1 sm:gap-2">
             {/* Desktop: barra de búsqueda siempre visible, ícono de lupa
                 DENTRO del campo a la izquierda (no un botón que abre otra
-                cosa). Fondo gris claro a propósito, distinto del resto de
-                la navbar oscura — es un control funcional, no una pieza de
-                identidad de marca. */}
-            <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
-              <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-              <input
-                type="search"
-                value={searchValue}
-                onChange={(event) => setSearchValue(event.target.value)}
-                placeholder="Buscar"
-                aria-label="Buscar productos"
-                className="h-10 w-40 rounded-full border-0 bg-gray-100 pl-9 pr-4 text-sm text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-nixon-crimson-bright lg:w-56"
-              />
-            </form>
+                cosa). Fondo gris claro a propósito, distinto del resto de la
+                navbar oscura — es un control funcional, no una pieza de
+                identidad de marca. El panel de sugerencias se ancla a la
+                derecha del campo para crecer hacia la izquierda y no salirse
+                del viewport. */}
+            <SearchBox
+              variant="desktop"
+              className="relative hidden sm:block"
+              inputClassName="h-10 w-40 rounded-full border-0 bg-gray-100 pl-9 pr-4 text-sm text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-nixon-crimson-bright lg:w-56"
+              panelClassName="right-0 w-80"
+            />
 
             {/* Mobile: no entra una barra fija junto al logo/carrito — se
-                mantiene el ícono que despliega el mismo campo, con el
-                mismo estilo visual que la versión de desktop. */}
-            <div className="relative flex items-center sm:hidden">
-              {searchOpen && (
-                <form onSubmit={handleSearchSubmit} className="absolute right-0 top-1/2 -translate-y-1/2">
-                  <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                  <input
-                    type="search"
-                    autoFocus
-                    value={searchValue}
-                    onChange={(event) => setSearchValue(event.target.value)}
-                    onBlur={() => !searchValue && setSearchOpen(false)}
-                    placeholder="Buscar"
-                    aria-label="Buscar productos"
-                    className="h-10 w-48 rounded-full border-0 bg-gray-100 pl-9 pr-4 text-sm text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-nixon-crimson-bright"
-                  />
-                </form>
-              )}
-              <button
-                type="button"
-                onClick={() => setSearchOpen((open) => !open)}
-                aria-label="Buscar"
-                aria-expanded={searchOpen}
-                className={[
-                  "flex h-11 w-11 items-center justify-center rounded-full text-nixon-ink-dim transition-colors hover:text-nixon-crimson-bright",
-                  searchOpen ? "invisible" : "visible",
-                ].join(" ")}
-              >
-                <SearchIcon />
-              </button>
-            </div>
+                mantiene el ícono que despliega el mismo campo, con el mismo
+                estilo visual que la versión de desktop. */}
+            <SearchBox
+              variant="mobile"
+              className="relative flex items-center sm:hidden"
+              formClassName="absolute right-0 top-1/2 -translate-y-1/2"
+              inputClassName="h-10 w-48 rounded-full border-0 bg-gray-100 pl-9 pr-4 text-sm text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-nixon-crimson-bright"
+              panelClassName="-left-16 w-64 max-w-[calc(100vw-1rem)]"
+              autoFocus
+            />
 
             <button
               type="button"
@@ -304,24 +306,6 @@ function ChevronIcon({ open }: { open: boolean }) {
       className={`transition-transform ${open ? "rotate-180" : ""}`}
     >
       <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function SearchIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-      className={className}
-    >
-      <circle cx="11" cy="11" r="7" />
-      <path d="m21 21-4.35-4.35" strokeLinecap="round" />
     </svg>
   );
 }

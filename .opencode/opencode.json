@@ -1,0 +1,41 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "shell": "pwsh",
+  "default_agent": "orchestrator",
+
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama Local",
+      "options": {
+        "baseURL": "http://127.0.0.1:11434/v1"
+      },
+      "models": {
+        "qwen2.5-coder-7b-opencode": {
+          "name": "Qwen 2.5 Coder 7B OpenCode",
+          "options": {
+            "num_ctx": 32768
+          }
+        }
+      }
+    }
+  },
+
+  "agent": {
+    "orchestrator": {
+      "description": "Senior software engineer working directly on the Nixon Studio repository.",
+      "mode": "primary",
+      "model": "ollama/qwen2.5-coder-7b-opencode",
+
+      "permission": {
+        "read": "allow",
+        "edit": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "bash": "allow",
+        "webfetch": "allow",
+        "task": "deny"
+      }
+    }
+  }
+}

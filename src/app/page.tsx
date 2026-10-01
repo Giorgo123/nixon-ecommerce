@@ -8,6 +8,7 @@ import InstallmentsShowcase from "@/components/home/InstallmentsShowcase";
 import BrandManifesto from "@/components/home/BrandManifesto";
 import Testimonials from "@/components/home/Testimonials";
 import Lookbook from "@/components/home/Lookbook";
+import EditorialTriptych from "@/components/home/EditorialTriptych";
 import { getCatalogProducts } from "@/lib/catalog";
 
 // Se revalida al instante cuando el admin crea/edita/borra un producto
@@ -35,6 +36,22 @@ export default async function Home() {
   const featuredIds = new Set(featuredProducts.map((product) => product.id));
   const nonFeatured = products.filter((product) => !featuredIds.has(product.id));
   const bannerProducts = (nonFeatured.length >= 3 ? nonFeatured : products).slice(0, 3);
+
+  // Fotos del cierre editorial. Se eligen productos que NO aparecen en el
+  // banner ni en el grid de destacados (asi el home no muestra dos veces la
+  // misma prenda) y que tengan al menos 3 fotos de galeria, de las cuales la
+  // seccion usa images[index]: la portada ya se ve en todos los bloques
+  // anteriores, la galeria es material nuevo. Entre los que califican se
+  // prioriza el que mas fotos tiene; a igual cantidad gana el orden del
+  // catalogo (mas reciente primero), asi la eleccion es estable entre builds.
+  const alreadyShownIds = new Set([
+    ...featuredProducts.map((product) => product.id),
+    ...bannerProducts.map((product) => product.id),
+  ]);
+  const editorialProducts = products
+    .filter((product) => !alreadyShownIds.has(product.id) && product.images.length >= 3)
+    .sort((a, b) => b.images.length - a.images.length)
+    .slice(0, 3);
 
   return (
     <main className="min-h-screen bg-white dark:bg-black">
@@ -78,6 +95,7 @@ export default async function Home() {
       <BrandManifesto />
       <Testimonials />
       <Lookbook products={products} />
+      <EditorialTriptych products={editorialProducts} />
     </main>
   );
 }

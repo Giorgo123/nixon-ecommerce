@@ -135,14 +135,19 @@ export default async function ProductDetailPage({
         </Link>
       </div>
 
-      <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+      {/* grid-cols-[minmax(0,1fr)] en mobile: sin esto la columna implicita
+          queda en `auto`, cuyo minimo es el min-content de la galeria (la tira
+          de thumbs scrolleable), y eso empujaba el ancho de toda la pagina
+          (document.scrollWidth 1240px en un viewport de 390px). El min-w-0 de
+          los dos hijos evita lo mismo en las columnas fr de lg. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
         {/* Sticky solo en desktop (lg:): la galería sigue visible mientras
             se scrollea la columna de info, y se despega sola al llegar al
             final de esa columna porque la fila del grid (con lg:items-start)
             queda tan alta como el contenido más largo. En mobile es una sola
             columna apilada — ahí sticky superpondría la foto sobre el resto
             del contenido, así que no se aplica. */}
-        <div className="lg:sticky lg:top-24">
+        <div className="min-w-0 lg:sticky lg:top-24">
           <ProductGallery
             images={[product.image, ...product.images]}
             videoUrl={product.videoUrl}
@@ -150,7 +155,7 @@ export default async function ProductDetailPage({
           />
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-nixon-crimson-bright">
               {categoryLabel}

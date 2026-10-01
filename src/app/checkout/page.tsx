@@ -27,7 +27,11 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+      {/* grid-cols-[minmax(0,1fr)] en mobile: la columna implicita en `auto`
+          usa como minimo el min-content del form (los inputs tienen ancho
+          intrinseco por su atributo size) y eso estiraba el <main> hasta
+          380px en un viewport de 320/375px. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[1.2fr_0.8fr]">
         <CheckoutForm />
         <CartSummary />
       </div>

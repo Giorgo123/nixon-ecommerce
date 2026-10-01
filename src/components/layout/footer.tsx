@@ -9,7 +9,12 @@ export default function Footer() {
     <footer className="mt-auto bg-nixon-bg-deep text-nixon-muted">
       <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
-          <div className="lg:col-span-2">
+          {/* min-w-0: sin esto la columna implicita del footer (mobile/tablet)
+              toma como minimo el min-content del formulario de newsletter — el
+              input flex-1 aporta su ancho intrinseco (~216px) + boton 96px +
+              gap — y la celda queda mas ancha que el viewport (16px de scroll
+              horizontal a 320px en todas las paginas). */}
+          <div className="min-w-0 lg:col-span-2">
             <p className="text-sm font-black tracking-[0.22em] text-nixon-ink uppercase">
               Nixon Studio
             </p>

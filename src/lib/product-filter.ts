@@ -1,5 +1,6 @@
 import type { Product } from "@/features/products/types";
 import { normalizeCategory } from "@/lib/categories";
+import { normalizeSearchText } from "@/lib/search-suggestions";
 import { shuffle } from "@/lib/utils";
 
 export type SortOption = "newest" | "price-asc" | "price-desc";
@@ -16,7 +17,11 @@ export interface ProductFilters {
 
 export function filterProducts(products: Product[], filters: ProductFilters): Product[] {
   const category = filters.category ?? "all";
-  const query = (filters.search ?? "").trim().toLowerCase();
+  // Mismo criterio que las sugerencias del navbar (`normalizeSearchText`):
+  // sin acentos ni mayusculas, para que "edicion" encuentre "Edición". El
+  // filtro de la pagina de resultados es la version laxa (substring, un solo
+  // termino) del ranking por tokens que usa el buscador.
+  const query = normalizeSearchText(filters.search ?? "");
   const min = filters.minPrice ?? null;
   const max = filters.maxPrice ?? null;
   const size = filters.size ?? null;
@@ -27,7 +32,7 @@ export function filterProducts(products: Product[], filters: ProductFilters): Pr
     if (category !== "all" && normalizeCategory(product.category) !== normalizedCategory) return false;
 
     if (query) {
-      const haystack = `${product.name} ${product.description}`.toLowerCase();
+      const haystack = normalizeSearchText(`${product.name} ${product.description}`);
       if (!haystack.includes(query)) return false;
     }
 

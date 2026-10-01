@@ -67,7 +67,12 @@ export default function ProductRevealBanner({ products }: ProductRevealBannerPro
   }
 
   return (
-    <section className="bg-nixon-bg-deep py-16 sm:py-24">
+    // overflow-hidden (igual que el <section> del Hero) recorta el
+    // translateX(±96px) del estado `hidden` de cada card: sin este clip la
+    // transform extendia el scroll horizontal de la pagina y en mobile
+    // aparecian 80-96px de scroll lateral antes de que la seccion entrara
+    // en viewport.
+    <section className="overflow-hidden bg-nixon-bg-deep py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <BannerHeading />
         <motion.div
