@@ -27,7 +27,7 @@ vi.mock("@/lib/prisma", () => ({
   default: { product: { findMany, findFirst } },
 }));
 
-const { getCatalogCategories, getCatalogProductBySlug, getCatalogProducts } = await import(
+const { getCatalogCategories, getCatalogProductBySlug, getCatalogProducts, getActiveCategoryCounts } = await import(
   "./catalog"
 );
 
@@ -88,5 +88,37 @@ describe("catalog reads con reintento ante fallo de conexion", () => {
     findMany.mockRejectedValueOnce(connectionError()).mockResolvedValueOnce([{ category: "remera" }]);
     await expect(getCatalogCategories()).resolves.toEqual(["remera"]);
     expect(findMany).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("getActiveCategoryCounts", () => {
+  it("solo devuelve categorias con al menos un producto activo, con su slug", async () => {
+    findMany.mockResolvedValueOnce([
+      { category: "remera" },
+      { category: "oversize" },
+      { category: "remera" },
+      { category: "taza" },
+    ]);
+
+    const result = await getActiveCategoryCounts();
+
+    expect(result).toEqual([
+      { category: "remera", slug: "remeras-oversize", count: 3 },
+      { category: "taza", slug: "tazas-personalizadas", count: 1 },
+    ]);
+  });
+
+  it("normaliza el alias legado 'oversize' dentro de 'remera'", async () => {
+    findMany.mockResolvedValueOnce([{ category: "oversize" }]);
+    const result = await getActiveCategoryCounts();
+    expect(result).toEqual([{ category: "remera", slug: "remeras-oversize", count: 1 }]);
+  });
+
+  it("no lista una categoria sin productos (no genera pagina indexable vacia)", async () => {
+    // Solo hay productos de "remera": "buzo"/"taza"/"poster" no deben aparecer
+    // en el resultado, asi generateStaticParams no crea paginas vacias.
+    findMany.mockResolvedValueOnce([{ category: "remera" }]);
+    const result = await getActiveCategoryCounts();
+    expect(result).toEqual([{ category: "remera", slug: "remeras-oversize", count: 1 }]);
   });
 });

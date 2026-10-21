@@ -34,3 +34,33 @@ export function normalizeCategory(category: string): string {
   const normalized = category.trim().toLowerCase();
   return normalized === "oversize" ? "remera" : normalized;
 }
+
+// Slug estable por categoria canonica para la URL indexable /categoria/[slug].
+// El prefijo /categoria/ desacopla estas paginas del /products?category= que
+// ya usan navbar y filtros (que siguen funcionando como deep-link), asi no
+// colisionan. Los slugs se reservan para las 4 categorias canonicas aunque
+// hoy solo "remera" tenga productos: la pagina solo se genera para categorias
+// con al menos un producto activo (ver src/app/categoria/[slug]/page.tsx).
+export const categorySlugs: Record<string, string> = {
+  remera: "remeras-oversize",
+  buzo: "buzos",
+  taza: "tazas-personalizadas",
+  poster: "posters-aluminio",
+};
+
+const slugToCategory = new Map(
+  Object.entries(categorySlugs).map(([category, slug]) => [slug, category])
+);
+
+// Resuelve un slug de URL a la categoria canonica. Devuelve null si el slug no
+// corresponde a ninguna categoria conocida (la pagina responde 404). Tambien
+// acepta el slug heredado de la categoria "oversize" via normalizeCategory,
+// de modo que /categoria/remeras-oversize siempre cae en "remera".
+export function categoryFromSlug(slug: string): string | null {
+  const normalized = slug.trim().toLowerCase();
+  return slugToCategory.get(normalized) ?? null;
+}
+
+export function slugForCategory(category: string): string | null {
+  return categorySlugs[normalizeCategory(category)] ?? null;
+}

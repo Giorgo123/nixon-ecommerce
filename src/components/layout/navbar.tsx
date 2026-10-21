@@ -15,6 +15,13 @@ const subscribeNoop = () => () => {};
 // parpadeo por jitter (trackpads, rebote de rueda, etc.).
 const SCROLL_DIRECTION_THRESHOLD = 4;
 
+// Deep-link del dropdown "Catálogo": apunta a /products?category=..., que
+// siempre resuelve (filtro client-side, nunca 404) para las 4 categorias, aunque
+// hoy solo "remera" tenga productos. La URL canonica indexable por categoria
+// (/categoria/[slug]) se descubre por el sitemap, el breadcrumb del PDP y el
+// enlace "Ver esta categoría" que ProductCatalog muestra al filtrar por una
+// categoria concreta, evitando enlazar desde el navbar a paginas que aun no
+// existen para buzo/taza/poster.
 const catalogLinks = [
   ...productCategories.map((category) => ({
     href: `/products?category=${category}`,

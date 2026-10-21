@@ -5,7 +5,7 @@ Tienda online de indumentaria urbana/streetwear (remeras, buzos oversize, tazas,
 ## Stack
 
 - [Next.js 16](https://nextjs.org/) (App Router, Turbopack)
-- [Prisma](https://www.prisma.io/) + PostgreSQL (Railway)
+- [Prisma](https://www.prisma.io/) + PostgreSQL ([Neon](https://neon.tech/), region `sa-east-1`)
 - [Zustand](https://zustand-demo.pmnd.rs/) para el carrito (persistido en `localStorage`)
 - [Tailwind CSS 4](https://tailwindcss.com/)
 - [Mercado Pago](https://www.mercadopago.com.ar/) (Checkout Pro) para pagos
@@ -42,6 +42,11 @@ Ver `.env.example` para la lista completa. Las críticas para que el sitio funci
 - `SESSION_SECRET` — firma las sesiones de admin y los tokens de acceso a `/success`
 - `MERCADOPAGO_ACCESS_TOKEN` / `MERCADOPAGO_WEBHOOK_SECRET` — checkout y confirmación de pagos
 - `BLOB_READ_WRITE_TOKEN` — subida de imágenes desde el admin
+
+> **SEO pendiente (tareas manuales, fuera del repo):** verificar el dominio en
+> [Google Search Console](https://search.google.com/search-console) y enviar
+> `https://nixonstudio.com.ar/sitemap.xml`. El sitemap y `robots.txt` ya se
+> generan solos (`src/app/sitemap.ts`, `src/app/robots.ts`).
 
 ## Comandos
 

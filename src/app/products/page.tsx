@@ -9,9 +9,14 @@ import { getCatalogCategories, getCatalogProducts } from "@/lib/catalog";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "Catálogo completo — Nixon Studio",
+  title: "Catálogo completo",
   description:
     "Explorá el catálogo completo de Nixon Studio: remeras oversize, streetwear y dark art, con filtros por categoría, talle y precio.",
+  // Canonical fijo a /products: los deep-links de busqueda/filtro
+  // (?category=, ?search=, ?size=, etc.) apuntan a esta misma pagina con
+  // distinta query, y no deben crear URLs indexables duplicadas. La pagina de
+  // categoria propia (/categoria/[slug]) declara su propio canonical.
+  alternates: { canonical: "/products" },
 };
 
 export default async function ProductsPage() {

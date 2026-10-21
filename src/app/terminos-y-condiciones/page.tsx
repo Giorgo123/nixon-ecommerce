@@ -3,8 +3,9 @@ import type { Metadata } from "next";
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
-  title: "Términos y Condiciones — Nixon Studio",
+  title: "Términos y Condiciones",
   description: "Términos y condiciones de compra en Nixon Studio.",
+  alternates: { canonical: "/terminos-y-condiciones" },
 };
 
 export default function TerminosYCondicionesPage() {

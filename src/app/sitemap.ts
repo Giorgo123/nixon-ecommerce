@@ -1,15 +1,28 @@
 import type { MetadataRoute } from "next";
-import { getCatalogProducts } from "@/lib/catalog";
+import { getActiveCategoryCounts, getCatalogProducts } from "@/lib/catalog";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nixonstudio.com.ar";
-  const products = await getCatalogProducts();
+  const [products, activeCategories] = await Promise.all([
+    getCatalogProducts(),
+    getActiveCategoryCounts(),
+  ]);
 
   const productUrls: MetadataRoute.Sitemap = products.map((product) => ({
     url: `${siteUrl}/products/${product.slug}`,
     lastModified: product.updatedAt,
     changeFrequency: "weekly",
     priority: 0.7,
+  }));
+
+  // Solo se listan categorias con productos activos: la misma regla que usa
+  // generateStaticParams en /categoria/[slug]. Nunca se envia al sitemap una
+  // URL que responda 404.
+  const categoryUrls: MetadataRoute.Sitemap = activeCategories.map((entry) => ({
+    url: `${siteUrl}/categoria/${entry.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.8,
   }));
 
   return [
@@ -25,6 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.9,
     },
+    ...categoryUrls,
     {
       url: `${siteUrl}/contacto`,
       lastModified: new Date(),

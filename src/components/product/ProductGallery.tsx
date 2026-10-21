@@ -216,7 +216,7 @@ function ImageLightbox({ open, onClose, src, alt, hasMultiple, onPrev, onNext }:
   // en numero — bug real visto en produccion (el navbar quedaba nitido
   // arriba del overlay difuminado). El portal escapa de cualquier
   // ancestro y deja al lightbox comparando z-index directo contra el
-  // resto de la pagina, igual que CartDrawer/WhatsappButton, montados
+  // resto de la pagina, igual que CartDrawer y otros elementos del shell,
   // directo en SiteShell en vez de adentro de una pagina especifica.
   return createPortal(
     <div

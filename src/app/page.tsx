@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import HeroSection from "@/components/hero/HeroSection";
 import ProductGrid from "@/components/product/ProductGrid";
 import ValueProps from "@/components/home/ValueProps";
@@ -14,6 +15,14 @@ import { getCatalogProducts } from "@/lib/catalog";
 // Se revalida al instante cuando el admin crea/edita/borra un producto
 // (ver revalidatePath en src/app/api/products); esto es solo un respaldo.
 export const revalidate = 300;
+
+export const metadata: Metadata = {
+  // La home es la unica pagina que usa el title por defecto del layout
+  // ("Nixon Studio — Remeras Oversize"): definir `absolute` evita que el
+  // template "%s | Nixon Studio" lo duplique.
+  title: { absolute: "Nixon Studio — Remeras Oversize" },
+  alternates: { canonical: "/" },
+};
 
 export default async function Home() {
   const products = await getCatalogProducts();

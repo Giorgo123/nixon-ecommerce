@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ProductGrid from "@/components/product/ProductGrid";
 import type { Product } from "@/features/products/types";
-import { catalogFilterLabels, normalizeCategory } from "@/lib/categories";
+import { catalogFilterLabels, normalizeCategory, slugForCategory } from "@/lib/categories";
 import { filterProducts, type SortOption } from "@/lib/product-filter";
 
 interface ProductCatalogProps {
@@ -63,7 +64,18 @@ export default function ProductCatalog({ products, categories: baseCategories }:
   const hasActiveFilters =
     activeCategory !== "all" || search.trim() !== "" || minPrice !== "" || maxPrice !== "" || size !== null || onSaleOnly;
 
-  // Solo cuenta lo que vive dentro del panel de filtros (no el buscador, que
+  // Cuando el filtro identifica EXACTAMENTE una categoria (y no hay busqueda ni
+  // otros filtros encima), ofrecemos el enlace a su pagina canonica indexable
+  // /categoria/[slug]. No reemplaza ni rompe el filtro: la grilla de aca sigue
+  // igual, solo se agrega un link a la URL que Google debe preferir sobre el
+  // ?category=. Si la categoria no tiene slug propio (no deberia pasar), no se
+  // muestra el enlace y todo sigue como hoy.
+  const canonicalCategorySlug =
+    activeCategory !== "all" && !search.trim() && minPrice === "" && maxPrice === "" && size === null && !onSaleOnly
+      ? slugForCategory(activeCategory)
+      : null;
+
+  // Cuenta solo lo que vive dentro del panel de filtros (no el buscador, que
   // siempre está visible arriba) — así el número en "Filtros" del botón
   // mobile refleja exactamente lo que se despliega al tocarlo.
   const panelFilterCount = [activeCategory !== "all", minPrice !== "", maxPrice !== "", size !== null, onSaleOnly].filter(
@@ -235,10 +247,20 @@ export default function ProductCatalog({ products, categories: baseCategories }:
         <div className={`${filtersOpen ? "block" : "hidden lg:block"} lg:sticky lg:top-24`}>{sidebar}</div>
 
         <div className="space-y-6">
-          <p className="text-xs uppercase tracking-[0.15em] text-nixon-muted">
-            {filteredProducts.length} producto
-            {filteredProducts.length === 1 ? "" : "s"}
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs uppercase tracking-[0.15em] text-nixon-muted">
+              {filteredProducts.length} producto
+              {filteredProducts.length === 1 ? "" : "s"}
+            </p>
+            {canonicalCategorySlug && (
+              <Link
+                href={`/categoria/${canonicalCategorySlug}`}
+                className="text-xs font-medium text-nixon-crimson-bright hover:underline"
+              >
+                Ver {catalogFilterLabels[activeCategory] ?? activeCategory} en su página
+              </Link>
+            )}
+          </div>
 
           {filteredProducts.length > 0 ? (
             <ProductGrid products={filteredProducts} />

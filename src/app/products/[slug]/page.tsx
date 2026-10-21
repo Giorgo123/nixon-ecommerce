@@ -6,11 +6,12 @@ import ProductGallery from "@/components/product/ProductGallery";
 import Accordion from "@/components/product/Accordion";
 import TrustBox from "@/components/product/TrustBox";
 import ShareButtons from "@/components/product/ShareButtons";
+import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import { safeJsonLd } from "@/lib/utils";
 import CrossSell from "@/components/product/CrossSell";
 import InstallmentsInfo from "@/components/payments/InstallmentsInfo";
-import { getCatalogProductBySlug, getCatalogProducts } from "@/lib/catalog";
-import { catalogCategoryLabels } from "@/lib/categories";
+import { getCatalogProductBySlug, getCatalogProducts, getActiveCategoryCounts } from "@/lib/catalog";
+import { catalogCategoryLabels, slugForCategory, normalizeCategory } from "@/lib/categories";
 import { buildCrossSell } from "@/lib/product-filter";
 import {
   isSizedCategory,
@@ -51,8 +52,9 @@ export async function generateMetadata({
   const metaDescription = product.seo || product.description;
 
   return {
-    title: `${product.name} — Nixon Studio`,
+    title: product.name,
     description: metaDescription,
+    alternates: { canonical: `/products/${product.slug}` },
     openGraph: {
       title: product.name,
       description: metaDescription,
@@ -94,14 +96,24 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [product, allProducts] = await Promise.all([
+  const [product, allProducts, activeCategories] = await Promise.all([
     getCatalogProductBySlug(slug),
     getCatalogProducts(),
+    getActiveCategoryCounts(),
   ]);
 
   if (!product) {
     notFound();
   }
+
+  const normalizedCategory = normalizeCategory(product.category);
+  const categorySlug = slugForCategory(product.category);
+  // La miga apunta a la pagina de categoria SOLO si esa pagina existe de
+  // verdad (categoria con productos activos). Si no, el trail salta directo a
+  // Catalogo y nunca enlaza a una URL que responderia 404.
+  const categoryLinkable =
+    categorySlug !== null &&
+    activeCategories.some((entry) => entry.slug === categorySlug && entry.category === normalizedCategory);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nixonstudio.com.ar";
   const price = product.price.toLocaleString("es-AR");
@@ -125,6 +137,16 @@ export default async function ProductDetailPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(productJsonLd(product, totalStock)) }}
+      />
+      <Breadcrumbs
+        items={[
+          { name: "Inicio", path: "/" },
+          { name: "Catálogo", path: "/products" },
+          ...(categoryLinkable && categorySlug
+            ? [{ name: categoryLabel, path: `/categoria/${categorySlug}` }]
+            : []),
+          { name: product.name, path: `/products/${product.slug}` },
+        ]}
       />
       <div className="mb-8">
         <Link

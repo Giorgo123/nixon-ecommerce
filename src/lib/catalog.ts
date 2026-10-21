@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import type { Product } from "@/features/products/types";
-import { normalizeCategory } from "@/lib/categories";
+import { normalizeCategory, categorySlugs } from "@/lib/categories";
 import { isDatabaseConnectionError } from "@/lib/db-safe";
 
 const productInclude = {
@@ -68,6 +68,38 @@ export async function getCatalogCategories() {
   // aparezcan como dos categorias separadas en el catalogo.
   const normalized = products.map((product) => normalizeCategory(product.category));
   return Array.from(new Set(normalized));
+}
+
+// Categorias que HOY tienen al menos un producto activo, con su slug de URL
+// indexable. No alcanza con getCatalogCategories(): esa lista sale de las
+// categorias presentes en la DB, pero puede incluir una categoria sin
+// productos visibles si todos sus productos estan inactivos. Aca se cuenta
+// por productos activos, que es la unica senal que justifica crear una pagina
+// indexable (evita thin content). Devuelve tambien el conteo por categoria
+// para poder ordenar/mostrar sin otra query.
+export async function getActiveCategoryCounts(): Promise<
+  Array<{ category: string; slug: string; count: number }>
+> {
+  const products = await withConnectionRetry(() =>
+    prisma.product.findMany({
+      where: { active: true },
+      select: { category: true },
+    })
+  );
+
+  const counts = new Map<string, number>();
+  for (const product of products) {
+    const category = normalizeCategory(product.category);
+    counts.set(category, (counts.get(category) ?? 0) + 1);
+  }
+
+  return Object.entries(categorySlugs)
+    .map(([category, slug]) => ({
+      category,
+      slug,
+      count: counts.get(category) ?? 0,
+    }))
+    .filter((entry) => entry.count > 0);
 }
 
 function toProduct(product: {

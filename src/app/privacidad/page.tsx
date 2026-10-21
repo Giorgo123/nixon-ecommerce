@@ -3,8 +3,9 @@ import type { Metadata } from "next";
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
-  title: "Política de Privacidad — Nixon Studio",
+  title: "Política de Privacidad",
   description: "Cómo Nixon Studio recopila, usa y protege tus datos personales.",
+  alternates: { canonical: "/privacidad" },
 };
 
 export default function PrivacidadPage() {

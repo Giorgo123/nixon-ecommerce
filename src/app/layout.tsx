@@ -5,6 +5,13 @@ import SiteShell from "@/components/layout/SiteShell";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import { SOCIAL_LINKS } from "@/lib/constants/social";
 import { safeJsonLd } from "@/lib/utils";
+import {
+  DEFAULT_DESCRIPTION,
+  SITE_NAME,
+  defaultOpenGraph,
+  defaultTwitter,
+  getSiteUrl,
+} from "@/lib/seo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,12 +25,22 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: "Nixon Studio — Remeras Oversize",
-  description: "Ecommerce Nixon Studio: remeras oversize, streetwear y dark art.",
+  // El canonical NO se define aca a nivel global: cada pagina publica declara
+  // el suyo (incluida la home) para no heredar "/" en paginas sin metadata
+  // propia. Open Graph y Twitter si se definen globales porque son heredables
+  // y cualquier pagina sin override necesita igual un preview valido.
+  title: {
+    default: "Nixon Studio — Remeras Oversize",
+    template: "%s | Nixon Studio",
+  },
+  description: DEFAULT_DESCRIPTION,
+  applicationName: SITE_NAME,
+  openGraph: defaultOpenGraph(),
+  twitter: defaultTwitter(),
 };
 
 function organizationJsonLd() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nixonstudio.com.ar";
+  const siteUrl = getSiteUrl();
   const sameAs = [
     SOCIAL_LINKS.instagram.url,
     SOCIAL_LINKS.facebook,
