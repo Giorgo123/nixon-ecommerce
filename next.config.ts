@@ -1,35 +1,12 @@
 import type { NextConfig } from "next";
+import { buildContentSecurityPolicy } from "./src/lib/csp";
 
 // CSP sin nonce a propósito: este fork usa `src/proxy.ts` (no `middleware.ts`) y
 // las páginas públicas dependen de rendering estático/ISR (revalidate = 300).
 // Un nonce requiere rendering dinámico en toda página que lo use, lo cual
 // rompería ese ISR; y una implementación mal hecha de nonce en Next 16 puede
-// romper la hidratación. 'unsafe-inline' en script-src es necesario porque
-// GoogleAnalytics.tsx (`src/components/analytics/GoogleAnalytics.tsx`) usa un
-// script inline (`id="ga4-init"`) para inicializar gtag. No hace falta agregar
-// dominios de Mercado Pago a connect-src: toda la integración de MP es
-// fetch server-side (rutas /api/checkout/*, /api/mercadopago/*,
-// /api/webhooks/mercadopago) y el checkout es una navegación de página
-// completa al dominio de MP, no un fetch ni iframe embebido desde el browser.
-//
-// La política estricta es solo para producción. En `next dev` React necesita
-// `eval()` para reconstruir callstacks y mostrar el overlay de errores: sin
-// 'unsafe-eval' el browser lo bloquea y quedan rotos el overlay de HMR y las
-// warnings de desarrollo. Por eso 'unsafe-eval' se agrega únicamente cuando
-// NODE_ENV !== "production", y la política de producción queda intacta.
+// romper la hidratación.
 const isDev = process.env.NODE_ENV !== "production";
-
-const cspHeader = `
-  default-src 'self';
-  script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com;
-  connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://vercel.com https://*.public.blob.vercel-storage.com;
-  img-src 'self' data: blob: https://*.public.blob.vercel-storage.com;
-  style-src 'self' 'unsafe-inline';
-  font-src 'self' data:;
-  frame-ancestors 'none';
-  object-src 'none';
-  base-uri 'self';
-`;
 
 const nextConfig: NextConfig = {
   turbopack: {
@@ -54,7 +31,7 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
           {
             key: "Content-Security-Policy",
-            value: cspHeader.replace(/\s{2,}/g, " ").trim(),
+            value: buildContentSecurityPolicy(isDev),
           },
         ],
       },

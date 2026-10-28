@@ -2,11 +2,10 @@
 // WebAssembly + Web Workers — no es reproducible en este entorno de tests
 // (node/jsdom), igual que hubiera pasado con Canvas API para imágenes. Se
 // mockea el límite externo real (@ffmpeg/ffmpeg, @ffmpeg/util) y se
-// testea la lógica propia: qué comando arma, el criterio de "nunca
-// empeorar" (usar el original si la versión comprimida no achica nada),
-// manejo de errores y cleanup — no la compresión en sí, que queda a
-// cargo de ffmpeg.wasm mismo (mismo criterio que "no se re-testea que
-// Prisma sea atómico" en order.test.ts).
+// testea la lógica propia: qué comando arma, que siempre devuelve el MP4
+// convertido, manejo de errores y cleanup — no la compresión en sí, que
+// queda a cargo de ffmpeg.wasm mismo (mismo criterio que "no se re-testea
+// que Prisma sea atómico" en order.test.ts).
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const execMock = vi.fn();
@@ -44,7 +43,6 @@ vi.mock("@ffmpeg/ffmpeg", () => ({
 
 vi.mock("@ffmpeg/util", () => ({
   fetchFile: vi.fn(async () => new Uint8Array([1, 2, 3])),
-  toBlobURL: vi.fn(async (url: string) => `blob:${url}`),
 }));
 
 const { compressVideo, VideoProcessingError, MAX_VIDEO_WIDTH, VIDEO_CRF } = await import(
@@ -92,14 +90,38 @@ describe("compressVideo", () => {
     expect(result.name).toBe("clip.mp4");
   });
 
-  it("nunca empeora: si el resultado comprimido pesa igual o mas que el original, devuelve el original sin tocar", async () => {
+  it("devuelve siempre el convertido, aunque pese mas que el original", async () => {
     const input = makeFile("clip.mp4", 100);
-    readFileMock.mockResolvedValue(new Uint8Array(500)); // "comprimido" termino pesando mas
+    readFileMock.mockResolvedValue(new Uint8Array(500)); // el convertido termino pesando mas
 
     const result = await compressVideo(input);
 
-    expect(result).toBe(input);
-    expect(result.size).toBe(100);
+    expect(result).not.toBe(input);
+    expect(result.size).toBe(500);
+    expect(result.type).toBe("video/mp4");
+    expect(result.name).toBe("clip.mp4");
+  });
+
+  it("tira VideoProcessingError si la conversion produce un archivo vacio", async () => {
+    readFileMock.mockResolvedValue(new Uint8Array(0));
+
+    const input = makeFile("clip.mp4", 1000);
+
+    await expect(compressVideo(input)).rejects.toBeInstanceOf(VideoProcessingError);
+  });
+
+  it("carga el core ESM y el wasm desde el mismo origen", async () => {
+    vi.resetModules();
+    const freshModule = await import("./video-compression");
+    readFileMock.mockResolvedValue(new Uint8Array(10));
+
+    const input = makeFile("clip.mp4", 1000);
+    await freshModule.compressVideo(input);
+
+    expect(loadMock).toHaveBeenCalledWith({
+      coreURL: "/ffmpeg/ffmpeg-core.js",
+      wasmURL: "/ffmpeg/ffmpeg-core.wasm",
+    });
   });
 
   it("tira VideoProcessingError si ffmpeg.exec devuelve un codigo de error", async () => {

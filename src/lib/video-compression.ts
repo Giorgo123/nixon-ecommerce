@@ -5,13 +5,14 @@
 // una función serverless) para no arriesgar timeouts de Vercel en un
 // video pesado a mitad de recodificación — ver BACKLOG.md.
 //
-// El core de ffmpeg-core.wasm (~31MB) se sirve desde /public/ffmpeg/ (self
-// hosted, mismo origen) en vez de un CDN externo, para no tener que tocar
-// la CSP del proyecto (que ya restringe script-src/connect-src a una
-// allowlist chica) ni depender de la disponibilidad de un CDN de terceros
-// para una herramienta interna de admin.
+// El core de ffmpeg-core.js + ffmpeg-core.wasm (~31MB) se sirve desde
+// /public/ffmpeg/ (self hosted, mismo origen) en vez de un CDN externo, para
+// no tener que abrir la CSP del proyecto a un tercero ni depender de su
+// disponibilidad para una herramienta interna de admin. El JS tiene que ser
+// el build ESM oficial: @ffmpeg/ffmpeg 0.12 crea un Worker `{ type: "module" }`
+// y el build UMD no exporta el `default` que ese worker espera.
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import { fetchFile } from "@ffmpeg/util";
 
 // Lado largo máximo del video ya comprimido. 1280px (~720p) es más que
 // suficiente para un clip de showcase de producto reproducido dentro de
@@ -46,11 +47,10 @@ async function getFFmpeg(): Promise<FFmpeg> {
   if (!loadPromise) {
     loadPromise = (async () => {
       const ffmpeg = new FFmpeg();
-      const [coreURL, wasmURL] = await Promise.all([
-        toBlobURL("/ffmpeg/ffmpeg-core.js", "text/javascript"),
-        toBlobURL("/ffmpeg/ffmpeg-core.wasm", "application/wasm"),
-      ]);
-      await ffmpeg.load({ coreURL, wasmURL });
+      await ffmpeg.load({
+        coreURL: "/ffmpeg/ffmpeg-core.js",
+        wasmURL: "/ffmpeg/ffmpeg-core.wasm",
+      });
       ffmpegSingleton = ffmpeg;
       return ffmpeg;
     })().catch((error) => {
@@ -69,12 +69,11 @@ function outputFileName(originalName: string): string {
 }
 
 // Recomprime un video a H.264/AAC dentro de un contenedor mp4, con el
-// lado largo tope en MAX_VIDEO_WIDTH y calidad VIDEO_CRF. Nunca "agranda"
-// en el sentido de peso: si el resultado comprimido termina pesando igual
-// o más que el original (clip ya muy comprimido, o muy corto), se
-// descarta el resultado y se sube el original tal cual — mismo criterio
-// de "nunca empeorar lo que ya había" que se usa en la optimización de
-// imágenes (withoutEnlargement).
+// lado largo tope en MAX_VIDEO_WIDTH y calidad VIDEO_CRF. La prioridad es
+// que el video sea reproducible, no que pese menos: si la conversión es
+// exitosa se devuelve siempre el MP4 convertido, aunque pese igual o más
+// que el original (clip ya muy comprimido, o muy corto). Nunca se devuelve
+// el archivo original sin convertir.
 export async function compressVideo(
   file: File,
   onProgress?: (ratio: number) => void
@@ -133,8 +132,8 @@ export async function compressVideo(
     const bytes = typeof data === "string" ? new TextEncoder().encode(data) : new Uint8Array(data);
     const compressedBlob = new Blob([bytes], { type: "video/mp4" });
 
-    if (compressedBlob.size === 0 || compressedBlob.size >= file.size) {
-      return file;
+    if (compressedBlob.size === 0) {
+      throw new VideoProcessingError("No se pudo procesar el video: el resultado quedó vacío.");
     }
 
     return new File([compressedBlob], outputFileName(file.name), { type: "video/mp4" });
