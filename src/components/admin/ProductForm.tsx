@@ -193,17 +193,15 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
 
       let finalVideoUrl = videoUrl;
       if (videoFile) {
-        let videoToUpload = videoFile;
+        let videoToUpload: File;
         try {
           videoToUpload = await compressVideo(videoFile, (ratio) => {
             setUploadStatus(`Comprimiendo video... ${Math.round(ratio * 100)}%`);
           });
-        } catch (compressionError) {
-          // Si la compresión falla (navegador sin soporte de WASM/Workers,
-          // fallo de red bajando el compresor, etc.) no se bloquea la
-          // subida: se sube el video original sin comprimir en vez de
-          // dejar al admin sin poder cargar nada.
-          console.error("No se pudo comprimir el video, se sube sin comprimir:", compressionError);
+        } catch {
+          throw new Error(
+            "No se pudo convertir el video, así que el producto no se guardó. Probá de nuevo o con otro archivo."
+          );
         }
         setUploadStatus("Subiendo video...");
         finalVideoUrl = await uploadFile(videoToUpload, "video");
