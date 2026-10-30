@@ -86,6 +86,9 @@ export default async function AdminDashboardPage() {
         <Link href="/admin/products" className="rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-black dark:border-white/10 dark:text-white">
           Ver productos
         </Link>
+        <a href="/api/admin/newsletter/export" className="rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-black dark:border-white/10 dark:text-white">
+          Descargar suscriptores
+        </a>
       </div>
 
       {!databaseUnavailable && (

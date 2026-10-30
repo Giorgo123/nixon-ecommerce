@@ -30,9 +30,9 @@
 export function buildContentSecurityPolicy(isDev: boolean): string {
   const directives = [
     "default-src 'self'",
-    `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com`,
-    "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://vercel.com https://*.public.blob.vercel-storage.com",
-    "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com",
+    `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ""} https://connect.facebook.net https://www.googletagmanager.com`,
+    "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://vercel.com https://*.public.blob.vercel-storage.com https://www.facebook.com https://connect.facebook.net",
+    "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://www.facebook.com",
     "media-src 'self' blob: https://*.public.blob.vercel-storage.com",
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self' data:",

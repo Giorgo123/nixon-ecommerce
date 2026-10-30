@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import prisma from "@/lib/prisma";
 import { sendPaymentConfirmedEmail, sendStockConflictAlertEmail } from "@/lib/email";
+import { metaPurchaseInputFromOrder, sendMetaPurchaseEvent } from "@/lib/meta-capi";
 
 function isValidWebhookSignature(request: NextRequest, dataId: string) {
   const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
@@ -127,6 +128,17 @@ export async function POST(request: NextRequest) {
       await sendPaymentConfirmedEmail(order);
       if (stockConflict) {
         await sendStockConflictAlertEmail(order);
+      }
+
+      try {
+        await sendMetaPurchaseEvent(
+          metaPurchaseInputFromOrder(
+            order,
+            `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://nixonstudio.com.ar"}/success`
+          )
+        );
+      } catch (error) {
+        console.error("[meta-capi] No se pudo enviar el Purchase del webhook:", error);
       }
     }
 

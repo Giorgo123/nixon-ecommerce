@@ -24,6 +24,20 @@ describe("buildContentSecurityPolicy", () => {
     expect(developmentPolicy).toContain("'unsafe-eval'");
   });
 
+  it("autoriza los orígenes de Meta Pixel y Conversions API", () => {
+    for (const policy of [productionPolicy, developmentPolicy]) {
+      const directives = policy.split("; ");
+      const scriptSrc = directives.find((directive) => directive.startsWith("script-src ")) ?? "";
+      const connectSrc = directives.find((directive) => directive.startsWith("connect-src ")) ?? "";
+      const imgSrc = directives.find((directive) => directive.startsWith("img-src ")) ?? "";
+
+      expect(scriptSrc).toContain("https://connect.facebook.net");
+      expect(connectSrc).toContain("https://www.facebook.com");
+      expect(connectSrc).toContain("https://connect.facebook.net");
+      expect(imgSrc).toContain("https://www.facebook.com");
+    }
+  });
+
   it("mantiene intactas las directivas de seguridad existentes", () => {
     for (const policy of [productionPolicy, developmentPolicy]) {
       expect(policy).toContain("default-src 'self';");

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SiteShell from "@/components/layout/SiteShell";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import MetaPixel from "@/components/analytics/MetaPixel";
 import { SOCIAL_LINKS } from "@/lib/constants/social";
 import { safeJsonLd } from "@/lib/utils";
 
@@ -72,6 +73,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: safeJsonLd(organizationJsonLd()) }}
         />
         <GoogleAnalytics />
+        <MetaPixel />
         <SiteShell>{children}</SiteShell>
       </body>
     </html>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ProductActions from "@/components/product/ProductActions";
+import ViewContentTracker from "@/components/analytics/ViewContentTracker";
 import ProductGallery from "@/components/product/ProductGallery";
 import Accordion from "@/components/product/Accordion";
 import TrustBox from "@/components/product/TrustBox";
@@ -125,6 +126,12 @@ export default async function ProductDetailPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(productJsonLd(product, totalStock)) }}
+      />
+      <ViewContentTracker
+        productId={product.id}
+        productName={product.name}
+        price={product.price}
+        variantId={product.variants[0]?.id}
       />
       <div className="mb-8">
         <Link

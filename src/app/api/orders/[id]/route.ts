@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { isAdminSessionActive } from "@/lib/admin-session";
 import { verifyOrderAccessToken } from "@/lib/order-token";
 import { releaseOrderStock } from "@/lib/order";
+import { metaPurchaseInputFromOrder, sendMetaPurchaseEvent } from "@/lib/meta-capi";
 
 const orderWithItemsInclude = {
   items: { include: { variant: { include: { product: true } } } },
@@ -54,6 +55,11 @@ export async function PUT(
   const { id } = await params;
   const body = (await request.json()) as { status?: string; trackingInfo?: string };
 
+  const previousStatus =
+    body.status === "paid"
+      ? (await prisma.order.findUnique({ where: { id }, select: { status: true } }))?.status
+      : undefined;
+
   const data: { status?: string; trackingInfo?: string | null } = {};
 
   if (body.status !== undefined) {
@@ -83,6 +89,23 @@ export async function PUT(
     data,
     include: orderWithItemsInclude,
   });
+
+  if (
+    body.status === "paid" &&
+    previousStatus !== "paid" &&
+    previousStatus !== "paid_stock_conflict"
+  ) {
+    try {
+      await sendMetaPurchaseEvent(
+        metaPurchaseInputFromOrder(
+          order,
+          `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://nixonstudio.com.ar"}/success`
+        )
+      );
+    } catch (error) {
+      console.error("[meta-capi] No se pudo enviar el Purchase del admin:", error);
+    }
+  }
 
   return NextResponse.json(order);
 }

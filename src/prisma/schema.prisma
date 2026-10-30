@@ -105,3 +105,11 @@ model OrderItem {
   variantId String
   variant   ProductVariant @relation(fields: [variantId], references: [id])
 }
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
