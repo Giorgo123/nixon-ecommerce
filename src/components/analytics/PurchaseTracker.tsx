@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { trackEvent } from "@/lib/analytics";
+import { isPaidStatus } from "@/lib/order-status";
 import type { Order } from "@/types/order";
 
 interface PurchaseTrackerProps {
@@ -14,6 +15,24 @@ interface PurchaseTrackerProps {
 // ecommerce lo disparan.
 export default function PurchaseTracker({ order }: PurchaseTrackerProps) {
   useEffect(() => {
+    if (!isPaidStatus(order.status)) {
+      return;
+    }
+
+    // Deduplica por sesión: la página de éxito puede montarse más de una vez
+    // (recarga, navegación hacia atrás), pero el purchase debe contarse una
+    // sola vez por orden. Si el almacenamiento está bloqueado, se dispara una
+    // vez por montaje como degradación aceptada.
+    const storageKey = `purchase_tracked:${order.id}`;
+    try {
+      if (window.sessionStorage.getItem(storageKey)) {
+        return;
+      }
+      window.sessionStorage.setItem(storageKey, "1");
+    } catch {
+      // sessionStorage bloqueado: se sigue adelante con el evento.
+    }
+
     trackEvent("purchase", {
       transaction_id: order.id,
       currency: "ARS",
@@ -28,7 +47,7 @@ export default function PurchaseTracker({ order }: PurchaseTrackerProps) {
       })),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order.id]);
+  }, [order.id, order.status]);
 
   return null;
 }

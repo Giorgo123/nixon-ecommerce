@@ -18,6 +18,17 @@ export function absoluteUrl(path: string): string {
   return `${getSiteUrl()}${normalized}`;
 }
 
+// URLs de assets (imagenes) que pueden venir ya absolutas desde el storage
+// (Blob devuelve una URL completa) o como ruta relativa cargada desde el
+// admin. Las absolutas se conservan tal cual; las relativas se resuelven con
+// el dominio del sitio, conservando el query string. La cadena vacía se
+// conserva vacía para no inventar "/" cuando no hay imagen.
+export function absoluteAssetUrl(url: string): string {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return absoluteUrl(url);
+}
+
 export const SITE_NAME = "Nixon Studio";
 
 export const DEFAULT_OG_IMAGE = "/opengraph-image";

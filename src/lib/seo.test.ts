@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   DEFAULT_OG_IMAGE,
   DEFAULT_SITE_URL,
+  absoluteAssetUrl,
   absoluteUrl,
   buildBreadcrumbJsonLd,
   defaultOpenGraph,
@@ -44,6 +45,51 @@ describe("absoluteUrl", () => {
     expect(absoluteUrl("categoria/remeras-oversize")).toBe(
       "https://nixonstudio.com.ar/categoria/remeras-oversize"
     );
+  });
+});
+
+describe("absoluteAssetUrl", () => {
+  it("deja intacta una URL absoluta http", () => {
+    process.env.NEXT_PUBLIC_SITE_URL = "https://nixonstudio.com.ar";
+    expect(absoluteAssetUrl("http://cdn.example.com/img.jpg")).toBe(
+      "http://cdn.example.com/img.jpg"
+    );
+  });
+
+  it("deja intacta una URL absoluta https", () => {
+    process.env.NEXT_PUBLIC_SITE_URL = "https://nixonstudio.com.ar";
+    expect(absoluteAssetUrl("https://abc.public.blob.vercel-storage.com/img.jpg")).toBe(
+      "https://abc.public.blob.vercel-storage.com/img.jpg"
+    );
+  });
+
+  it("prefija el dominio a una ruta relativa con barra inicial", () => {
+    process.env.NEXT_PUBLIC_SITE_URL = "https://nixonstudio.com.ar";
+    expect(absoluteAssetUrl("/img.jpg")).toBe("https://nixonstudio.com.ar/img.jpg");
+  });
+
+  it("prefija el dominio a una ruta relativa sin barra inicial", () => {
+    process.env.NEXT_PUBLIC_SITE_URL = "https://nixonstudio.com.ar";
+    expect(absoluteAssetUrl("img.jpg")).toBe("https://nixonstudio.com.ar/img.jpg");
+  });
+
+  it("conserva el query string de una URL absoluta", () => {
+    process.env.NEXT_PUBLIC_SITE_URL = "https://nixonstudio.com.ar";
+    expect(absoluteAssetUrl("https://cdn.example.com/img.jpg?v=2&w=800")).toBe(
+      "https://cdn.example.com/img.jpg?v=2&w=800"
+    );
+  });
+
+  it("conserva el query string de una ruta relativa", () => {
+    process.env.NEXT_PUBLIC_SITE_URL = "https://nixonstudio.com.ar";
+    expect(absoluteAssetUrl("/img.jpg?v=2")).toBe(
+      "https://nixonstudio.com.ar/img.jpg?v=2"
+    );
+  });
+
+  it("devuelve cadena vacía para cadena vacía", () => {
+    process.env.NEXT_PUBLIC_SITE_URL = "https://nixonstudio.com.ar";
+    expect(absoluteAssetUrl("")).toBe("");
   });
 });
 

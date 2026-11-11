@@ -2,13 +2,22 @@ import prisma from "@/lib/prisma";
 import { assertCouponUsable, computeDiscount, normalizeCouponCode, CouponError } from "@/lib/coupon";
 import { sendAbandonedCartEmail } from "@/lib/email";
 import { isValidEmail } from "@/lib/validations";
+import { RELEASABLE_STATUSES } from "@/lib/order-status";
 import { MAX_QUANTITY_PER_ITEM } from "@/store/cart.store";
+
+export { RELEASABLE_STATUSES };
 
 // Cuanto tiempo se reserva el stock de una orden "pending" antes de
 // liberarse solo. 30 min: no hay un numero "oficial" que publique
 // Mercado Libre/Mercado Pago, pero es el rango tipico (15-30 min) que usan
 // Tiendanube/Shopify/WooCommerce para checkout sincronico. Ajustable acá.
 export const PENDING_ORDER_TTL_MINUTES = 30;
+
+// La transferencia se acredita a mano (el admin la confirma recién cuando ve
+// el dinero en la cuenta), así que damos mucho más margen que al checkout
+// sincrónico de Mercado Pago. 72 h evitan liberar el stock de una
+// transferencia que todavía puede estar en camino.
+export const PENDING_TRANSFER_TTL_HOURS = 72;
 
 const orderWithItemsInclude = {
   items: { include: { variant: { include: { product: true } } } },
@@ -17,44 +26,64 @@ const orderWithItemsInclude = {
 export class StockError extends Error {}
 export class OrderValidationError extends Error {}
 
-// Barrido perezoso: libera el stock de pedidos "pending" mas viejos que el
-// TTL. Se llama al crear cada orden nueva en vez de depender de un cron
-// (el proyecto no tiene infraestructura de jobs todavia), asi que el costo
-// es proporcional a la cantidad de pedidos vencidos, normalmente 0.
-export async function releaseExpiredPendingOrders() {
-  const cutoff = new Date(Date.now() - PENDING_ORDER_TTL_MINUTES * 60 * 1000);
+// Barrido perezoso: libera el stock de pedidos pendientes mas viejos que su
+// TTL. Cubre las dos cohortes: Mercado Pago ("pending", 30 min) y
+// transferencia ("pending_transfer", 72 h porque se acredita a mano). Se
+// llama al crear cada orden nueva en vez de depender de un cron (el proyecto
+// no tiene infraestructura de jobs todavia), asi que el costo es proporcional
+// a la cantidad de pedidos vencidos, normalmente 0.
+//
+// `now` es inyectable para testear los bordes de tiempo sin depender del reloj
+// real. Devuelve cuántas órdenes se liberaron efectivamente, no cuántas se
+// encontraron: otra pasada u otro proceso pudo reclamarlas entre el `findMany`
+// y el helper, y esas no se cuentan ni reciben email.
+export async function releaseExpiredPendingOrders(now: Date = new Date()) {
+  const pendingCutoff = new Date(now.getTime() - PENDING_ORDER_TTL_MINUTES * 60 * 1000);
+  const transferCutoff = new Date(now.getTime() - PENDING_TRANSFER_TTL_HOURS * 60 * 60 * 1000);
+
   const expired = await prisma.order.findMany({
-    where: { status: "pending", createdAt: { lt: cutoff } },
+    where: {
+      OR: [
+        { status: "pending", createdAt: { lt: pendingCutoff } },
+        { status: "pending_transfer", createdAt: { lt: transferCutoff } },
+      ],
+    },
     include: orderWithItemsInclude,
   });
 
+  let releasedCount = 0;
   for (const order of expired) {
-    await prisma.$transaction([
-      ...order.items.map((item) =>
-        prisma.productVariant.update({
-          where: { id: item.variantId },
-          data: { stock: { increment: item.quantity } },
-        })
-      ),
-      prisma.order.update({ where: { id: order.id }, data: { status: "expired" } }),
-    ]);
+    const { released } = await releaseOrderReservation(order.id, "expired");
+    if (!released) continue;
 
+    releasedCount += 1;
     await sendAbandonedCartEmail(order);
   }
 
-  return expired.length;
+  return releasedCount;
 }
 
-const RELEASABLE_STATUSES = ["pending", "pending_transfer"];
-
-// Libera el stock reservado por una orden puntual (usado por el boton
-// "cancelar" del admin). No hace nada si la orden ya no esta en un estado
-// "pendiente" (pending o pending_transfer) — evita liberar dos veces si ya
-// se libero por TTL o si ya estaba pagada/cancelada.
-export async function releaseOrderStock(orderId: string) {
-  await prisma.$transaction(async (tx) => {
+// Libera la reserva (stock + cupón) de una orden puntual. Es el único dueño
+// de revertir una reserva: lo usan la cancelación administrativa, el barrido
+// de vencidas, la compensación del checkout y el webhook.
+//
+// La idempotencia no depende de leer el estado: dentro de la transacción se
+// reclama la orden con un `updateMany` condicionado a que siga en un estado
+// releasable. Si `count === 0` (orden inexistente, ya pagada o ya liberada por
+// otro proceso), no se toca stock ni cupón y se devuelve `released: false`.
+export async function releaseOrderReservation(
+  orderId: string,
+  finalStatus: "cancelled" | "expired" | "refunded"
+): Promise<{ released: boolean }> {
+  return prisma.$transaction(async (tx) => {
     const order = await tx.order.findUnique({ where: { id: orderId }, include: { items: true } });
-    if (!order || !RELEASABLE_STATUSES.includes(order.status)) return;
+    if (!order) return { released: false };
+
+    const claimed = await tx.order.updateMany({
+      where: { id: orderId, status: { in: [...RELEASABLE_STATUSES] } },
+      data: { status: finalStatus },
+    });
+    if (claimed.count === 0) return { released: false };
 
     for (const item of order.items) {
       await tx.productVariant.update({
@@ -62,6 +91,86 @@ export async function releaseOrderStock(orderId: string) {
         data: { stock: { increment: item.quantity } },
       });
     }
+
+    if (order.couponCode) {
+      // `gt: 0` evita dejar el contador en negativo. Si el cupón ya no existe
+      // o estaba en cero, el update no matchea y la liberación sigue igual.
+      await tx.coupon.updateMany({
+        where: { code: order.couponCode, usedCount: { gt: 0 } },
+        data: { usedCount: { decrement: 1 } },
+      });
+    }
+
+    return { released: true };
+  });
+}
+
+// Revive una orden cuya reserva ya se había liberado (vencida o cancelada)
+// cuando Mercado Pago confirma un pago tarde o el admin confirma una
+// transferencia. Vuelve a descontar stock y a consumir el cupón: el cobro ya
+// existe y no se puede rechazar, así que si algún ítem no alcanza se confirma
+// igual y queda como conflicto para revisión manual.
+//
+// `refunded` queda deliberadamente fuera del reclamo: un reembolso de una orden
+// pagada nunca liberó stock ni cupón, así que revivirla los descontaría dos
+// veces. Tampoco se re-reserva una orden ya pagada.
+//
+// `paymentId` es opcional: el webhook lo pasa, la confirmación manual del admin
+// lo omite y conserva el que ya estaba guardado.
+//
+// La idempotencia la da el reclamo condicionado por estado: sólo la primera
+// notificación encuentra la orden revivible. Si otro webhook ya la reclamó (o
+// la orden no era revivible), `count === 0` y se devuelve `null` sin tocar
+// stock, cupón ni enviar email.
+export async function reReserveOrder(orderId: string, paymentId?: string) {
+  return prisma.$transaction(async (tx) => {
+    const claimed = await tx.order.updateMany({
+      where: { id: orderId, status: { in: ["expired", "cancelled"] } },
+      data: paymentId ? { status: "paid", paymentId } : { status: "paid" },
+    });
+    if (claimed.count === 0) return null;
+
+    const order = await tx.order.findUnique({
+      where: { id: orderId },
+      include: orderWithItemsInclude,
+    });
+    if (!order) return null;
+
+    let stockConflict = false;
+    for (const item of order.items) {
+      const reserved = await tx.productVariant.updateMany({
+        where: { id: item.variantId, stock: { gte: item.quantity } },
+        data: { stock: { decrement: item.quantity } },
+      });
+      if (reserved.count === 0) stockConflict = true;
+    }
+
+    if (order.couponCode) {
+      // Sin tope por `maxUses`: el pago ya está cobrado. Si el cupón ya no
+      // existe, `updateMany` no matchea; la orden se confirma igual pero se
+      // deja registro para revisar el contador a mano.
+      const reconsumed = await tx.coupon.updateMany({
+        where: { code: order.couponCode },
+        data: { usedCount: { increment: 1 } },
+      });
+      if (reconsumed.count === 0) {
+        console.warn("No se pudo re-consumir el cupón al re-reservar la orden", {
+          orderId,
+          couponCode: order.couponCode,
+        });
+      }
+    }
+
+    if (stockConflict) {
+      const conflicted = await tx.order.update({
+        where: { id: orderId },
+        data: { status: "paid_stock_conflict" },
+        include: orderWithItemsInclude,
+      });
+      return { order: conflicted, stockConflict };
+    }
+
+    return { order, stockConflict };
   });
 }
 
@@ -213,9 +322,9 @@ export async function createPendingOrder(input: {
         discountAmount,
         totalPrice,
         // Las ordenes por transferencia no pasan por Mercado Pago, asi que
-        // no tienen el TTL de 30 min (releaseExpiredPendingOrders solo mira
-        // status="pending"): la transferencia puede tardar mas y el admin
-        // las confirma a mano cuando ve el dinero acreditado.
+        // tienen su propio TTL mas largo (72 h): el admin las confirma a mano
+        // cuando ve el dinero acreditado. releaseExpiredPendingOrders cubre
+        // ambas cohortes con cortes distintos.
         status: paymentMethod === "transfer" ? "pending_transfer" : "pending",
         items: {
           create: orderItemsData,

@@ -8,6 +8,7 @@ import TrustBox from "@/components/product/TrustBox";
 import ShareButtons from "@/components/product/ShareButtons";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import { safeJsonLd } from "@/lib/utils";
+import { absoluteAssetUrl } from "@/lib/seo";
 import CrossSell from "@/components/product/CrossSell";
 import InstallmentsInfo from "@/components/payments/InstallmentsInfo";
 import { getCatalogProductBySlug, getCatalogProducts, getActiveCategoryCounts } from "@/lib/catalog";
@@ -33,12 +34,6 @@ export async function generateStaticParams() {
   }));
 }
 
-function absoluteImageUrl(image: string) {
-  if (image.startsWith("http")) return image;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nixonstudio.com.ar";
-  return `${siteUrl}${image}`;
-}
-
 export async function generateMetadata({
   params,
 }: {
@@ -58,7 +53,7 @@ export async function generateMetadata({
     openGraph: {
       title: product.name,
       description: metaDescription,
-      images: [product.image, ...product.images].map(absoluteImageUrl),
+      images: [product.image, ...product.images].map(absoluteAssetUrl),
     },
   };
 }
@@ -71,7 +66,7 @@ function productJsonLd(product: Product, totalStock: number) {
     "@type": "Product",
     name: product.name,
     description: product.description,
-    image: [product.image, ...product.images].map(absoluteImageUrl),
+    image: [product.image, ...product.images].map(absoluteAssetUrl),
     sku: product.id,
     category: catalogCategoryLabels[product.category] ?? product.category,
     offers: {
@@ -255,7 +250,7 @@ export default async function ProductDetailPage({
           <ShareButtons
             url={`${siteUrl}/products/${product.slug}`}
             title={product.name}
-            image={absoluteImageUrl(product.image)}
+            image={absoluteAssetUrl(product.image)}
           />
         </div>
       </div>

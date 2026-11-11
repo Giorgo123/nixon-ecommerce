@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import prisma from "@/lib/prisma";
 import { sendPaymentConfirmedEmail, sendStockConflictAlertEmail } from "@/lib/email";
+import { reReserveOrder, releaseOrderReservation } from "@/lib/order";
+import { isPaidStatus, isReleasableStatus, mapMercadoPagoStatus } from "@/lib/order-status";
 
 function isValidWebhookSignature(request: NextRequest, dataId: string) {
   const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
@@ -69,72 +71,145 @@ export async function POST(request: NextRequest) {
     }
 
     const payment = await fetchPayment(String(paymentId));
-    const orderId = payment.external_reference;
 
+    // Traducir primero evita que un estado nuevo de Mercado Pago termine
+    // escrito tal cual en `order.status`.
+    const mapped = mapMercadoPagoStatus(payment.status);
+    if (!mapped) {
+      return NextResponse.json({ ok: true });
+    }
+
+    const orderId = payment.external_reference;
     if (!orderId) {
       return NextResponse.json({ ok: true });
     }
 
-    const existingOrder = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: { items: true },
-    });
-
-    if (!existingOrder) {
+    const existing = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!existing) {
       return NextResponse.json({ ok: true });
     }
 
-    const isApproved = payment.status === "approved";
-    const alreadyPaid = existingOrder.status === "paid" || existingOrder.status === "paid_stock_conflict";
-
-    let order;
-    let stockConflict = false;
-
-    if (isApproved && existingOrder.status === "expired") {
-      // El TTL ya liberó este stock (el pago tardó más de lo esperado).
-      // Intentamos re-reservarlo; si no alcanza, igual confirmamos el pago
-      // — nunca se ignora un cobro real — y queda marcado para revisar.
-      stockConflict = await prisma.$transaction(async (tx) => {
-        let conflict = false;
-        for (const item of existingOrder.items) {
-          const res = await tx.productVariant.updateMany({
-            where: { id: item.variantId, stock: { gte: item.quantity } },
-            data: { stock: { decrement: item.quantity } },
-          });
-          if (res.count === 0) conflict = true;
-        }
-        return conflict;
-      });
-
-      order = await prisma.order.update({
-        where: { id: orderId },
-        data: {
-          status: stockConflict ? "paid_stock_conflict" : "paid",
-          paymentId: payment.id,
-        },
-        include: orderWithItemsInclude,
-      });
-    } else {
-      const newStatus = isApproved ? "paid" : payment.status;
-      order = await prisma.order.update({
-        where: { id: orderId },
-        data: { status: newStatus, paymentId: payment.id },
-        include: orderWithItemsInclude,
-      });
+    // Reembolsada es terminal: no revive con un pago tardío ni acepta
+    // notificaciones posteriores. La reserva de un reembolso de orden pagada
+    // nunca se liberó, así que revivirla volvería a descontar stock/cupón.
+    if (existing.status === "refunded") {
+      return NextResponse.json({ ok: true });
     }
 
-    if (isApproved && !alreadyPaid) {
-      await sendPaymentConfirmedEmail(order);
-      if (stockConflict) {
-        await sendStockConflictAlertEmail(order);
+    // Una orden pagada no se degrada. El único cambio permitido es el
+    // reembolso, que no devuelve stock: la reserva ya se consumió al pagar.
+    if (isPaidStatus(existing.status)) {
+      if (mapped.status === "refunded") {
+        await prisma.order.updateMany({
+          where: { id: orderId },
+          data: { status: "refunded", paymentId: payment.id },
+        });
       }
+      return NextResponse.json({ ok: true });
+    }
+
+    // La reserva ya se liberó (vencida o cancelada). Sólo un pago aprobado la
+    // revive; las notificaciones tardías de otros estados no deben tocar stock
+    // ni cupón. `refunded` se resolvió arriba y no revive nunca.
+    if (existing.status === "cancelled" || existing.status === "expired") {
+      if (mapped.status !== "paid") {
+        return NextResponse.json({ ok: true });
+      }
+
+      const revived = await reReserveOrder(orderId, payment.id);
+      if (!revived) {
+        return NextResponse.json({ ok: true });
+      }
+
+      await sendPaymentConfirmedEmail(revived.order);
+      if (revived.stockConflict) {
+        await sendStockConflictAlertEmail(revived.order);
+      }
+      return NextResponse.json({ ok: true });
+    }
+
+    // La orden todavía tiene la reserva activa.
+    if (isReleasableStatus(existing.status)) {
+      if (mapped.status === "paid") {
+        // Reclamo atómico: si otro webhook ya la pasó a pagada, no se duplica
+        // el email ni se vuelve a mover stock/cupón.
+        const claimed = await prisma.order.updateMany({
+          where: { id: orderId, status: { in: ["pending", "pending_transfer"] } },
+          data: { status: "paid", paymentId: payment.id },
+        });
+
+        if (claimed.count === 1) {
+          const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            include: orderWithItemsInclude,
+          });
+          if (order) {
+            await sendPaymentConfirmedEmail(order);
+          }
+          return NextResponse.json({ ok: true });
+        }
+
+        // El claim falló porque otro proceso movió la orden entre la lectura
+        // y el update (por ejemplo, el barrido la venció o un admin la
+        // canceló). Se re-lee para decidir: si quedó sin reserva, se revive
+        // igual que un pago tardío; si ya está pagada/reembolsada, otro
+        // camino ya se hizo cargo y no hay que duplicar el email.
+        const latest = await prisma.order.findUnique({
+          where: { id: orderId },
+          select: { status: true },
+        });
+        if (latest?.status === "cancelled" || latest?.status === "expired") {
+          const revived = await reReserveOrder(orderId, payment.id);
+          if (revived) {
+            await sendPaymentConfirmedEmail(revived.order);
+            if (revived.stockConflict) {
+              await sendStockConflictAlertEmail(revived.order);
+            }
+          }
+        }
+        return NextResponse.json({ ok: true });
+      }
+
+      if (mapped.releasesReservation) {
+        await releaseOrderReservation(
+          orderId,
+          mapped.status === "refunded" ? "refunded" : "cancelled"
+        );
+        await prisma.order.updateMany({
+          where: { id: orderId },
+          data: { paymentId: payment.id },
+        });
+        return NextResponse.json({ ok: true });
+      }
+
+      if (mapped.status === "pending") {
+        // No degradar una transferencia (72 h) al TTL corto de Mercado Pago
+        // (30 min): sólo se guarda el pago, el estado se conserva.
+        await prisma.order.updateMany({
+          where: { id: orderId },
+          data:
+            existing.status === "pending_transfer"
+              ? { paymentId: payment.id }
+              : { status: "pending", paymentId: payment.id },
+        });
+      }
+      return NextResponse.json({ ok: true });
+    }
+
+    // Cualquier otro estado no se degrada; sólo un reembolso puede moverlo a
+    // refunded (los estados pagados ya se resolvieron arriba).
+    if (mapped.status === "refunded") {
+      await prisma.order.updateMany({
+        where: { id: orderId },
+        data: { status: "refunded", paymentId: payment.id },
+      });
     }
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Webhook error" },
-      { status: 500 }
-    );
+    // Mercado Pago reintenta ante un 5xx; el detalle queda en los logs del
+    // servidor, no en la respuesta.
+    console.error("Error procesando el webhook de Mercado Pago", error);
+    return NextResponse.json({ error: "Webhook error" }, { status: 500 });
   }
 }

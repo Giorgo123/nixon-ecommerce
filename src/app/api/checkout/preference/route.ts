@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { createPendingOrder, StockError, OrderValidationError } from "@/lib/order";
+import {
+  createPendingOrder,
+  releaseOrderReservation,
+  StockError,
+  OrderValidationError,
+} from "@/lib/order";
+import { absoluteAssetUrl } from "@/lib/seo";
 import { CouponError, allocateDiscountedUnitPrices } from "@/lib/coupon";
 import { sendOrderReceivedEmail } from "@/lib/email";
 import { createOrderAccessToken } from "@/lib/order-token";
@@ -21,6 +27,22 @@ type PendingOrderItem = {
     };
   };
 };
+
+// Compensa una orden cuyo checkout no pudo completarse: libera stock y cupón
+// con el mismo helper idempotente que usan el barrido de vencidas y la
+// cancelación administrativa. El catch es propio para que un fallo al liberar
+// no oculte el error original; si la liberación falla, el barrido programado
+// la recupera.
+async function releaseOrderAfterCheckoutFailure(orderId: string) {
+  try {
+    await releaseOrderReservation(orderId, "cancelled");
+  } catch (releaseError) {
+    console.error(
+      "No se pudo liberar la reserva de la orden tras fallar el checkout",
+      { orderId, error: releaseError }
+    );
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,6 +69,25 @@ export async function POST(request: NextRequest) {
 
     const order = await createPendingOrder({ customer, items, couponCode });
 
+    // El token se calcula después de crear la orden y antes de llamar a
+    // Mercado Pago: si falta SESSION_SECRET, se compensa la reserva y se
+    // responde un error propio de checkout, no uno de conexión a MP.
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+    let successUrl: string;
+    try {
+      successUrl = `${siteUrl}/success?orderId=${order.id}&token=${createOrderAccessToken(order.id)}`;
+    } catch (error) {
+      console.error("No se pudo generar el token de acceso de la orden", {
+        orderId: order.id,
+        error,
+      });
+      await releaseOrderAfterCheckoutFailure(order.id);
+      return NextResponse.json(
+        { error: "No se pudo iniciar el checkout" },
+        { status: 500 }
+      );
+    }
+
     const discountedUnitPrices = allocateDiscountedUnitPrices(
       order.items.map((item: PendingOrderItem) => ({ price: item.price, quantity: item.quantity })),
       order.discountAmount
@@ -58,7 +99,7 @@ export async function POST(request: NextRequest) {
         ? `${item.variant.product.name} - Talle ${item.variant.size}`
         : item.variant.product.name,
       description: item.variant.product.description,
-      picture_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}${item.variant.product.image}`,
+      picture_url: absoluteAssetUrl(item.variant.product.image),
       category_id: item.variant.product.category,
       quantity: item.quantity,
       currency_id: "ARS",
@@ -88,9 +129,9 @@ export async function POST(request: NextRequest) {
             email: customer?.email,
           },
           back_urls: {
-            success: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/success?orderId=${order.id}&token=${createOrderAccessToken(order.id)}`,
-            pending: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/checkout?status=pending`,
-            failure: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/checkout?status=failure`,
+            success: successUrl,
+            pending: `${siteUrl}/checkout?status=pending`,
+            failure: `${siteUrl}/checkout?status=failure`,
           },
           auto_return: "approved",
           external_reference: order.id,
@@ -107,6 +148,7 @@ export async function POST(request: NextRequest) {
         }),
       });
     } catch (fetchError) {
+      await releaseOrderAfterCheckoutFailure(order.id);
       const timedOut = fetchError instanceof Error && fetchError.name === "TimeoutError";
       return NextResponse.json(
         {
@@ -119,6 +161,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (!response.ok) {
+      // Se compensa antes de leer el body del error: si esa lectura fallara,
+      // la orden ya quedó liberada igual.
+      await releaseOrderAfterCheckoutFailure(order.id);
       const errorBody = await response.text();
       return NextResponse.json(
         { error: "No se pudo crear la preferencia", details: errorBody },
@@ -126,7 +171,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const preference = (await response.json()) as { init_point: string };
+    let preference: { init_point?: unknown };
+    try {
+      preference = await response.json();
+    } catch {
+      await releaseOrderAfterCheckoutFailure(order.id);
+      return NextResponse.json(
+        { error: "No se pudo crear la preferencia" },
+        { status: 502 }
+      );
+    }
+
+    const initPoint = preference?.init_point;
+    if (typeof initPoint !== "string" || initPoint.trim() === "") {
+      await releaseOrderAfterCheckoutFailure(order.id);
+      return NextResponse.json(
+        { error: "No se pudo crear la preferencia" },
+        { status: 502 }
+      );
+    }
 
     // El mail de "pedido recibido" se manda solo aca, ya confirmado que
     // Mercado Pago devolvio un link de pago real. Si se mandaba antes y
@@ -135,7 +198,7 @@ export async function POST(request: NextRequest) {
     // ya estaba hecho.
     await sendOrderReceivedEmail(order);
 
-    return NextResponse.json({ initPoint: preference.init_point });
+    return NextResponse.json({ initPoint });
   } catch (error) {
     if (error instanceof StockError) {
       return NextResponse.json({ error: error.message }, { status: 409 });

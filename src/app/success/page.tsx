@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import type { Order } from "@/types/order";
 import { BANK_TRANSFER_INFO } from "@/lib/constants";
 import PurchaseTracker from "@/components/analytics/PurchaseTracker";
@@ -6,6 +7,10 @@ import { parseJsonResponse } from "@/lib/utils";
 import { getWhatsappUrl } from "@/lib/constants/social";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 const statusLabels: Record<string, string> = {
   pending: "pendiente de pago",
